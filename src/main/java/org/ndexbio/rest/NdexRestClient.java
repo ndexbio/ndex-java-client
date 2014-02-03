@@ -6,8 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
 
 import org.apache.commons.codec.binary.Base64;
 

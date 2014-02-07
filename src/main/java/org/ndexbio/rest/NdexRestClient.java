@@ -85,7 +85,7 @@ public class NdexRestClient {
 		return result;
 	}
 	
-	public JsonNode put(final String route, final String resourceContent)
+	public JsonNode put(final String route, final JsonNode putData)
 			throws JsonProcessingException, IOException {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -95,10 +95,15 @@ public class NdexRestClient {
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		addBasicAuth(con);
 		
+		String putDataString = putData.toString();
+		
 		con.setDoOutput(true);
 		con.setRequestMethod("PUT");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Accept", "application/json");
 		OutputStreamWriter out = new OutputStreamWriter(con.getOutputStream());
-		out.write(resourceContent);
+		out.write(putDataString);
+		out.flush();
 		out.close();
 
 		InputStream is = con.getInputStream();

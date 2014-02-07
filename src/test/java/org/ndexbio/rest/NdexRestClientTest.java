@@ -34,10 +34,10 @@ public class NdexRestClientTest {
 		while (elements.hasNext()){
 			JsonNode resource = elements.next();
 			System.out.println(resource.get("requestType") + "  " + resource.get("path"));
-			System.out.println("implemented by: " + resource.get("methodName") + "(" + resource.get("parameterTypes") + ")");
+			System.out.println("   implemented by: " + resource.get("methodName") + "(" + resource.get("parameterTypes") + ")");
             String consumes = resource.get("consumes").textValue();
             if (null != consumes){
-            	System.out.println("consumes: " + consumes);
+            	System.out.println("   consumes: " + consumes);
             }
 			//System.out.println(response.toString());
 			
@@ -45,7 +45,8 @@ public class NdexRestClientTest {
 		
 		
 	}
-	
+
+	/*
 	@Test
 	public void testStatus() throws Exception {
 		JsonNode status = client.get("/networks/status", "");
@@ -53,13 +54,15 @@ public class NdexRestClientTest {
 		System.out.println(status.get("userCount") + " users");
 		System.out.println(status.get("groupCount") + " groups");
 	}
+	*/
 	
 	@Test
 	public void testFindNetworksByProperty() throws Exception {
 		Iterator<JsonNode> networks = findNetworksByProperty("Source", "Protein Interaction Database", "=", 10);
+		System.out.println("\n______\nNetworks:");
 		while (networks.hasNext()){
 			JsonNode network = networks.next();
-			System.out.println(network.get("name") + "  " + network.get("edgeCount"));	
+			System.out.println(network.get("name") + "  (edge count = " + network.get("edgeCount") + ")");	
 		}
 	}
 
@@ -77,21 +80,27 @@ public class NdexRestClientTest {
 		return elements;	
 	}
 	
+	private Iterator<JsonNode> findTermsInNetworkByNamespace(String namespacePrefix, String networkId) throws JsonProcessingException, IOException{
+		String termQueryRoute = "/networks/" + networkId + "/namespaces";
+		ObjectMapper mapper = new ObjectMapper();
+		ArrayNode namespaces = mapper.createArrayNode(); // will be of type ObjectNode
+		namespaces.add(namespacePrefix);
+		JsonNode response = client.post(termQueryRoute, namespaces);
+		Iterator<JsonNode> elements = response.elements();
+		return elements;
+	}
+	
 	@Test
 	public void testFindTermsInNetworkByNamespace() throws Exception {
-		Iterator<JsonNode> networks = findNetworksByProperty("Source", "Protein Interaction Database", "=", 1);
-		if (networks.hasNext()){
+		Iterator<JsonNode> networks = findNetworksByProperty("Source", "Protein Interaction Database", "=", 10);
+		while (networks.hasNext()){
 			JsonNode network = networks.next();
-			System.out.println("\n______\n" + network.get("name").asText() + "  " + network.get("id").asText());
-			String termQueryRoute = "/networks/" + network.get("id").asText() + "/namespaces";
-			ObjectMapper mapper = new ObjectMapper();
-			ArrayNode namespaces = mapper.createArrayNode(); // will be of type ObjectNode
-			namespaces.add("HGNC");
-			JsonNode response = client.post(termQueryRoute, namespaces);
-			Iterator<JsonNode> elements = response.elements();
+			System.out.println("\n______\n" + network.get("name").asText() + "  id = " + network.get("id").asText() + "\nTerms:");
+			
+			Iterator<JsonNode> elements = findTermsInNetworkByNamespace("HGNC", network.get("id").asText());
 			while (elements.hasNext()){
 				JsonNode term = elements.next();
-				System.out.println(term.get("name").asText() + "  " + term.get("id").asText());
+				System.out.println(" " + term.get("name").asText() + "\t  id = " + term.get("id").asText());
 			}
 			
 		}

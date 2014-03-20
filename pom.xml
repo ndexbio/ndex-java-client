@@ -28,5 +28,10 @@
 			<artifactId>junit-dep</artifactId>
 			<version>4.10</version>
 		</dependency>
+		<dependency>
+			<groupId>org.ndexbio.model.object</groupId>
+			<artifactId>ndex-object-model</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
   </dependencies>
 </project>

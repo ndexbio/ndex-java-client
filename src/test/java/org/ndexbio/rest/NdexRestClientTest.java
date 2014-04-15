@@ -13,7 +13,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 
 public class NdexRestClientTest {
-
+	/*
 	private NdexRestClient client;
 	private NdexRestClientModelAccessLayer mal;
 		
@@ -27,6 +27,7 @@ public class NdexRestClientTest {
 	public void tearDown() throws Exception {
 	}
 
+	
 	@Test
 	public void testApi() throws Exception {
 		JsonNode response = client.get("/networks/api", "");
@@ -45,6 +46,7 @@ public class NdexRestClientTest {
 		
 		
 	}
+	*/
 
 	/*
 	@Test
@@ -55,7 +57,7 @@ public class NdexRestClientTest {
 		System.out.println(status.get("groupCount") + " groups");
 	}
 	*/
-	
+/*	
 	@Test
 	public void testFindNetworksByName() throws Exception {
 		List<Network> networks = mal.findNetworksByText("BEL", "contains", 10, 0);
@@ -88,6 +90,6 @@ public class NdexRestClientTest {
 		}
 		
 	}
-
+*/
 
 }

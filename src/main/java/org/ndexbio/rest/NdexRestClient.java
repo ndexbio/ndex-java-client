@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Collection;
 
@@ -28,21 +27,29 @@ public class NdexRestClient {
 	// for authorization
 	String _username = null;
 	String _password = null;
+	String _userUid = null;
 
 	String _baseroute = null;
 
 	public NdexRestClient(String username, String password, String route) {
+		super();
+		System.out.println("Starting init of NDExRestClient " );
 		_baseroute = route;
 		_username = username;
 		_password = password;
-
+		System.out.println("init of NDExRestClient with " + _baseroute + "  " + _username + " " + password);
 	}
 
 	public NdexRestClient(String username, String password) {
+		super();
+		System.out.println("Starting init of NDExRestClient " );
+
 		// Default to localhost, standard location for testing
 		_baseroute = "http://localhost:8080/ndexbio-rest";
 		_username = username;
 		_password = password;
+		System.out.println("init of NDExRestClient with " + _baseroute + "  " + _username + " " + password);
+
 
 	}
 	
@@ -58,6 +65,8 @@ public class NdexRestClient {
 		this._username = username;
 		this._password = password;
 	}
+	
+
 
 	/**
 	 * 
@@ -219,10 +228,36 @@ public class NdexRestClient {
 		return result;
 	}
 
+	public String getUsername() {
+		return _username;
+	}
 
-	
+	public void setUsername(String _username) {
+		this._username = _username;
+	}
 
+	public String getPassword() {
+		return _password;
+	}
 
+	public void setPassword(String _password) {
+		this._password = _password;
+	}
 
+	public String getBaseroute() {
+		return _baseroute;
+	}
+
+	public void setBaseroute(String _baseroute) {
+		this._baseroute = _baseroute;
+	}
+
+	public String getUserUid() {
+		return _userUid;
+	}
+
+	public void setUserUid(String _userUid) {
+		this._userUid = _userUid;
+	}
 
 }

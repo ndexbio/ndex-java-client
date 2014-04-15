@@ -14,6 +14,7 @@ import org.ndexbio.model.object.Edge;
 import org.ndexbio.model.object.Namespace;
 import org.ndexbio.model.object.NdexDataModelService;
 import org.ndexbio.model.object.Network;
+import org.ndexbio.model.object.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,6 +27,7 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 {
 	NdexRestClient ndexRestClient = null;
 	ObjectMapper objectMapper = null;
+	User currentUser = null;
 
 	public NdexRestClientModelAccessLayer(NdexRestClient client) {
 		super();
@@ -38,7 +40,7 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		return null;
 	}
 
-	public Iterable<Citation> getCitationsByNetworkId(String networkId) {
+	public List<Citation> getCitationsByNetworkId(String networkId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -48,12 +50,12 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		return null;
 	}
 
-	public Iterable<Edge> getEdgesBySupportId(String supportId) {
+	public List<Edge> getEdgesBySupportId(String supportId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Iterable<Namespace> getNamespacesByNetworkId(String networkId) {
+	public List<Namespace> getNamespacesByNetworkId(String networkId) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -69,6 +71,29 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public void setCredential(String username, String password) {
+		ndexRestClient.setCredential(username, password);
+		
+	}
+	
+	public boolean checkCredential(){
+		try {
+			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
+			JsonNode currentUser = ndexRestClient.get("users/authenticate/" + ndexRestClient.getUsername() + "/" + ndexRestClient.getPassword(), "");
+			if (null == currentUser || null == currentUser.get("Id")) return false;
+			ndexRestClient.setUserUid(currentUser.get("Id").textValue());
+			return true;
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+		
 	}
 	
 	// Simple search by name and description
@@ -128,6 +153,18 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		con.disconnect();
 		return network;
 	}
+	
+	public Network getNetworkByNonEdgeNodes(String networkId, int skipBlocks,
+			int nodesPerBlock) throws IOException {
+		String route = "/networks/nodes/" + networkId + "/" + skipBlocks + "/" + nodesPerBlock; 
+		HttpURLConnection con = ndexRestClient.getReturningConnection(route, "");
+		InputStream inputStream = con.getInputStream();
+		Network network = objectMapper.readValue(inputStream, Network.class);
+		//inputStream.close();
+		con.getOutputStream().close();
+		con.disconnect();
+		return network;
+	}
 
 	public Network createNetwork(Network network) throws Exception {
 		String route = "/networks"; 
@@ -159,17 +196,11 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		}
 	}
 
-	public Network getNetworkByNonEdgeNodes(String networkId, int skipBlocks,
-			int nodesPerBlock) throws IOException {
-		String route = "/networks/nodes/" + networkId + "/" + skipBlocks + "/" + nodesPerBlock; 
-		HttpURLConnection con = ndexRestClient.getReturningConnection(route, "");
-		InputStream inputStream = con.getInputStream();
-		Network network = objectMapper.readValue(inputStream, Network.class);
-		inputStream.close();
-		con.getOutputStream().close();
-		con.disconnect();
-		return network;
-	}
+
+
+
+
+
 
 
 

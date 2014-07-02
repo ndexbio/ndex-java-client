@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.ndexbio.model.object.network.BaseTerm;
@@ -13,13 +14,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 
 public class NdexRestClientTest {
-	/*
+	
 	private NdexRestClient client;
 	private NdexRestClientModelAccessLayer mal;
 		
 	@Before
 	public void setUp() throws Exception {
-		client = new NdexRestClient("dexterpratt", "insecure");
+		client = new NdexRestClient("Support", "probably-insecure"); //("dexterpratt", "insecure");
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 
@@ -27,7 +28,15 @@ public class NdexRestClientTest {
 	public void tearDown() throws Exception {
 	}
 
-	
+	@Test
+	public void testAuthentication() throws Exception {
+		
+		boolean b = mal.checkCredential();
+		
+		Assert.assertTrue(b);
+	}
+
+/*	
 	@Test
 	public void testApi() throws Exception {
 		JsonNode response = client.get("/networks/api", "");

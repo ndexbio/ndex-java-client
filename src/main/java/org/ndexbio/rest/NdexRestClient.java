@@ -7,6 +7,7 @@ import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Collection;
+import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
 import org.ndexbio.model.object.network.Network;
@@ -27,7 +28,7 @@ public class NdexRestClient {
 	// for authorization
 	String _username = null;
 	String _password = null;
-	String _userUid = null;
+	UUID _userUid = null;
 
 	String _baseroute = null;
 
@@ -252,11 +253,11 @@ public class NdexRestClient {
 		this._baseroute = _baseroute;
 	}
 
-	public String getUserUid() {
+	public UUID getUserUid() {
 		return _userUid;
 	}
 
-	public void setUserUid(String _userUid) {
+	public void setUserUid(UUID _userUid) {
 		this._userUid = _userUid;
 	}
 

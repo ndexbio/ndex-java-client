@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.List;
+import java.util.UUID;
 
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
@@ -81,9 +82,9 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 	public boolean checkCredential(){
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
-			JsonNode currentUser = ndexRestClient.get("users/authenticate/" + ndexRestClient.getUsername() + "/" + ndexRestClient.getPassword(), "");
-			if (null == currentUser || null == currentUser.get("Id")) return false;
-			ndexRestClient.setUserUid(currentUser.get("Id").textValue());
+			JsonNode currentUser = ndexRestClient.get("/users/authenticate/" + ndexRestClient.getUsername() + "/" + ndexRestClient.getPassword(), "");
+			if (null == currentUser || null == currentUser.get("externalId")) return false;
+			ndexRestClient.setUserUid(UUID.fromString(currentUser.get("externalId").textValue()));
 			return true;
 		} catch (JsonProcessingException e) {
 			// TODO Auto-generated catch block

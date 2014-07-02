@@ -4,14 +4,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.model.object.BaseTerm;
-import org.ndexbio.model.object.Citation;
-import org.ndexbio.model.object.Edge;
-import org.ndexbio.model.object.MetadataObject;
-import org.ndexbio.model.object.Namespace;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.MetadataObject;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.NdexObject;
-import org.ndexbio.model.object.Network;
-import org.ndexbio.model.object.Node;
+import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.Node;
 
 public class NetworkBuilder {
 	
@@ -29,12 +30,12 @@ public class NetworkBuilder {
 		maxId = (long) 0;
 		idMap = new HashMap<Long, NdexObject>();
 		identifierMap = new HashMap<String, Long>();
-		try {
+	/*	try {
 			localNamespace = findOrCreateNamespace(null, null);
 		} catch (ExecutionException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} */
 	}
 	
 	private Long getNextId(){
@@ -53,21 +54,25 @@ public class NetworkBuilder {
 	 *  Properties
 	 */
 	
-	public void addNetworkProperty(String property, Object value) {
-		network.getMetadata().put(property, value.toString());
+	public void addNetworkProperty(String property, String value) {
+		NdexProperty p = new NdexProperty();
+		p.setPredicateString(property);
+		p.setValue(value);
+		network.getProperties().add(p);
 		
 	}
 	
+	/*
 	public void addProperty(MetadataObject object, String property, Object value) {
 		object.getMetadata().put(property, value.toString());
 		
-	}
+	}*/
 
 	/*
 	 *  Namespaces
 	 */
 
-	public Namespace findOrCreateNamespace(String uri, String prefix)
+/*	public Namespace findOrCreateNamespace(String uri, String prefix)
 			throws ExecutionException {
 		
 		String myURI = uri;
@@ -142,13 +147,13 @@ public class NetworkBuilder {
 		if (prefix.equals("UniProt")) return "http://identifiers.org/uniprot/";
 		return null;
 	}
-	
+*/	
 	/*
 	 *  BaseTerms
 	 */
 	
 	
-	public BaseTerm findOrCreateBaseTerm(String name) throws ExecutionException {
+/*	public BaseTerm findOrCreateBaseTerm(String name) throws ExecutionException {
 		return findOrCreateBaseTerm(name, localNamespace);
 	}
 	
@@ -249,7 +254,7 @@ public class NetworkBuilder {
 
 
 	
-
+*/
 
 
 

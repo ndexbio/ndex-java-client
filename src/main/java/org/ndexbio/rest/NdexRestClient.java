@@ -9,7 +9,7 @@ import java.net.URL;
 import java.util.Collection;
 
 import org.apache.commons.codec.binary.Base64;
-import org.ndexbio.model.object.Network;
+import org.ndexbio.model.object.network.Network;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;

@@ -6,8 +6,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.ndexbio.model.object.BaseTerm;
-import org.ndexbio.model.object.Network;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Network;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

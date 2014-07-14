@@ -7,6 +7,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -35,11 +36,18 @@ public class NdexRestClientTest {
 		boolean b = mal.checkCredential();
 		
 		Assert.assertTrue(b);
-		
+	
+		// example of search.
 		List<NetworkSummary> s = mal.findNetworkSummariesByText("*",0,3);
 		System.out.println(s.get(0).getName());
+		
+		// example of get server status.
+		NdexStatus status = mal.getServerStatus();
+		System.out.println(status.getNetworkCount());
 	}
 
+	
+	
 /*	
 	@Test
 	public void testApi() throws Exception {

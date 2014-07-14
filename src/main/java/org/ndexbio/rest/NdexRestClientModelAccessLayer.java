@@ -15,6 +15,7 @@ import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.NdexDataModelService;
+import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.User;
 
@@ -134,7 +135,19 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		return networks;
 	}
 	
-	
+    public NdexStatus getServerStatus() throws IOException {
+    	String route = "/admin/status" ;
+
+    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
+		InputStream inputStream = con.getInputStream();
+		NdexStatus status = this.objectMapper.readValue(inputStream, NdexStatus.class);
+		inputStream.close();
+		con.disconnect();
+
+		return status;
+    	
+    }
+    
 	public List<Network> findNetworksByProperty(String property, String value, String operator, Integer maxNetworks) throws JsonProcessingException, IOException{
 		String route = "/networks/search/exact-match"; // exact-match is not relevant, but its a required part of the route
 		String searchString = "[" + property + "]" + operator + "\"" + value + "\"";
@@ -217,7 +230,7 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 		}
 	}
 
-
+ 
 
 
 

@@ -13,6 +13,7 @@ import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.NdexDataModelService;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.User;
@@ -114,6 +115,25 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 
 		return networks;
 	}
+
+	// Simple search
+	public List<NetworkSummary> findNetworkSummariesByText(String searchString, Integer blockSize, Integer skipBlocks) 
+			throws JsonProcessingException, IOException {
+		String route = "/network/search/" + blockSize+"/"+skipBlocks;		
+		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
+		((ObjectNode) postData).put("searchString", searchString);
+		((ObjectNode) postData).put("top", blockSize.toString());
+		((ObjectNode) postData).put("skip", skipBlocks.toString());
+
+		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
+		InputStream inputStream = con.getInputStream();
+		List<NetworkSummary> networks = objectMapper.readValue(inputStream, new TypeReference<List<NetworkSummary>>() { });
+		inputStream.close();
+		con.disconnect();
+
+		return networks;
+	}
+	
 	
 	public List<Network> findNetworksByProperty(String property, String value, String operator, Integer maxNetworks) throws JsonProcessingException, IOException{
 		String route = "/networks/search/exact-match"; // exact-match is not relevant, but its a required part of the route

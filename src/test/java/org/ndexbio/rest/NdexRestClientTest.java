@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.NetworkSummary;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -34,6 +35,9 @@ public class NdexRestClientTest {
 		boolean b = mal.checkCredential();
 		
 		Assert.assertTrue(b);
+		
+		List<NetworkSummary> s = mal.findNetworkSummariesByText("*",0,3);
+		System.out.println(s.get(0).getName());
 	}
 
 /*	

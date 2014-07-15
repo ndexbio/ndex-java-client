@@ -11,6 +11,7 @@ import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -32,6 +33,10 @@ public class NdexRestClientTest {
 
 	@Test
 	public void testAuthentication() throws Exception {
+		
+		PropertyGraphNetwork pn = mal.getPropertyGraphNetwork("5164cf01-0942-11e4-8380-90b11c72aefa", 1000, 0);
+		
+		System.out.println(pn);
 		
 		boolean b = mal.checkCredential();
 		

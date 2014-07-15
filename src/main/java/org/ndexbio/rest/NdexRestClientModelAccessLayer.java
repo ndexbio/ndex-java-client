@@ -14,6 +14,7 @@ import org.ndexbio.model.object.network.Citation;
 import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.model.object.NdexDataModelService;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
@@ -26,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class NdexRestClientModelAccessLayer implements NdexDataModelService 
+public class NdexRestClientModelAccessLayer // implements NdexDataModelService 
 {
 	NdexRestClient ndexRestClient = null;
 	ObjectMapper objectMapper = null;
@@ -41,6 +42,23 @@ public class NdexRestClientModelAccessLayer implements NdexDataModelService
 	public Network getNetworkById(String networkId) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+	
+	public PropertyGraphNetwork getPropertyGraphNetwork(String networkUUID, int blockSize, int skipBlocks) throws JsonProcessingException, IOException {
+		String route = "/network/"+networkUUID + "/asPropertyGraph/query/" + skipBlocks +"/" +blockSize ;		
+		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
+		((ObjectNode) postData).put("searchString", "");
+		((ObjectNode) postData).put("top", blockSize);
+		((ObjectNode) postData).put("skip", skipBlocks);
+
+		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
+		InputStream inputStream = con.getInputStream();
+		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
+		inputStream.close();
+		con.disconnect();
+
+		return network;
+
 	}
 
 	public List<Citation> getCitationsByNetworkId(String networkId) {

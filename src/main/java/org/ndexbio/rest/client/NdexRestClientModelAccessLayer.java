@@ -1,10 +1,9 @@
-package org.ndexbio.rest;
+package org.ndexbio.rest.client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.UUID;
@@ -15,7 +14,6 @@ import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
-import org.ndexbio.model.object.NdexDataModelService;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.User;
@@ -44,14 +42,18 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return null;
 	}
 	
-	public PropertyGraphNetwork getPropertyGraphNetwork(String networkUUID, int blockSize, int skipBlocks) throws JsonProcessingException, IOException {
-		String route = "/network/"+networkUUID + "/asPropertyGraph/query/" + skipBlocks +"/" +blockSize ;		
+	public PropertyGraphNetwork getPropertyGraphNetwork(String networkUUID, int skipBlocks, int blockSize) throws JsonProcessingException, IOException {
+/*		String route = "/network/"+networkUUID + "/asPropertyGraph/query/" + skipBlocks +"/" +blockSize ;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", "");
 		((ObjectNode) postData).put("top", blockSize);
 		((ObjectNode) postData).put("skip", skipBlocks);
 
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
+*/
+		String route = "/network/"+networkUUID + "/edge/asPropertyGraph/" + skipBlocks +"/" +blockSize ;		
+		
+    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
 		InputStream inputStream = con.getInputStream();
 		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
 		inputStream.close();
@@ -136,13 +138,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 
 	// Simple search
-	public List<NetworkSummary> findNetworkSummariesByText(String searchString, Integer blockSize, Integer skipBlocks) 
+	public List<NetworkSummary> findNetworkSummariesByText(String searchString,  int skipBlocks, int blockSize) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/search/" + blockSize+"/"+skipBlocks;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
-		((ObjectNode) postData).put("top", blockSize.toString());
-		((ObjectNode) postData).put("skip", skipBlocks.toString());
+		((ObjectNode) postData).put("top", blockSize);
+		((ObjectNode) postData).put("skip", skipBlocks);
 
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
 		InputStream inputStream = con.getInputStream();

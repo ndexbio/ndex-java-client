@@ -1,4 +1,4 @@
-package org.ndexbio.rest;
+package org.ndexbio.rest.client;
 
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +12,8 @@ import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
+import org.ndexbio.rest.client.NdexRestClient;
+import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -34,7 +36,8 @@ public class NdexRestClientTest {
 	@Test
 	public void testAuthentication() throws Exception {
 		
-		PropertyGraphNetwork pn = mal.getPropertyGraphNetwork("5164cf01-0942-11e4-8380-90b11c72aefa", 1000, 0);
+		PropertyGraphNetwork pn = 
+		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);
 		
 		System.out.println(pn);
 		

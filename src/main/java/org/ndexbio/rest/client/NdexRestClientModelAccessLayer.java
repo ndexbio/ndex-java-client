@@ -114,6 +114,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
 		}
 		return false;
 		

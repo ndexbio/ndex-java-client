@@ -7,11 +7,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.PropertyGraphEdge;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
+import org.ndexbio.model.object.network.PropertyGraphNode;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
@@ -37,8 +40,19 @@ public class NdexRestClientTest {
 	public void testAuthentication() throws Exception {
 		
 		PropertyGraphNetwork pn = 
-		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);
+//		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);
+		mal.getPropertyGraphNetwork("0d243e8f-11fb-11e4-b55f-90b11c72aefa", 0,12);
 		
+		for ( PropertyGraphNode n : pn.getNodes().values()) {
+			System.out.println ("node id: "+ n.getId());
+			for (NdexProperty p : n.getProperties()) {
+				System.out.println("\t" + p.getPredicateString() + ": " + p.getValue());
+			}
+			
+		}
+		for (PropertyGraphEdge e : pn.getEdges()) {
+			System.out.println("Edge:" + e.getSubjectId() + "->" + e.getPredicate() + "->" + e.getObjectId());
+		}
 		System.out.println(pn);
 		
 		boolean b = mal.checkCredential();
@@ -46,7 +60,7 @@ public class NdexRestClientTest {
 		Assert.assertTrue(b);
 	
 		// example of search.
-		List<NetworkSummary> s = mal.findNetworkSummariesByText("*",0,3);
+		List<NetworkSummary> s = mal.findNetworkSummariesByText("*", "Support", 0,3);
 		System.out.println(s.get(0).getName());
 		
 		// example of get server status.

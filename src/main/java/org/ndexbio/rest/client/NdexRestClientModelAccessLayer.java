@@ -104,7 +104,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public boolean checkCredential(){
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
-			JsonNode currentUser = ndexRestClient.get("/users/authenticate/" + ndexRestClient.getUsername() + "/" + ndexRestClient.getPassword(), "");
+			JsonNode currentUser = ndexRestClient.get("/user/authenticate/" + ndexRestClient.getUsername() + "/" + ndexRestClient.getPassword(), "");
 			if (null == currentUser || null == currentUser.get("externalId")) return false;
 			ndexRestClient.setUserUid(UUID.fromString(currentUser.get("externalId").textValue()));
 			return true;
@@ -139,14 +139,26 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return networks;
 	}
 
-	// Simple search
-	public List<NetworkSummary> findNetworkSummariesByText(String searchString,  int skipBlocks, int blockSize) 
+	/**
+	 * Search for networks by keywords
+	 * @param searchString
+	 * @param accountName if the accountName is not null, only networks that are administrated by this account is
+	 *        returned. This argument will be ignored if it is null. 
+	 * @param skipBlocks
+	 * @param blockSize
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
+	public List<NetworkSummary> findNetworkSummariesByText(String searchString,  String accountName,
+			int skipBlocks, int blockSize) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/search/" + blockSize+"/"+skipBlocks;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
-		((ObjectNode) postData).put("top", blockSize);
-		((ObjectNode) postData).put("skip", skipBlocks);
+		((ObjectNode) postData).put("accountName", accountName);
+//		((ObjectNode) postData).put("top", blockSize);
+//		((ObjectNode) postData).put("skip", skipBlocks);
 
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
 		InputStream inputStream = con.getInputStream();

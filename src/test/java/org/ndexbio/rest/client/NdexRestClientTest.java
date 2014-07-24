@@ -41,8 +41,8 @@ public class NdexRestClientTest {
 		
 		PropertyGraphNetwork pn = 
 //		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);
-		mal.getPropertyGraphNetwork("0d243e8f-11fb-11e4-b55f-90b11c72aefa", 0,12);
-		
+	//	mal.getPropertyGraphNetwork("0d243e8f-11fb-11e4-b55f-90b11c72aefa", 0,12);
+		mal.getPropertyGraphNetwork("d9ed6aa1-1364-11e4-8b0d-90b11c72aefa", 0,12);
 		for ( PropertyGraphNode n : pn.getNodes().values()) {
 			System.out.println ("node id: "+ n.getId());
 			for (NdexProperty p : n.getProperties()) {
@@ -54,6 +54,24 @@ public class NdexRestClientTest {
 			System.out.println("Edge:" + e.getSubjectId() + "->" + e.getPredicate() + "->" + e.getObjectId());
 		}
 		System.out.println(pn);
+		
+		int i = 0;
+		for ( NdexProperty p : pn.getProperties()) {
+			if ( p.getPredicateString().equals(PropertyGraphNetwork.uuid) ) {
+				break;
+			}
+			i++;
+		}
+		pn.getProperties().remove(i);
+		
+		NdexProperty pname = new NdexProperty();
+		pname.setPredicateString(PropertyGraphNetwork.name);
+		pname.setValue("my test network1");
+		pn.getProperties().add(pname);
+		
+		NetworkSummary summary = mal.insertPropertyGraphNetwork(pn);
+		
+        System.out.println(summary);
 		
 		boolean b = mal.checkCredential();
 		

@@ -197,6 +197,17 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		con.disconnect();
 		return networks;	
 	}
+
+	public NetworkSummary insertPropertyGraphNetwork(PropertyGraphNetwork network) throws JsonProcessingException, IOException {
+		String route = "/network/asPropertyGraph";
+		JsonNode node = objectMapper.valueToTree(network);
+		HttpURLConnection con = ndexRestClient.postReturningConnection(route, node);
+		InputStream inputStream = con.getInputStream();
+		NetworkSummary summary = objectMapper.readValue(inputStream, NetworkSummary.class);
+		inputStream.close();
+		con.disconnect();
+		return summary;
+	}
 	
 	public List<BaseTerm> findBaseTermsInNetworkByNamespace(String namespacePrefix, String networkId) throws JsonProcessingException, IOException{
 		String route = "/networks/" + networkId + "/namespaces";

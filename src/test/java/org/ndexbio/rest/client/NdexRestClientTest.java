@@ -19,6 +19,7 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class NdexRestClientTest {
@@ -38,6 +39,10 @@ public class NdexRestClientTest {
 
 	@Test
 	public void testAuthentication() throws Exception {
+		
+		Network network = mal.getEdges("b4e09a69-180c-11e4-b734-00219b422d69", 0, 12);
+		ObjectMapper mapper = new ObjectMapper();
+		System.out.println(mapper.writeValueAsString(network));
 		
 		PropertyGraphNetwork pn = 
 //		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);

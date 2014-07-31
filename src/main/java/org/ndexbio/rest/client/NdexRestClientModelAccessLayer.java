@@ -224,11 +224,16 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 
 	public Network getEdges(String id, int skipBlocks, int edgesPerBlock) throws IOException {
-		String route = "/networks/" + id + "/edges/" + skipBlocks + "/" + edgesPerBlock; 
+		String route = "/network/" + id + "/edge/asNetwork/" + skipBlocks + "/" + edgesPerBlock; 
 		HttpURLConnection con = ndexRestClient.getReturningConnection(route, "");
 		InputStream inputStream = con.getInputStream();
+/*		BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+		String inputLine;
+		while ((inputLine = in.readLine()) != null)
+		    System.out.println(inputLine);
+		in.close(); */
 		Network network = objectMapper.readValue(inputStream, Network.class);
-		//inputStream.close();
+		inputStream.close();
 		con.disconnect();
 		return network;
 	}

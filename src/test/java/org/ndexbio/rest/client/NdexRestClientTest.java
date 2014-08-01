@@ -40,7 +40,15 @@ public class NdexRestClientTest {
 	@Test
 	public void testAuthentication() throws Exception {
 		
-		Network network = mal.getEdges("b4e09a69-180c-11e4-b734-00219b422d69", 0, 12);
+	/*	NetworkSummary networksummary = mal.getNetworkSummaryById("d8c5b86a-1997-11e4-8f64-90b11c72aefa");
+		
+		System.out.println(networksummary);
+	*/	
+		//Network n0 = mal.getNeighborhood("d750c790-199e-11e4-86bd-90b11c72aefa","YGR218W", 1);
+		PropertyGraphNetwork n0 = mal.getNeighborhoodAsPropertyGraph("d750c790-199e-11e4-86bd-90b11c72aefa","YGR218W", 1);
+		System.out.println(n0);
+		
+		Network network = mal.getEdges("f6ecda26-18fc-11e4-8590-90b11c72aefa", 0, 12);
 		ObjectMapper mapper = new ObjectMapper();
 		System.out.println(mapper.writeValueAsString(network));
 		

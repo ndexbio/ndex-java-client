@@ -37,9 +37,18 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		objectMapper = new ObjectMapper();
 	}
 
-	public Network getNetworkById(String networkId) {
-		// TODO Auto-generated method stub
-		return null;
+	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException {
+		String route = "/network/"+networkId ;		
+		
+    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
+		InputStream inputStream = con.getInputStream();
+		NetworkSummary network = objectMapper.readValue(inputStream, NetworkSummary.class);
+		inputStream.close();
+		con.disconnect();
+
+		return network;
+
+	
 	}
 	
 	public PropertyGraphNetwork getPropertyGraphNetwork(String networkUUID, int skipBlocks, int blockSize) throws JsonProcessingException, IOException {
@@ -78,6 +87,38 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return null;
 	}
 
+    public Network getNeighborhood(String UUID, String queryTerm, int depth) throws JsonProcessingException, IOException {
+		String route = "/network/" + UUID +"/asNetwork/query";		
+		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
+		((ObjectNode) postData).put("searchString", queryTerm);
+		((ObjectNode) postData).put("searchDepth", depth);
+
+		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
+		InputStream inputStream = con.getInputStream();
+		Network network = objectMapper.readValue(inputStream, Network.class);
+		inputStream.close();
+		con.disconnect();
+
+		return network;
+    	
+    }
+
+    public PropertyGraphNetwork getNeighborhoodAsPropertyGraph(String UUID, String queryTerm, int depth) throws JsonProcessingException, IOException {
+		String route = "/network/" + UUID +"/asPropertyGraph/query";		
+		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
+		((ObjectNode) postData).put("searchString", queryTerm);
+		((ObjectNode) postData).put("searchDepth", depth);
+
+		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
+		InputStream inputStream = con.getInputStream();
+		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
+		inputStream.close();
+		con.disconnect();
+
+		return network;
+    }
+    
+    
 	public List<Namespace> getNamespacesByNetworkId(String networkId) {
 		// TODO Auto-generated method stub
 		return null;

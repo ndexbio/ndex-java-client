@@ -43,7 +43,7 @@ public class NdexRestClientTest {
 	/*	NetworkSummary networksummary = mal.getNetworkSummaryById("d8c5b86a-1997-11e4-8f64-90b11c72aefa");
 		
 		System.out.println(networksummary);
-	*/	
+		
 		//Network n0 = mal.getNeighborhood("d750c790-199e-11e4-86bd-90b11c72aefa","YGR218W", 1);
 		PropertyGraphNetwork n0 = mal.getNeighborhoodAsPropertyGraph("d750c790-199e-11e4-86bd-90b11c72aefa","YGR218W", 1);
 		System.out.println(n0);
@@ -53,8 +53,6 @@ public class NdexRestClientTest {
 		System.out.println(mapper.writeValueAsString(network));
 		
 		PropertyGraphNetwork pn = 
-//		mal.getPropertyGraphNetwork("c16614aa-094a-11e4-b7e2-001f3bca188f", 0,12);
-	//	mal.getPropertyGraphNetwork("0d243e8f-11fb-11e4-b55f-90b11c72aefa", 0,12);
 		mal.getPropertyGraphNetwork("d9ed6aa1-1364-11e4-8b0d-90b11c72aefa", 0,12);
 		for ( PropertyGraphNode n : pn.getNodes().values()) {
 			System.out.println ("node id: "+ n.getId());
@@ -63,6 +61,7 @@ public class NdexRestClientTest {
 			}
 			
 		}
+
 		for (PropertyGraphEdge e : pn.getEdges()) {
 			System.out.println("Edge:" + e.getSubjectId() + "->" + e.getPredicate() + "->" + e.getObjectId());
 		}
@@ -85,7 +84,7 @@ public class NdexRestClientTest {
 		NetworkSummary summary = mal.insertPropertyGraphNetwork(pn);
 		
         System.out.println(summary);
-		
+*/		
 		boolean b = mal.checkCredential();
 		
 		Assert.assertTrue(b);

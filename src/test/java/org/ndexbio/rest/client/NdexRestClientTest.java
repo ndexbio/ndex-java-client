@@ -29,7 +29,7 @@ public class NdexRestClientTest {
 		
 	@Before
 	public void setUp() throws Exception {
-		client = new NdexRestClient("Support", "probably-insecure"); //("dexterpratt", "insecure");
+		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
 		mal = new NdexRestClientModelAccessLayer(client);
 	}
 

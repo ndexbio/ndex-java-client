@@ -194,7 +194,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public List<NetworkSummary> findNetworkSummariesByText(String searchString,  String accountName,
 			int skipBlocks, int blockSize) 
 			throws JsonProcessingException, IOException {
-		String route = "/network/search/" + blockSize+"/"+skipBlocks;		
+		String route = "/network/search/" + skipBlocks+"/"+blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
 		((ObjectNode) postData).put("accountName", accountName);

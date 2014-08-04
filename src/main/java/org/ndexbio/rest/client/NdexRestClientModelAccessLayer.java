@@ -14,6 +14,7 @@ import org.ndexbio.model.object.network.Edge;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
+import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.User;
@@ -194,7 +195,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public List<NetworkSummary> findNetworkSummariesByText(String searchString,  String accountName,
 			int skipBlocks, int blockSize) 
 			throws JsonProcessingException, IOException {
-		String route = "/network/search/" + blockSize+"/"+skipBlocks;		
+		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
 		((ObjectNode) postData).put("accountName", accountName);
@@ -241,6 +242,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
 	public NetworkSummary insertPropertyGraphNetwork(PropertyGraphNetwork network) throws JsonProcessingException, IOException {
 		String route = "/network/asPropertyGraph";
+		removeUUIDFromNetwork(network);
 		JsonNode node = objectMapper.valueToTree(network);
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, node);
 		InputStream inputStream = con.getInputStream();
@@ -322,13 +324,17 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 
  
+   private void removeUUIDFromNetwork(PropertyGraphNetwork network) {
+	    int counter=0;
+	  	for ( NdexProperty p : network.getProperties()) {
+				  if ( p.getPredicateString().equals(PropertyGraphNetwork.uuid)) {
+					  network.getProperties().remove(counter);
+					  return ;
+				  }
+				  counter++;
+		}
 
-
-
-
-
-
-
+   }
 
 
 }

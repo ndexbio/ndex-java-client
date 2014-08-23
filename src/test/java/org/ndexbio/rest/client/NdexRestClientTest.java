@@ -25,12 +25,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class NdexRestClientTest {
 	
 	private NdexRestClient client;
-	private NdexRestClientModelAccessLayer mal;
+	private NdexRestClientModelAccessLayer ndex;
 		
 	@Before
 	public void setUp() throws Exception {
 		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
-		mal = new NdexRestClientModelAccessLayer(client);
+		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 
 	@After
@@ -85,16 +85,16 @@ public class NdexRestClientTest {
 		
         System.out.println(summary);
 */		
-		boolean b = mal.checkCredential();
+		boolean b = ndex.checkCredential();
 		
 		Assert.assertTrue(b);
 	
 		// example of search.
-		List<NetworkSummary> s = mal.findNetworkSummariesByText("*", "Support", 0,3);
+		List<NetworkSummary> s = ndex.findNetworks("*", "Support", 0,3);
 		System.out.println(s.get(0).getName());
 		
 		// example of get server status.
-		NdexStatus status = mal.getServerStatus();
+		NdexStatus status = ndex.getServerStatus();
 		System.out.println(status.getNetworkCount());
 	}
 

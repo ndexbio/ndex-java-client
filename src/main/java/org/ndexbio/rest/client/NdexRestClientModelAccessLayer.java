@@ -14,7 +14,6 @@ import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
-import org.ndexbio.model.object.network.Provenance;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
@@ -22,6 +21,7 @@ import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
+import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.Request;
 import org.ndexbio.model.object.RestResource;
 import org.ndexbio.model.object.SimplePathQuery;
@@ -598,22 +598,22 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get network provenance object
 //	network	GET	/network/{networkUUID}/provenance		Provenance
-	public Provenance getNetworkProvenance(
+	public ProvenanceEntity getNetworkProvenance(
 			String networkId) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/provenance";		
-		return (Provenance) ndexRestClient.getNdexObject(route, "", Provenance.class);
+		return (ProvenanceEntity) ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
 	}
 	
 	// Update network provenance object
 //	network	PUT	/network/{networkUUID}/provenance	Provenance	
-	public Provenance setNetworkProvenance(
+	public ProvenanceEntity setNetworkProvenance(
 			String networkId,
-			Provenance provenance) 
+			ProvenanceEntity provenance) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/provenance";	
 		JsonNode putData = objectMapper.valueToTree(provenance);
-		return (Provenance) ndexRestClient.putNdexObject(route, putData, Provenance.class);
+		return (ProvenanceEntity) ndexRestClient.putNdexObject(route, putData, ProvenanceEntity.class);
 	}
 	
     //-----------------------------------

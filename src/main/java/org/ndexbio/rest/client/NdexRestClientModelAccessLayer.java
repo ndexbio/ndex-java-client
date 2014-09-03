@@ -49,6 +49,10 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		ndexRestClient = client;
 		objectMapper = new ObjectMapper();
 	}
+	
+	public String getBaseRoute(){
+		return ndexRestClient.getBaseroute();
+	}
 
 	/*-----------------------------------------
 	 * 

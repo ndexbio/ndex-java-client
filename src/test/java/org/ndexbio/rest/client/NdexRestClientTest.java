@@ -1,25 +1,13 @@
 package org.ndexbio.rest.client;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.ndexbio.model.object.NdexProperty;
 import org.ndexbio.model.object.NdexStatus;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.model.object.network.PropertyGraphEdge;
-import org.ndexbio.model.object.network.PropertyGraphNetwork;
-import org.ndexbio.model.object.network.PropertyGraphNode;
-import org.ndexbio.rest.client.NdexRestClient;
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class NdexRestClientTest {

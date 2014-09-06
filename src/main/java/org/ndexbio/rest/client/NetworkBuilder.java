@@ -2,17 +2,11 @@ package org.ndexbio.rest.client;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Citation;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.MetadataObject;
-import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.NdexObject;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
-import org.ndexbio.model.object.network.Node;
 
 public class NetworkBuilder {
 	
@@ -55,7 +49,7 @@ public class NetworkBuilder {
 	 */
 	
 	public void addNetworkProperty(String property, String value) {
-		NdexProperty p = new NdexProperty();
+		NdexPropertyValuePair p = new NdexPropertyValuePair();
 		p.setPredicateString(property);
 		p.setValue(value);
 		network.getProperties().add(p);

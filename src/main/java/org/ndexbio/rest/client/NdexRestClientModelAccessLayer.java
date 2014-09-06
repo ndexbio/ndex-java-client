@@ -4,20 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
-import java.util.UUID;
 
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Citation;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.FunctionTerm;
-import org.ndexbio.model.object.network.Namespace;
-import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.model.object.network.Node;
-import org.ndexbio.model.object.network.PropertyGraphNetwork;
-import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
-import org.ndexbio.model.object.NdexProperty;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
@@ -25,17 +15,26 @@ import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.Request;
 import org.ndexbio.model.object.RestResource;
 import org.ndexbio.model.object.SimplePathQuery;
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SimpleUserQuery;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.FunctionTerm;
+import org.ndexbio.model.object.network.Namespace;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.PropertyGraphNetwork;
+import org.ndexbio.model.object.network.Support;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class NdexRestClientModelAccessLayer // implements NdexDataModelService 
@@ -581,23 +580,32 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	// Get network presentation properties
-//	network	GET	/network/{networkUUID}/presentationProperties		Property[]
+	// These are simple properties, they are not resolved to controlled vocabularies
+	// in the object model or in the storage model
+	//
+	//	network	GET	/network/{networkUUID}/presentationProperties		Property[]
+	//
 	@SuppressWarnings("unchecked")
-	public List<NdexProperty> getNetworkPresentationProperties(
+	public List<SimplePropertyValuePair> getNetworkPresentationProperties(
 			String networkId) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/presentationProperties";		
-		return (List<NdexProperty>) ndexRestClient.getNdexObjectList(route, "", NdexProperty.class);
+		return (List<SimplePropertyValuePair>) ndexRestClient.getNdexObjectList(route, "", SimplePropertyValuePair.class);
 	}
 		
 	// Get network properties
-//	network	GET	/network/{networkUUID}/properties		Property[]
+	// These are NDEx properties that are resolved to the controlled vocabulary
+	// terms (BaseTerm objects) of the network - even if the namespace is just
+	// the default local namespace of the network
+	//
+	//	network	GET	/network/{networkUUID}/properties		Property[]
+	//
 	@SuppressWarnings("unchecked")
-	public List<NdexProperty> getNetworkProperties(
+	public List<NdexPropertyValuePair> getNetworkProperties(
 			String networkId) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/properties";		
-		return (List<NdexProperty>) ndexRestClient.getNdexObjectList(route, "", NdexProperty.class);
+		return (List<NdexPropertyValuePair>) ndexRestClient.getNdexObjectList(route, "", NdexPropertyValuePair.class);
 	}
 	
 	// Get network provenance object
@@ -765,7 +773,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
     // Utility to strip UUID before writing, ensure that we create new network
     private void removeUUIDFromNetwork(PropertyGraphNetwork network) {
 	    int counter=0;
-	  	for ( NdexProperty p : network.getProperties()) {
+	  	for ( NdexPropertyValuePair p : network.getProperties()) {
 				  if ( p.getPredicateString().equals(PropertyGraphNetwork.uuid)) {
 					  network.getProperties().remove(counter);
 					  return ;

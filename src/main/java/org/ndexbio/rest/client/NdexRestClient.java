@@ -85,13 +85,12 @@ public class NdexRestClient {
 			if (null != input) {
 				result = mapper.readTree(input);
 				return result;
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
-			input.close();
-			con.disconnect();
+			if ( input != null) input.close();
+			if ( con != null) con.disconnect();
 		}
 	}
 
@@ -110,13 +109,12 @@ public class NdexRestClient {
 			input = con.getInputStream();
 			if (null != input){
 				return mapper.readValue(input, mappedClass);
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null ) con.disconnect();
 		}
 	}
 	
@@ -137,13 +135,12 @@ public class NdexRestClient {
 			input = con.getInputStream();
 			if (null != input){
 				return mapper.readValue(input, type);
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null) con.disconnect();
 		}
 	}
 
@@ -179,7 +176,7 @@ public class NdexRestClient {
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null ) con.disconnect();
 		}
 	}
 	
@@ -198,13 +195,12 @@ public class NdexRestClient {
 			input = con.getInputStream();
 			if (null != input){
 				return mapper.readValue(input, mappedClass);
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null) con.disconnect();
 		}
 	}
 
@@ -253,13 +249,12 @@ public class NdexRestClient {
 			if (null != input) {
 				result = mapper.readTree(input);
 				return result;
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null) con.disconnect();
 		}
 	}
 	
@@ -278,13 +273,12 @@ public class NdexRestClient {
 			input = con.getInputStream();
 			if (null != input){
 				return mapper.readValue(input, mappedClass);
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null ) con.disconnect();
 		}
 	}
 	
@@ -305,13 +299,12 @@ public class NdexRestClient {
 			input = con.getInputStream();
 			if (null != input){
 				return mapper.readValue(input, type);
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 
 		} finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null ) con.disconnect();
 		}
 	}
 
@@ -372,15 +365,14 @@ public class NdexRestClient {
 			if (null != input) {
 				result = mapper.readTree(input);
 				return result;
-			} else {
-				throw new IOException("failed to connect to ndex");
 			}
+			throw new IOException("failed to connect to ndex");
 	
 		}
 
 		finally {
 			if (null != input) input.close();
-			con.disconnect();
+			if ( con != null) con.disconnect();
 		}
 	}
 

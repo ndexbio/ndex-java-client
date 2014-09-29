@@ -802,8 +802,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			return objectMapper.readValue(input, PropertyGraphNetwork.class);
 
 		} finally {
-			input.close();
-			con.disconnect();
+			if ( input != null ) input.close();
+			if ( con != null )con.disconnect();
 		}
 		/*
     	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
@@ -830,8 +830,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			return objectMapper.readValue(input, PropertyGraphNetwork.class);
 
 		} finally {
-			input.close();
-			con.disconnect();
+			if ( input != null) input.close();
+			if  (con!=null) con.disconnect();
 		}
 		/*
     	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
@@ -902,8 +902,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			return objectMapper.readValue(input, PropertyGraphNetwork.class);
 
 		} finally {
-			input.close();
-			con.disconnect();
+			if ( input !=null ) input.close();
+			if ( con != null ) con.disconnect();
 		}
 /*
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);

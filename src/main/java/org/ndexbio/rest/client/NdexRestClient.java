@@ -1,5 +1,6 @@
 package org.ndexbio.rest.client;
 
+import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -317,6 +318,8 @@ public class NdexRestClient {
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 
 		String postDataString = postData.toString();
+		
+//		System.out.println(postDataString);
 
 		con.setDoOutput(true);
 		con.setDoInput(true);
@@ -324,18 +327,21 @@ public class NdexRestClient {
 		con.setRequestMethod("POST");
 		// con.setRequestProperty("Content-Type",
 		// "application/x-www-form-urlencoded");
-		con.setRequestProperty("Content-Type", "application/json");
-		con.setRequestProperty("charset", "utf-8");
-		con.setRequestProperty("Content-Length",
-				"" + Integer.toString(postDataString.getBytes().length));
+		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+		
+//		con.setRequestProperty("charset", "utf-8");
+//		con.setRequestProperty("Content-Length",
+//				"" + Integer.toString(postDataString.getBytes().length));
 		con.setUseCaches(false);
 		addBasicAuth(con);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
-		wr.writeBytes(postDataString);
-		wr.flush();
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(wr, "UTF-8"));
+		writer.write(postDataString);
+		writer.flush();
+		writer.close();
 		wr.close();
-
+		
 		return con;
 	}
 

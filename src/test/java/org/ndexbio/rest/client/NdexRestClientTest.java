@@ -17,7 +17,10 @@ public class NdexRestClientTest {
 		
 	@Before
 	public void setUp() throws Exception {
-		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
+//		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
+		client = new NdexRestClient("cjtest", "1234", 
+				"http://localhost:8080/ndexbio-rest",
+				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); 
 		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 

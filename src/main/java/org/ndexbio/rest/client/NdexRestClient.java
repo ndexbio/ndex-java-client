@@ -32,6 +32,11 @@ public class NdexRestClient {
 	UUID _userUid = null;
 
 	String _baseroute = null;
+	
+	String authenticationURL = null;
+	String SAMLResponse = null;
+	
+	AuthenticationType authnType;
 
 	public NdexRestClient(String username, String password, String route) {
 		super();
@@ -39,30 +44,92 @@ public class NdexRestClient {
 		_baseroute = route;
 		_username = username;
 		_password = password;
+		authnType = AuthenticationType.BASIC;
+		this.authenticationURL = null;
 		System.out.println("init of NDExRestClient with " + _baseroute + "  "
 				+ _username + " " + password);
 	}
 
+	@Deprecated
+	// Default to localhost, standard location for testing
 	public NdexRestClient(String username, String password) {
-		super();
-		System.out.println("Starting init of NDExRestClient ");
-
-		// Default to localhost, standard location for testing
-		_baseroute = "http://localhost:8080/ndexbio-rest";
-		_username = username;
-		_password = password;
-		System.out.println("init of NDExRestClient with " + _baseroute + "  "
-				+ _username + " " + password);
-
+		this(username,password, "http://localhost:8080/ndexbio-rest");
 	}
 
-	private void addBasicAuth(HttpURLConnection con) {
+	public NdexRestClient(String username, String password, String route, String authnURL,
+			AuthenticationType authenType) throws Exception {
+		this(username,password,route);
+		
+		this.authenticationURL = authnURL;
+		this.authnType = authenType;
+		if ( authnType == AuthenticationType.SAML)
+			getSAMLResponse();
+	}
+
+	private void getSAMLResponse() throws Exception {
+		String requestStr = NdexRestClientUtilities.encodeMessage(createSAMLRequest());
+		String encodedUserName = NdexRestClientUtilities.encodeMessage(this._username);
+		String encodedPassword = NdexRestClientUtilities.encodeMessage(this._password);
+		
+		HttpURLConnection con = postReturningConnectionString(this.authenticationURL,
+				"SAMLRequest=" + requestStr + "&username=" + encodedUserName + "&password="
+				+ encodedPassword);
+		
+		InputStream input = con.getInputStream();
+		
+		java.util.Scanner s = new java.util.Scanner(input).useDelimiter("\\A");
+		this.SAMLResponse = s.hasNext() ? s.next() : "";
+		
+		s.close();
+		input.close();
+		// check errors in response here
+		
+		if ( SAMLResponse == null || SAMLResponse.length() <2 ) {
+			throw new Exception("Failed to authenticate. No response received from IDP.");
+		}
+		
+	}
+	
+	
+	
+	private static String createSAMLRequest() {
+   	    String authnRequest = new String(NdexRestClientUtilities.SAMLRequestTemplate);
+   	    authnRequest = authnRequest.replace("<AUTHN_ID>", NdexRestClientUtilities.createID());
+   	    authnRequest = authnRequest.replace("<ISSUE_INSTANT>", NdexRestClientUtilities.getDateAndTime());
+	    return authnRequest;
+	}
+	
+/*	private void addBasicAuth(HttpURLConnection con) {
 		String credentials = _username + ":" + _password;
 		String basicAuth = "Basic "
 				+ new String(new Base64().encode(credentials.getBytes()));
 		con.setRequestProperty("Authorization", basicAuth);
-	}
+	} */
 
+	
+	private void addAuthentication(HttpURLConnection con) {
+		String authString = null;
+		switch ( this.authnType ) {
+		case BASIC:
+			String credentials = _username + ":" + _password;
+			authString = "Basic " + new String(new Base64().encode(credentials.getBytes()));
+			break;
+		case OAUTH:
+			System.out.println("OAuth authentication is not implmented yet.");
+			return;
+			//break;
+		case SAML:
+			authString = "SAML " + new String(new Base64().encode(this.SAMLResponse.getBytes()));
+			break;
+		default:
+			
+			//break;
+		}
+		con.setRequestProperty("Authorization", authString);
+		
+			
+	}
+	
 	public void setCredential(String username, String password) {
 		this._username = username;
 		this._password = password;
@@ -152,7 +219,7 @@ public class NdexRestClient {
 		System.out.println("GET (returning connection) URL = " + request);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
-		addBasicAuth(con);
+		addAuthentication(con);
 		return con;
 	}
 
@@ -214,7 +281,7 @@ public class NdexRestClient {
 		System.out.println("PUT (returning connection) URL = " + request);
 		ObjectMapper objectMapper = new ObjectMapper();
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
-		addBasicAuth(con);
+		addAuthentication(con);
 
 		con.setDoOutput(true);
 		con.setRequestMethod("PUT");
@@ -333,7 +400,7 @@ public class NdexRestClient {
 //		con.setRequestProperty("Content-Length",
 //				"" + Integer.toString(postDataString.getBytes().length));
 		con.setUseCaches(false);
-		addBasicAuth(con);
+		addAuthentication(con);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(wr, "UTF-8"));
@@ -346,6 +413,39 @@ public class NdexRestClient {
 	}
 
 
+	
+	
+	
+	private HttpURLConnection postReturningConnectionString(String route,
+			String postDataString) throws JsonProcessingException, IOException {
+
+		URL request = new URL(route);
+		System.out.println("POST (returning connection) URL = " + request);
+
+		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		con.setInstanceFollowRedirects(false);
+		con.setRequestMethod("POST");
+		 con.setRequestProperty("Content-Type",
+		 "application/x-www-form-urlencoded");
+		
+		con.setUseCaches(false);
+//		addBasicAuth(con);
+
+		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(wr, "UTF-8"));
+		writer.write(postDataString);
+		writer.flush();
+		writer.close();
+		wr.close();
+		
+		return con;
+	}
+	
+	
+	
 	/*
 	 * DELETE
 	 */
@@ -360,7 +460,7 @@ public class NdexRestClient {
 		try {
 
 			con = (HttpURLConnection) request.openConnection();
-			addBasicAuth(con);
+			addAuthentication(con);
 			con.setDoOutput(true);
 			con.setRequestProperty("Content-Type",
 					"application/x-www-form-urlencoded");

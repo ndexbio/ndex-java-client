@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
@@ -85,7 +86,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		
 	}
 	
-	public boolean checkCredential(){
+	public boolean checkCredential() throws NdexException{
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
 			User currentUser = authenticateUser(ndexRestClient.getUsername(), ndexRestClient.getPassword());
@@ -122,7 +123,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get group by id
 //			group	GET	/group/{groupUUID}		Group
-	public Group getGroup(String groupId) throws IOException {
+	public Group getGroup(String groupId) throws IOException, NdexException {
 		return (Group) ndexRestClient.getNdexObject("/group/"+groupId, "", Group.class);
 	}
 	
@@ -207,7 +208,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get a request
 //			request	GET	/request/{requestUUID}	
-	public Request getRequest(String requestId) throws IOException {
+	public Request getRequest(String requestId) throws IOException, NdexException {
 		return (Request) ndexRestClient.getNdexObject("/request/"+ requestId, "", Request.class);
 	}
 	
@@ -234,7 +235,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get a task by id
 //			task	GET	/task/{taskUUID}		Task
-	public Task getTask(String taskId) throws IOException {
+	public Task getTask(String taskId) throws IOException, NdexException {
 		return (Task) ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
 	}
 	
@@ -284,13 +285,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get user by username OR id
 //			user	GET	/user/{userIdentifier}		User
-	public User getUser(String userId) throws IOException {
+	public User getUser(String userId) throws IOException, NdexException {
 		return (User) ndexRestClient.getNdexObject("/user/"+userId, "", User.class);
 	}
 	
 	// Authenticate user 
 //			user	GET	/user/authenticate/{username}/{password}	
-	public User authenticateUser(String username, String password) throws IOException {
+	public User authenticateUser(String username, String password) throws IOException, NdexException {
 		return (User) ndexRestClient.getNdexObject("/user/authenticate/"+ username + "/" + password, "", User.class);
 	}
 	
@@ -331,7 +332,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Get permission of user for resource as a membership
 //			user	GET	/user/{userUUID}/membership/{resourceUUID}		Membership
-	public Membership getResourcePermission(String userId, String resourceId) throws IOException {
+	public Membership getResourcePermission(String userId, String resourceId) throws IOException, NdexException {
 		return (Membership) ndexRestClient.getNdexObject("/user/"+ userId + "/membership/" + resourceId, "", Membership.class);
 	}
 	
@@ -359,7 +360,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Generate forgotten password email to user
 //			user	GET	/user/{UUID}/forgotPassword	
-	public User generateForgottenPasswordEmail(String userId) throws IOException {
+	public User generateForgottenPasswordEmail(String userId) throws IOException, NdexException {
 		return (User) ndexRestClient.getNdexObject("/user/"+ userId + "/forgotPassword", "", User.class);
 	}
 	
@@ -434,7 +435,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Network Summary objects
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
-	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException {
+	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException, NdexException {
 		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId, "", NetworkSummary.class);
 		//String route = "/network/"+networkId;			
     	//HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
@@ -532,7 +533,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 //	network	GET	/network/{networkUUID}/asNetwork		Network
-	public Network getNetwork(String id) throws IOException {
+	public Network getNetwork(String id) throws IOException, NdexException {
 		String route = "/network/" + id + "/asNetwork/"; 
 		return (Network) ndexRestClient.getNdexObject(route, "", Network.class);
 		/*
@@ -547,7 +548,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
 	// Get block of edges as network
 //	network	GET	/network/{networkUUID}/edge/asNetwork/{skipBlocks}/{blockSize}		Network
-	public Network getEdges(String id, int skipBlocks, int edgesPerBlock) throws IOException {
+	public Network getEdges(String id, int skipBlocks, int edgesPerBlock) throws IOException, NdexException {
 		String route = "/network/" + id + "/edge/asNetwork/" + skipBlocks + "/" + edgesPerBlock; 
 		return (Network) ndexRestClient.getNdexObject(route, "", Network.class);
 		/*		
@@ -612,7 +613,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 //	network	GET	/network/{networkUUID}/provenance		Provenance
 	public ProvenanceEntity getNetworkProvenance(
 			String networkId) 
-			throws JsonProcessingException, IOException {
+			throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + networkId + "/provenance";		
 		return (ProvenanceEntity) ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
 	}

@@ -500,6 +500,27 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return networks;
 		*/
 	}
+
+	
+	@SuppressWarnings("unchecked")
+	public List<NetworkSummary> findNetworks(
+			String searchString,
+            boolean canRead,
+			String accountName,
+			Permissions permissionOnAcc,
+			boolean includeGroups,
+			int skipBlocks, 
+			int blockSize) 
+			throws JsonProcessingException, IOException {
+		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
+		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
+		((ObjectNode) postData).put("searchString", searchString);
+        ((ObjectNode) postData).put("canRead", Boolean.toString(canRead));
+        ((ObjectNode) postData).put("includeGroups", Boolean.toString(includeGroups));
+		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
+		((ObjectNode) postData).put("permission", permissionOnAcc.toString());
+		return (List<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
+	}
 	
 	// Networks in standard NDEx object model
 	

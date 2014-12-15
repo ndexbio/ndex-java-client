@@ -859,7 +859,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
 //	network	GET	/network/{networkUUID}/asPropertyGraph		PropertyGraphNetwork
 	public PropertyGraphNetwork getPropertyGraphNetwork(String networkId) throws JsonProcessingException, IOException {
-		String route = "/network/"+ networkId + "/edge/asPropertyGraph";	
+		String route = "/network/"+ networkId + "/asPropertyGraph";
 		
 		InputStream input = null;
 		HttpURLConnection con = null;

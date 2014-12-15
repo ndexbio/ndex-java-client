@@ -88,7 +88,7 @@ public class NdexRestClientTest {
 		if (n != null)
 			System.out.println("foo");
 			// example of search.
-		List<NetworkSummary> s = ndex.findNetworks("*", "Support", 0,3);
+		List<NetworkSummary> s = ndex.findNetworks("*", true, "Support", 0,3);
 		System.out.println(s.get(0).getName());
 		
 		// example of get server status.

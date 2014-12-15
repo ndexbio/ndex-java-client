@@ -447,6 +447,22 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		//return networkSummary;
 	}
 
+    public boolean isServerRunningNdexServer()
+    {
+        String route = "/admin/status";
+        try
+        {
+            JsonNode node = ndexRestClient.get(route, "");
+            //Hack: If network count is not null in the JSON returned by the
+            //request, assume it is an NDEx server.
+            return node.get("networkCount") != null;
+        }
+        catch (IOException e)
+        {
+            return false;
+        }
+    }
+
 
 	/**
 	 * Search for networks by keywords
@@ -462,7 +478,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 //	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
 	@SuppressWarnings("unchecked")
 	public List<NetworkSummary> findNetworks(
-			String searchString,  
+			String searchString,
+            boolean canRead,
 			String accountName,
 			int skipBlocks, 
 			int blockSize) 
@@ -470,6 +487,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
+        ((ObjectNode) postData).put("canRead", Boolean.toString(canRead));
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
 		return (List<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
 /*

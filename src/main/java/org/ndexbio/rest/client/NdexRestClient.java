@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.codec.binary.Base64;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexObject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -166,7 +167,7 @@ public class NdexRestClient {
 			final String route, 
 			final String query,
 			final Class<? extends NdexObject> mappedClass)
-			throws JsonProcessingException, IOException {
+			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
 		try {
@@ -174,12 +175,19 @@ public class NdexRestClient {
 			ObjectMapper mapper = new ObjectMapper();
 
 			con = getReturningConnection(route, query);
-			input = con.getInputStream();
-			if (null != input){
-				return mapper.readValue(input, mappedClass);
-			}
-			throw new IOException("failed to connect to ndex");
-
+			try {
+				input = con.getInputStream();
+				if (null != input){
+					return mapper.readValue(input, mappedClass);
+				}
+				throw new NdexException("failed to connect to ndex server.");
+			} catch (IOException e) {	
+				String s = e.getMessage();
+			   if ( s.startsWith("Server returned HTTP response code: 401"))
+				  throw new NdexException ("Unautherized access to network.");
+			   
+			   throw e;
+			}	
 		} finally {
 			if (null != input) input.close();
 			if ( con != null ) con.disconnect();

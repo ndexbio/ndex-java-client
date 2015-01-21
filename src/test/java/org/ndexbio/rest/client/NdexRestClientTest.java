@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.ndexbio.model.object.NdexStatus;
+import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 
 
@@ -18,9 +19,11 @@ public class NdexRestClientTest {
 	@Before
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
-		client = new NdexRestClient("cjtest", "1234", 
+		client = new NdexRestClient("cjtest", "guilan"); 
+			
+/*		client = new NdexRestClient("cjtest", "1234", 
 				"http://localhost:8080/ndexbio-rest",
-				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); 
+				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); */ 
 		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 
@@ -76,12 +79,16 @@ public class NdexRestClientTest {
 		
         System.out.println(summary);
 */		
-		boolean b = ndex.checkCredential();
+//		boolean b = ndex.checkCredential();
 		
-		Assert.assertTrue(b);
+//		Assert.assertTrue(b);
+		
+		Network n = ndex.getNetwork("f717cacf-7fbf-11e4-a6f2-90b11c72aefa");
 	
-		// example of search.
-		List<NetworkSummary> s = ndex.findNetworks("*", "Support", 0,3);
+		if (n != null)
+			System.out.println("foo");
+			// example of search.
+		List<NetworkSummary> s = ndex.findNetworks("*", true, "Support", 0,3);
 		System.out.println(s.get(0).getName());
 		
 		// example of get server status.

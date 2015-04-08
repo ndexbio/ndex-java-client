@@ -490,6 +490,37 @@ public class NdexRestClient {
 		}
 	}
 
+	public JsonNode delete() throws JsonProcessingException,IOException {
+        InputStream input = null;
+        HttpURLConnection con = null;
+        ObjectMapper mapper = new ObjectMapper();
+
+       URL request = new URL(_baseroute + "/");
+       try {
+
+	       con = (HttpURLConnection) request.openConnection();
+	       addAuthentication(con);
+	       con.setDoOutput(true);
+	       con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+	       con.setRequestMethod("DELETE");
+
+	       input = con.getInputStream();
+	       JsonNode result = null;
+	       if (null != input) {
+		      result = mapper.readTree(input);
+		      return result;
+	       } 
+	       throw new IOException("failed to connect to ndex");
+       }
+
+       finally {
+	       if (null != input) input.close();
+	       if ( con != null) con.disconnect();
+       }
+    }
+	
+	
+	
 	/*
 	 * Getters and Setters
 	 */

@@ -391,6 +391,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		ndexRestClient.delete("/user/" + id);
 	}
 	
+	// delete the authenticated user (self)
 	public void deleteUser() throws JsonProcessingException, IOException {
 		ndexRestClient.delete();
 	}

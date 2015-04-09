@@ -21,15 +21,22 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 public class JUnitTestSuite {
 	private static Server server;
 	
+	// with startServer=true; a Jetty server will be started for testing;
+	// with startServer=false; the external server will be used (URL is specified in task* classes)
+	private static boolean startServer = false;
+	
 	@BeforeClass
 	public static void setUp() throws Exception {
 
-		if (!startServer()) {
-			System.out.println("Unable to start Jetty server");
-			System.exit(0);
-		}
+		if (startServer) {
 		
-		System.out.println("Server started succesfully.");	
+			if (!startServer()) {
+			    System.out.println("Unable to start Jetty server");
+			    System.exit(0);
+		    }
+		
+		    System.out.println("Server started succesfully.");	
+		}
 	}
 
 	private static boolean startServer() {
@@ -57,9 +64,12 @@ public class JUnitTestSuite {
 	
 	@AfterClass
 	public static void tearDown() throws Exception {
-		System.out.println("Shutting down server");
-		NdexDatabase.close();
-		server.stop();
+		if (startServer) 
+		{
+		    System.out.println("Shutting down server");
+		    NdexDatabase.close();
+		    server.stop();
+		}
 	}
 
 }

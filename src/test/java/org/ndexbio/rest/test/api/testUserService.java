@@ -21,42 +21,42 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 // The @FixMethodOrder(MethodSorters.NAME_ASCENDING) annotation sorts (and 
 // executes) the test methods by name in lexicographic order
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class testUserService 
+public class testUserService
 {
 	private static NdexRestClient                 client;
 	private static NdexRestClientModelAccessLayer ndex;
 	
-	// the testerName account should exist on the server prior to testing
-	private static String testerName     = "vrynkov";
-	private static String testerPassword = "aaa";
+	//static private JUnitTestProperties configProperties = null;
 	
 	// userToCreate is the user that will be created on the NDEx server as part of testing
-	// the userToCreate has name "tester1" and password "aaa" 
 	// prior to testing, this account should not exist on this server
 	private static NewUser userToCreate  = null;
-	private static String  userName      = "tester1";
-	private static String  password      = "aaa";
 	
-	// URL of the test server
-    private static String  testServerURL = "http://localhost:8080/ndexbio-rest";
-	
- 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		client = new NdexRestClient(testerName, testerPassword, testServerURL);
+		
+		// JUnitTestSuite.properties is defined in Run->Run Configurations->JUnit->JUnitTestSuite, Arguments Tab:
+		// -DJUnitTestSuite.properties=src/main/resources/JUnitTestSuite.properties
+		// the properties file is src/main/resources/JUnitTestSuite.properties
+		
+		//configProperties = new JUnitTestProperties("JUnitTestSuite.properties");
+		
+		client = new NdexRestClient(JUnitTestSuite.testerName, 
+				                    JUnitTestSuite.testerPassword,
+				                    JUnitTestSuite.testServerURL);
 		
 		ndex = new NdexRestClientModelAccessLayer(client);
 		  
 		// create and initialize user for testing
         userToCreate = new NewUser();
-        
-        userToCreate.setAccountName(userName);
+
+        userToCreate.setAccountName(JUnitTestSuite.userName);
         userToCreate.setDescription("This user is used by JUnit tests");
         userToCreate.setEmailAddress("tester1@xxxxxx.com");
 		userToCreate.setFirstName("FirstName");
 		userToCreate.setImage("http://www.yahoo.com");
 		userToCreate.setLastName("LastName");
-		userToCreate.setPassword(password);
+		userToCreate.setPassword(JUnitTestSuite.password);
 		userToCreate.setWebsite("http://www.yahoo.com/finance");		  
 	}
 
@@ -112,8 +112,10 @@ public class testUserService
 	 */	
 	@Test
 	public void test9000DeleteUser() {
-		NdexRestClient client1 = new NdexRestClient(userName, password, testServerURL);
-		
+		NdexRestClient client1 = new NdexRestClient(JUnitTestSuite.testerName, 
+                                                    JUnitTestSuite.testerPassword,
+                                                    JUnitTestSuite.testServerURL);
+
         NdexRestClientModelAccessLayer ndex1 = new NdexRestClientModelAccessLayer(client1);
 
         try {
@@ -131,7 +133,9 @@ public class testUserService
 	 */	
 	@Test
 	public void test9001DeleteUser() {
-		NdexRestClient client1 = new NdexRestClient(userName, password, testServerURL);
+		NdexRestClient client1 = new NdexRestClient(JUnitTestSuite.testerName, 
+                                                    JUnitTestSuite.testerPassword,
+                                                    JUnitTestSuite.testServerURL);
 		
         NdexRestClientModelAccessLayer ndex1 = new NdexRestClientModelAccessLayer(client1);
 

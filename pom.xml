@@ -80,13 +80,13 @@
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
-        </dependency> 
-	    
+        </dependency>
+        
 	    <dependency>
 			<groupId>org.ndexbio</groupId>
 			<artifactId>ndexbio-rest</artifactId>
 			<version>1.2-SNAPSHOT</version>
-		</dependency>
+		</dependency>        
 
   </dependencies>
   	<properties>

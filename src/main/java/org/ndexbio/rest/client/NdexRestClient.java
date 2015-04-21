@@ -456,8 +456,8 @@ public class NdexRestClient {
 	
 	/*
 	 * DELETE
+	 * this method is deprecated;  delete() should be used instead.
 	 */
-
 	public JsonNode delete(final String route) throws JsonProcessingException,
 			IOException {
 		InputStream input = null;
@@ -489,7 +489,38 @@ public class NdexRestClient {
 			if ( con != null) con.disconnect();
 		}
 	}
+	
+	
+	/*
+	 * DELETE.
+	 * Delete the currently authenticated in user (self).
+	 */
+	public void delete() throws JsonProcessingException,IOException {
+       InputStream input = null;
+       HttpURLConnection con = null;
 
+       URL request = new URL(_baseroute + "/user");
+       try {
+	       con = (HttpURLConnection) request.openConnection();
+	       addAuthentication(con);
+	       con.setDoOutput(true);
+	       con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+	       con.setRequestMethod("DELETE");
+
+	       input = con.getInputStream();
+       }
+       finally {
+	       if (null != input) { 
+	    	   input.close();
+	       }
+	       if (null != con) {
+	    	   con.disconnect();
+	       }
+       }
+    }
+	
+	
+	
 	/*
 	 * Getters and Setters
 	 */

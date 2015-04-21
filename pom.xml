@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.ndexbio.client</groupId>
   <artifactId>ndex-java-client</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>NDEx Java REST Client</name>
   <description>REST Client for in applications that access NDEx</description>
 
@@ -32,13 +32,18 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>2.2.2</version>
+			<version>2.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.2.2</version>
+			<version>2.5.2</version>
 		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.5.2</version>
+        </dependency>
 
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -55,39 +60,14 @@
 			<artifactId>ndex-object-model</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-		
-		
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-server</artifactId>
-            <version>${jettyVersion}</version>
-        </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>${jettyVersion}</version>
-        </dependency>
-
-	    <dependency>
-    	    <groupId>org.eclipse.jetty</groupId>
-    	    <artifactId>jetty-servlets</artifactId>
-    	    <version>${jettyVersion}</version>
-	    </dependency>		
-	    
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-        
-	    <dependency>
-			<groupId>org.ndexbio</groupId>
-			<artifactId>ndexbio-rest</artifactId>
-			<version>1.2-SNAPSHOT</version>
-		</dependency>        
-
+               
   </dependencies>
   	<properties>
 		<jettyVersion>9.2.7.v20150116</jettyVersion>

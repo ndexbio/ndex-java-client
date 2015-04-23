@@ -39,11 +39,7 @@
 			<artifactId>jackson-databind</artifactId>
 			<version>2.5.2</version>
 		</dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.5.2</version>
-        </dependency>
+
 
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -69,8 +65,5 @@
         </dependency>
                
   </dependencies>
-  	<properties>
-		<jettyVersion>9.2.7.v20150116</jettyVersion>
-		<resteasyVersion>3.0.9.Final</resteasyVersion>
-	</properties>
+ 
 </project>

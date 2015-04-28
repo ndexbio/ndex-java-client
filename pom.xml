@@ -25,6 +25,17 @@
     </execution>
   </executions>
 </plugin>
+ 
+<plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-compiler-plugin</artifactId>
+   <version>3.1</version>
+   <configuration>
+      <source>1.7</source>
+      <target>1.7</target>
+   </configuration>
+</plugin>
+
 </plugins>
 </build>
   <dependencies>
@@ -46,6 +57,7 @@
 			<artifactId>commons-codec</artifactId>
 			<version>20041127.091804</version>
 		</dependency>
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit-dep</artifactId>
@@ -63,7 +75,18 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-               
+  
+        <dependency>
+            <groupId>org.ndexbio</groupId>
+            <artifactId>ndexbio-rest</artifactId>
+	        <version>1.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>                 
+
   </dependencies>
+
+ 
+
+ 
  
 </project>

@@ -2,11 +2,14 @@ package org.ndexbio.rest.client;
 
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 /**
  * Simple REST Client for NDEX web service.
@@ -126,11 +131,28 @@ public class NdexRestClient {
 			
 			//break;
 		}
-		con.setRequestProperty("Authorization", authString);
-		
-			
+		con.setRequestProperty("Authorization", authString);	
 	}
 	
+	private String getAuthenticationString() {
+		String authString = null;
+		switch ( this.authnType ) {
+		case BASIC:
+			String credentials = _username + ":" + _password;
+			authString = "Basic " + new String(new Base64().encode(credentials.getBytes()));
+			break;
+		case OAUTH:
+			System.out.println("OAuth authentication is not implmented yet.");
+			//break;
+		case SAML:
+			authString = "SAML " + new String(new Base64().encode(this.SAMLResponse.getBytes()));
+			break;
+		default:
+			break;
+		}
+		return authString;	
+	}
+
 	public void setCredential(String username, String password) {
 		this._username = username;
 		this._password = password;
@@ -382,8 +404,8 @@ public class NdexRestClient {
 			if (null != input) input.close();
 			if ( con != null ) con.disconnect();
 		}
+		
 	}
-
 	public HttpURLConnection postReturningConnection(String route,
 			JsonNode postData) throws JsonProcessingException, IOException {
 
@@ -402,8 +424,8 @@ public class NdexRestClient {
 		con.setRequestMethod("POST");
 		// con.setRequestProperty("Content-Type",
 		// "application/x-www-form-urlencoded");
-		con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-		
+        con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+        
 //		con.setRequestProperty("charset", "utf-8");
 //		con.setRequestProperty("Content-Length",
 //				"" + Integer.toString(postDataString.getBytes().length));
@@ -420,7 +442,31 @@ public class NdexRestClient {
 		return con;
 	}
 
+	public void postNetworkAsMultipartObject(String route, String fileToUpload) throws JsonProcessingException, IOException {
 
+		Preconditions.checkState(!Strings.isNullOrEmpty(fileToUpload), "No file name specified.");
+		
+		File uploadFile = new File(fileToUpload);
+		
+		String charset  = "UTF-8";
+		
+		Path p = Paths.get(fileToUpload);
+		String fileNameForPostRequest = p.getFileName().toString(); // get the filename only; remove the path
+		
+		MultipartUtility multipart = new MultipartUtility(_baseroute + route, charset, getAuthenticationString());
+		
+        multipart.addFormJson("filename", fileNameForPostRequest);
+	    multipart.addFilePart("fileUpload", uploadFile);
+
+	    List<String> response = multipart.finish();
+	    
+	    if (null == response) 
+	    	return;
+	             
+	    for (String line : response) {
+	        System.out.println(line);
+	    }
+	}
 	
 	
 	

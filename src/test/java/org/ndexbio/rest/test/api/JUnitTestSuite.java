@@ -16,8 +16,9 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
-    testUserService.class,
-    testTaskService.class
+	testNetworkAService.class
+    //testUserService.class,
+    //testTaskService.class
 })
 
 
@@ -41,6 +42,11 @@ public class JUnitTestSuite {
     // URL of the test server
     public static String testServerURL   = null;
 
+    // path to the network to run the tests on
+    public static String networkToUpload = null;
+
+    // path to the network to run the tests on
+    public static String networkToUploadName = null;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -58,13 +64,15 @@ public class JUnitTestSuite {
         Properties p = new Properties();
         p.load(fis);
 
-        useJettyServer  = Boolean.parseBoolean(p.getProperty("useJettyServer"));
-        testerName      = p.getProperty("testerName");
-        testerPassword  = p.getProperty("testerPassword");
-        userName        = p.getProperty("userName");
-        password        = p.getProperty("password");
-        testServerURL   = p.getProperty("testServerURL");
-
+        useJettyServer      = Boolean.parseBoolean(p.getProperty("useJettyServer"));
+        testerName          = p.getProperty("testerName");
+        testerPassword      = p.getProperty("testerPassword");
+        userName            = p.getProperty("userName");
+        password            = p.getProperty("password");
+        testServerURL       = p.getProperty("testServerURL");
+        networkToUpload     = p.getProperty("networkToUpload");
+        networkToUploadName = p.getProperty("networkToUploadName");
+        
         if (useJettyServer) {
 
             if (!startServer()) {
@@ -72,7 +80,7 @@ public class JUnitTestSuite {
                 System.exit(0);
             }
 
-            System.out.println("Server started succesfully.");
+            System.out.println("Server started successfully.");
         }
     }
 

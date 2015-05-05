@@ -19,12 +19,13 @@ public class NdexRestClientTest {
 	@Before
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
+		/*
 		client = new NdexRestClient("cjtest", "guilan"); 
 			
 /*		client = new NdexRestClient("cjtest", "1234", 
 				"http://localhost:8080/ndexbio-rest",
-				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); */ 
-		ndex = new NdexRestClientModelAccessLayer(client);
+				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); 
+		ndex = new NdexRestClientModelAccessLayer(client);*/
 	}
 
 	@After
@@ -83,6 +84,9 @@ public class NdexRestClientTest {
 		
 //		Assert.assertTrue(b);
 		
+		
+		
+		/*
 		Network n = ndex.getNetwork("f717cacf-7fbf-11e4-a6f2-90b11c72aefa");
 	
 		if (n != null)
@@ -93,7 +97,7 @@ public class NdexRestClientTest {
 		
 		// example of get server status.
 		NdexStatus status = ndex.getServerStatus();
-		System.out.println(status.getNetworkCount());
+		System.out.println(status.getNetworkCount());*/
 	}
 
 	

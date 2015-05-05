@@ -32,6 +32,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.model.object.network.Support;
+import org.ndexbio.rest.helpers.UploadedFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -623,6 +624,14 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		JsonNode postData = objectMapper.valueToTree(network);
 		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
 	}
+
+	// Update network profile
+//	network	POST	/network/{networkUUID}/summary	Network	NetworkSummary
+	public NetworkSummary updateNetworkSummary(NetworkSummary networkSummary, String networkId) throws Exception {
+		String route = "/network/" + networkId + "/summary";
+		JsonNode postData = objectMapper.valueToTree(networkSummary);
+		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
+	}	
 	
 	// Get network presentation properties
 	// These are simple properties, they are not resolved to controlled vocabularies
@@ -778,10 +787,15 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Upload a file to be processed as a network to be loaded into NDEx
 	// TODO
-//	network	POST	/network/upload	File	Task
+	
+    // network	POST	/network/upload	File
+	public void uploadNetwork(String networkToUpload) throws Exception {
+		String route = "/network/upload";
+		ndexRestClient.postNetworkAsMultipartObject(route, networkToUpload);
+	}
 	 
-	// Neighborhood PathQuery
 //	network	POST	/network/{networkUUID}/asNetwork/query	SimplePathQuery	Network	
+	// Neighborhood PathQuery
     public Network getNeighborhood(String networkId, String searchString, int depth) throws JsonProcessingException, IOException {
     	SimplePathQuery query = new SimplePathQuery();
     	query.setSearchString(searchString);

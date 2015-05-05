@@ -13,7 +13,8 @@ public class JUnitTestProperties {
     private  String userName        = null;
     private  String password        = null;
     private  String testServerURL   = null;
-        
+    private  String networkToUpload = null;
+    
     public String getTesterName() {
         return testerName;
     }
@@ -28,6 +29,9 @@ public class JUnitTestProperties {
     }
     public String getUserName() {
         return userName;
+    }
+    public String getNetworkToUpload() {
+        return networkToUpload;
     }
     public void setUserName(String userName) {
         this.userName = userName;
@@ -44,7 +48,9 @@ public class JUnitTestProperties {
     public void setTestServerURL(String testServerURL) {
         this.testServerURL = testServerURL;
     }
-        
+    public void setNetworkToUpload(String networkToUpload) {
+        this.networkToUpload = networkToUpload;
+    }        
     public JUnitTestProperties(String properties) {
             
         //String propertiesFile = System.getProperty("JUnitTestSuite.properties");
@@ -74,6 +80,7 @@ public class JUnitTestProperties {
         userName        = p.getProperty("userName");
         password        = p.getProperty("password");
         testServerURL   = p.getProperty("testServerURL");
+        networkToUpload = p.getProperty("networkToUpload");
     }
 
 }

@@ -92,7 +92,7 @@ public class testUserService
     /*
      * Create a user account on the server.
      * Assumption: user account already exists on the server; we expect exception to be thrown.
-     */
+     *
     @Test
     public void test0002CreateUser() {
         User userCreated = null;
@@ -105,6 +105,7 @@ public class testUserService
 
         assertNull("succeeded to create account '" + userToCreate.getAccountName() + "' that already existed ", userCreated);
     }
+    */
 
     /*
      * Delete user account from the server.  The user account to be deleted is the one
@@ -113,8 +114,8 @@ public class testUserService
      */
     @Test
     public void test9000DeleteUser() {
-        NdexRestClient client1 = new NdexRestClient(JUnitTestSuite.testerName,
-                                                    JUnitTestSuite.testerPassword,
+        NdexRestClient client1 = new NdexRestClient(userToCreate.getAccountName(),
+                                                    userToCreate.getPassword(),
                                                     JUnitTestSuite.testServerURL);
 
         NdexRestClientModelAccessLayer ndex1 = new NdexRestClientModelAccessLayer(client1);
@@ -131,7 +132,7 @@ public class testUserService
      * Assumption: the user account to be deleted doesn't exist on the server and the delete command is sent
      * with this user's name.
      * We expect exception to be thrown.
-     */
+     *
     @Test
     public void test9001DeleteUser() {
         NdexRestClient client1 = new NdexRestClient(JUnitTestSuite.testerName,
@@ -146,6 +147,7 @@ public class testUserService
             assertEquals(e.getMessage(), e.getMessage(), "Server returned HTTP response code: 401 for URL: http://localhost:8080/ndexbio-rest/user");
         }
     }
+    */
 
 }
 

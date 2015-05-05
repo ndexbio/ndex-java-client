@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -20,6 +19,7 @@ import org.junit.Test;
  */
 import org.junit.runners.MethodSorters;
 import org.ndexbio.model.exceptions.NdexException;
+
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
@@ -37,6 +37,8 @@ public class testNetworkAService {
     private static NdexRestClientModelAccessLayer ndex;
     
 	private static String  testNetworkUUID = null;
+	
+	private static final int NUM_OF_THREADS_TO_CREATE = 5;
     
     @BeforeClass
     public static void setUp() throws Exception {
@@ -53,19 +55,32 @@ public class testNetworkAService {
 
         ndex = new NdexRestClientModelAccessLayer(client);
         
-        /*
+/*
         NewUser testUser = new NewUser();
         User    createdTestUser;
-        testUser.setAccountName(JUnitTestSuite.testerName);
-        testUser.setPassword(JUnitTestSuite.testerName);
+        testUser.setAccountName("ttt");
+        testUser.setPassword("ttt");
+        
+        //testUser.setAccountName(JUnitTestSuite.userName);
+        testUser.setDescription("This user is used by JUnit tests");
+        testUser.setEmailAddress("tester1@ttt.com");
+        testUser.setFirstName("FirstName");
+        testUser.setImage("http://www.yahoo.com");
+        testUser.setLastName("LastName");
+        //testUser.setPassword(JUnitTestSuite.password);
+        testUser.setWebsite("http://www.yahoo.com/finance");
+        
         
         try {
-        	createdTestUser = ndex.createUser(testUser);
+        	NdexRestClient nrc = new NdexRestClient("ttt", "ttt", JUnitTestSuite.testServerURL);
+        	NdexRestClientModelAccessLayer nrcma = new NdexRestClientModelAccessLayer(nrc);
+        	//ndc.
+        	createdTestUser = nrcma.createUser(testUser);
         } catch (Exception e) {
         	e.printStackTrace();
         	System.exit(0);
         }
-        */
+*/
 
 
         // get a list of "test" networks from the servers, i.e, networks with the same name as the one used for testing
@@ -254,14 +269,12 @@ public class testNetworkAService {
     /*
      * Test whether NDEx can handle concurrent access (multiple clients/threads) to the same network correctly. 
      * Steps:
-     * 1) create (but don't start yet) Thread 1.  This thread downloads a large network from the test server.
-     * 2) create (but don't start yet) Thread 2.  This thread modifies profile (name, description, version) 
-     *    of the same large network on the server as Thread 1 progresses. 
-     * 3) create (but don't start yet) Thread 3.  This thread downloads a large network from the test server.
-     * 4) Start Thread 1 and Thread 2. Wait for Thread 2 to finish, and then start Thread 3.
-     * 5) After all threads have finished, make sure that 
-     *     - network downloaded by Thread has modified profile
-     *     - network on the server has modified profile.
+     * 1) create (but don't start yet) downloadThread.  This thread downloads a large network from the test server.
+     * 2) create (but don't start yet) updateThread.  This thread modifies profile (name, description, version) 
+     *    of the same large network on the server as downloadThread progresses. 
+     * 3) start downloadThread and updateThread. Wait for updateThread to finish.  
+     * 4) create and start NUM_OF_THREADS_TO_CREATE of downloadThreads that will download the network.
+     * 5) After all NUM_OF_THREADS_TO_CREATE threads have finished, make sure they have modified profiles.
      */    
     @Test
     public void test0010DownloadNetworkModifyProfile() {
@@ -273,7 +286,7 @@ public class testNetworkAService {
 			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
 		}   	
     	
-    	DownloadNetwork downloadThread1 = new DownloadNetwork(ndex, testNetworkUUID);
+    	DownloadNetwork downloadThread = new DownloadNetwork(ndex, testNetworkUUID);
     	
     	// modify profile of the network on the server
     	NetworkSummary networkSummary = new NetworkSummary();
@@ -285,9 +298,7 @@ public class testNetworkAService {
     	UpdateNetworkProfile updateThread = 
                 new UpdateNetworkProfile(ndex, testNetworkUUID, networkSummary);
     	
-    	DownloadNetwork downloadThread2 = new DownloadNetwork(ndex, testNetworkUUID);
-    	
-    	downloadThread1.start();
+    	downloadThread.start();
     	updateThread.start();
     	try {
     		// wait till profile update is finished
@@ -295,36 +306,41 @@ public class testNetworkAService {
 		} catch (InterruptedException e) {
 			fail("Unable to update profile of network " + testNetworkUUID + " : " + e.getMessage());
 		}
-    	
-    	downloadThread2.start();
-    	
+
+    	Thread[] threads = new Thread[NUM_OF_THREADS_TO_CREATE];
+    	for (int i=0; i<threads.length; i++) {
+    		threads[i] = new DownloadNetwork(ndex, testNetworkUUID);
+    	}
+    	for (int i=0; i<threads.length; i++) {
+    		threads[i].start();
+    	}    	
+
     	try {
-    		// wait till profile update is finished
-    		downloadThread1.join();
-    		downloadThread2.join();
+    		// wait till network download is finished
+    		downloadThread.join();
 		} catch (InterruptedException e) {
 			fail("Unable download network " + testNetworkUUID + " : " + e.getMessage());
 		}
-    	
-        // check that network2 has modified profile
-    	NetworkSummary network2Summary = (NetworkSummary) downloadThread2.getNetwork();
-    	assertEquals("Network name didn't update correctly", network2Summary.getName(), networkSummary.getName());
-    	assertEquals("Network description didn't update correctly", network2Summary.getDescription(), networkSummary.getDescription());
-    	assertEquals("Network version didn't update correctly", network2Summary.getVersion(), networkSummary.getVersion());
-        
-    	
-    	// check that test network on the server has modified profile
-    	NetworkSummary updatedNetworkSummary = null;
+   
     	try {
-    	    updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
-    	} catch (Exception e) {
-			fail("Unable to download summary of network " + testNetworkUUID + " : " + e.getMessage());
-        }
+    		// wait till networks with modified profile finish downloading
+        	for (int i=0; i<threads.length; i++) {
+        		threads[i].join();
+        	}
+		} catch (InterruptedException e) {
+			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
+		}
 
-    	assertEquals("Network name didn't update correctly", updatedNetworkSummary.getName(), networkSummary.getName());
-    	assertEquals("Network description didn't update correctly", updatedNetworkSummary.getDescription(), networkSummary.getDescription());
-    	assertEquals("Network version didn't update correctly", updatedNetworkSummary.getVersion(), networkSummary.getVersion());
-    	
+    	for (int i=0; i<threads.length; i++) {
+     		
+    		Network network = ((DownloadNetwork)threads[i]).getNetwork();
+    		
+        	// check profiles of downloaded networks 
+        	assertEquals("Network name didn't update correctly",        network.getName(),        networkSummary.getName());
+        	assertEquals("Network description didn't update correctly", network.getDescription(), networkSummary.getDescription());
+        	assertEquals("Network version didn't update correctly",     network.getVersion(),     networkSummary.getVersion());    	
+    	}
+
     }
    
 }

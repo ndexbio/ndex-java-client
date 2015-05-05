@@ -23,6 +23,7 @@ public class DownloadNetwork extends Thread {
 	}
 	
 	public void run() {
+		//System.out.println("Starting thread " + Thread.currentThread().getName());
     	// download test network from the server
     	try {
 			network = ndex.getNetwork(testNetworkUUID);
@@ -30,6 +31,7 @@ public class DownloadNetwork extends Thread {
 			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
 		}
     	this.downloadComplete = true;
+    	//System.out.println("Finishing thread " + Thread.currentThread().getName());
 	}
 	
 	public Network getNetwork() {

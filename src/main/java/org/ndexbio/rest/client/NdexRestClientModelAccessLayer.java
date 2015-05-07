@@ -32,7 +32,6 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.model.object.network.Support;
-import org.ndexbio.rest.helpers.UploadedFile;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;

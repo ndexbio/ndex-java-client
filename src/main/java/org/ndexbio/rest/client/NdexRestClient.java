@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.ndexbio.model.exceptions.NdexException;
@@ -200,6 +201,9 @@ public class NdexRestClient {
 			try {
 				input = con.getInputStream();
 				if (null != input){
+					if ("gzip".equalsIgnoreCase(con.getContentEncoding()))  {
+						input = new GZIPInputStream(input);
+					}
 					return mapper.readValue(input, mappedClass);
 				}
 				throw new NdexException("failed to connect to ndex server.");
@@ -564,6 +568,7 @@ public class NdexRestClient {
 	       }
        }
     }
+
 	
 	
 	

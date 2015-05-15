@@ -545,6 +545,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		*/
 	}
 
+
 	// Create a network with a group as the admin
 //	network	POST	/network/asNetwork/group/{group UUID}	Network	NetworkSummary
 	public NetworkSummary createNetworkForGroup(Network network, String groupId) throws Exception {
@@ -616,14 +617,14 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// TODO: Get a block of nodes as a network
 //	network	GET	/network/{networkUUID}/node/asNetwork/{skipBlocks}/{blockSize}		Network
 	
-	// Update network properties and other metadata
-//	network	POST	/network/{networkUUID}/metadata	Network	NetworkSummary
+	// Update network
+//	network	PUT	/network/asNetwork	Network	NetworkSummary
 	public NetworkSummary updateNetwork(Network network) throws Exception {
-		String route = "/network/" + network.getExternalId() + "/metadata";
+		String route = "/network/asNetwork";
 		JsonNode postData = objectMapper.valueToTree(network);
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
+		return (NetworkSummary) ndexRestClient.putNdexObject(route, postData, NetworkSummary.class);
 	}
-
+	
 	// Update network profile
 //	network	POST	/network/{networkUUID}/summary	Network	NetworkSummary
 	public NetworkSummary updateNetworkSummary(NetworkSummary networkSummary, String networkId) throws Exception {
@@ -974,7 +975,21 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		*/
     }
 
+    //	network	GET	/network/{networkId}/setFlag/{parameter}={value}	
+    //  current supported parameters are   "readOnly={true|false}"
+	public String setNetworkFlag(String networkId, String parameter, String value)  {
+		String route = "/network/" + networkId +"/setFlag/" + parameter + "=" + value;
 
+        try {
+            JsonNode node = ndexRestClient.get(route, "");     // set network flag 
+            return (null == node) ? null : node.asText();      // return old value of the flag received from server
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		
+		return null;
+	}
 	
 	
 	/*-----------------------------------------

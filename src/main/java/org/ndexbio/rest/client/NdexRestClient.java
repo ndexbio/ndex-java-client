@@ -209,10 +209,12 @@ public class NdexRestClient {
 				throw new NdexException("failed to connect to ndex server.");
 			} catch (IOException e) {	
 				String s = e.getMessage();
-			   if ( s.startsWith("Server returned HTTP response code: 401"))
-				  throw new NdexException ("Unautherized access to network.");
-			   
-			   throw e;
+			    if ( s.startsWith("Server returned HTTP response code: 401")) {
+				    throw new NdexException ("User '" + getUsername() + "' unauthorized to access " + 
+			             getBaseroute() + route + 
+			             "\nServer returned : " + e);
+			    }
+			    throw e;
 			}	
 		} finally {
 			if (null != input) input.close();

@@ -89,7 +89,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public boolean checkCredential() throws NdexException{
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
-			User currentUser = authenticateUser(ndexRestClient.getUsername(), ndexRestClient.getPassword());
+			User currentUser = authenticateUser();
 			if (null == currentUser || null == currentUser.getExternalId()) return false;
 			ndexRestClient.setUserUid(currentUser.getExternalId());
 			return true;
@@ -291,8 +291,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Authenticate user 
 //			user	GET	/user/authenticate/{username}/{password}	
-	public User authenticateUser(String username, String password) throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/authenticate/"+ username + "/" + password, "", User.class);
+	public User authenticateUser() throws IOException, NdexException {
+		return (User) ndexRestClient.getNdexObject("/user/authenticate", "", User.class);
 	}
 	
 	// Get group permissions of user as list of memberships

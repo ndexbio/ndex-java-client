@@ -120,6 +120,13 @@ public class NdexRestClient {
 	
 	private void addAuthentication(HttpURLConnection con) {
 		String authString = null;
+		
+		if ((_username == null) || (_username.trim()).isEmpty() ) {
+			// if User Name is null or empty, then treat this as anonymous
+			// request (i.e., do not add "Authorization" header)
+			return;
+		}
+		
 		switch ( this.authnType ) {
 		case BASIC:
 			String credentials = _username + ":" + _password;

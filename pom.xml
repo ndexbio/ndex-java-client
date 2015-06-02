@@ -87,7 +87,14 @@
             <artifactId>ndexbio-rest</artifactId>
 	        <version>1.2-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>         
+        </dependency>  
+               
+        <dependency>
+	        <groupId>org.apache.commons</groupId>
+	        <artifactId>commons-lang3</artifactId>
+	        <version>3.0</version>
+	        <scope>test</scope>
+        </dependency>
             
   </dependencies>
  

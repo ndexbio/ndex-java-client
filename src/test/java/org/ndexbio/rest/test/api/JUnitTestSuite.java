@@ -16,9 +16,10 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
-	testNetworkAService.class
-    //testUserService.class,
-    //testTaskService.class
+	//testNetworkAService.class
+    testUserService.class
+    //testTaskService.class,
+	//testPerformanceUploadingNetworks.class
 })
 
 
@@ -63,6 +64,7 @@ public class JUnitTestSuite {
         FileInputStream fis = new FileInputStream(propertiesFile);
         Properties p = new Properties();
         p.load(fis);
+        fis.close();
 
         useJettyServer      = Boolean.parseBoolean(p.getProperty("useJettyServer"));
         testerName          = p.getProperty("testerName");

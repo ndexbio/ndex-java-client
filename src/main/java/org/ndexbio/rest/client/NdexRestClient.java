@@ -15,7 +15,11 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.codec.binary.Base64;
+import org.ndexbio.model.errorcodes.NDExError;
+import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.object.NdexObject;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -199,7 +203,26 @@ public class NdexRestClient {
 
 			con = getReturningConnection(route, query);
 			try {
+
+				if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+					input = con.getErrorStream();
+					 
+					if (null != input) {
+		                // server sent an Ndex-specific exception (i.e., exception defined in 
+						// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+						// Re-construct and re-throw this exception here on the client side.
+						processNdexSpecificException(input, con.getResponseCode(), mapper);
+					}
+						
+					throw new IOException("failed to connect to ndex");
+				}				
+				
 				input = con.getInputStream();
+
 				if (null != input){
 					if ("gzip".equalsIgnoreCase(con.getContentEncoding()))  {
 						input = new GZIPInputStream(input);
@@ -361,21 +384,69 @@ public class NdexRestClient {
 			if ( con != null) con.disconnect();
 		}
 	}
-	
+
+	/*
+	 * Re-construct and re-throw exception received from the server.  
+	 */
+	private void processNdexSpecificException(
+		InputStream input, int httpServerResponseCode, ObjectMapper mapper) 
+		throws JsonProcessingException, IOException, NdexException {
+
+		NDExError ndexError = mapper.readValue(input, NDExError.class);
+		
+		switch (httpServerResponseCode) {
+            case (HttpURLConnection.HTTP_UNAUTHORIZED):
+    	        // httpServerResponseCode is HTTP Status-Code 401: Unauthorized.
+    	        throw new UnauthorizedOperationException(ndexError);
+        
+	        case (HttpURLConnection.HTTP_NOT_FOUND):
+	    	    // httpServerResponseCode is HTTP Status-Code 404: Not Found.
+	    	    throw new ObjectNotFoundException(ndexError);
+	    
+		    case (HttpURLConnection.HTTP_CONFLICT):
+		    	// httpServerResponseCode is HTTP Status-Code 409: Conflict.
+		    	throw new DuplicateObjectException(ndexError);
+		    
+		    default:
+		    	// default case is: HTTP Status-Code 500: Internal Server Error.
+		    	throw new NdexException(ndexError);
+		}
+	}
+
 	public NdexObject postNdexObject(
 			final String route, 
 			final JsonNode postData,
 			final Class<? extends NdexObject>  mappedClass)
-			throws JsonProcessingException, IOException {
+			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
+
 		try {
 
 			ObjectMapper mapper = new ObjectMapper();
 
 			con = postReturningConnection(route, postData);
+			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    input = con.getErrorStream();
+			 
+				if (null != input) {
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			}
+	
 			input = con.getInputStream();
-			if (null != input){
+			if (null != input) {
 				return mapper.readValue(input, mappedClass);
 			}
 			throw new IOException("failed to connect to ndex");
@@ -416,7 +487,7 @@ public class NdexRestClient {
 			JsonNode postData) throws JsonProcessingException, IOException {
 
 		URL request = new URL(_baseroute + route);
-		System.out.println("POST (returning connection) URL = " + request);
+		//System.out.println("POST (returning connection) URL = " + request);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 
@@ -480,7 +551,7 @@ public class NdexRestClient {
 			String postDataString) throws JsonProcessingException, IOException {
 
 		URL request = new URL(route);
-		System.out.println("POST (returning connection) URL = " + request);
+		//System.out.println("POST (returning connection) URL = " + request);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		
@@ -542,6 +613,7 @@ public class NdexRestClient {
 		}
 	}
 	
+
 	
 	/*
 	 * DELETE.
@@ -559,7 +631,7 @@ public class NdexRestClient {
 	       con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 	       con.setRequestMethod("DELETE");
 
-	       input = con.getInputStream();
+			input = con.getInputStream();
        }
        finally {
 	       if (null != input) { 

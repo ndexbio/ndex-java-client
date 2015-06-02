@@ -85,6 +85,12 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		ndexRestClient.setCredential(username, password);
 		
 	}
+	public String getUserName() {
+		return ndexRestClient.getUsername();
+	}
+	public String getPassword() {
+		return ndexRestClient.getPassword();
+	}
 	
 	public boolean checkCredential() throws NdexException{
 		try {
@@ -129,7 +135,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Update a group
 //			group	POST	/group/{groupUUID}	Group	Group
-	public Group updateGroup(Group group) throws JsonProcessingException, IOException{
+	public Group updateGroup(Group group) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(group);
 		return (Group)ndexRestClient.postNdexObject("/group/" + group.getExternalId() , postData, Group.class);
 	}
@@ -151,7 +157,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Create a group
 //			group	POST	/group	
-	public Group createGroup(Group group) throws JsonProcessingException, IOException{
+	public Group createGroup(Group group) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(group);
 		return (Group)ndexRestClient.postNdexObject("/group", postData, Group.class);
 	}
@@ -166,7 +172,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 //			group	POST	/group/{groupUUID}/member	Membership	
 	public Membership setGroupPermission(
 			String groupId, 
-			Membership membership) throws JsonProcessingException, IOException{
+			Membership membership) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(membership);
 		return (Membership)ndexRestClient.postNdexObject("/group/" + groupId + "/member", postData, Membership.class);
 	}
@@ -195,7 +201,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Create a request
 //			request	POST	/request	
-	public Request createRequest(Request request) throws JsonProcessingException, IOException{
+	public Request createRequest(Request request) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(request);
 		return (Request)ndexRestClient.postNdexObject("/request", postData, Request.class);
 	}
@@ -214,7 +220,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Update a request
 //			request	POST	/request/{requestUUID}	
-	public Request updateRequest(Request request) throws JsonProcessingException, IOException{
+	public Request updateRequest(Request request) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(request);
 		return (Request)ndexRestClient.postNdexObject("/request/" + request.getExternalId() , postData, Request.class);
 	}	
@@ -241,14 +247,14 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Update a task
 //			task	POST	/task/{taskUUID}	Task	
-	public Task updateTask(Task task) throws JsonProcessingException, IOException{
+	public Task updateTask(Task task) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task/" + task.getExternalId() , postData, Task.class);
 	}
 	
 	// Create a task
 //			task	POST	/task	Task	UUID
-	public Task createTask(Task task) throws JsonProcessingException, IOException{
+	public Task createTask(Task task) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task", postData, Task.class);
 	}
@@ -264,7 +270,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Update the status of the task
 	// Much more common case than the general update task
 //			task	PUT	/task/{taskUUID}/status/{status}	Task	
-	public Task updateTaskStatus(Task task, Status status) throws JsonProcessingException, IOException{
+	public Task updateTaskStatus(Task task, Status status) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task/" + task.getExternalId() + "/status/" + status, postData, Task.class);
 	}
@@ -338,14 +344,14 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Create a user
 //			user	POST	/user	NewUser	User
-	public User createUser(NewUser user) throws JsonProcessingException, IOException{
+	public User createUser(NewUser user) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(user);
 		return (User)ndexRestClient.postNdexObject("/user", postData, User.class);
 	}
 	
 	// Update a user
 //			user	POST	/user/{UUID}	User	User
-	public User updateUser(User user) throws JsonProcessingException, IOException{
+	public User updateUser(User user) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(user);
 		return (User)ndexRestClient.postNdexObject("/user/" + user.getExternalId() , postData, User.class);
 	}
@@ -392,7 +398,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	// delete the authenticated user (self)
-	public void deleteUser() throws JsonProcessingException, IOException {
+	public void deleteUser() throws JsonProcessingException, IOException, NdexException {
 		ndexRestClient.delete();
 	}
 	
@@ -418,7 +424,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 //	network	POST	/network/{networkUUID}/member	Membership	
 	public Membership setNetworkPermission(
 			String networkId, 
-			Membership membership) throws JsonProcessingException, IOException{
+			Membership membership) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(membership);
 		return (Membership)ndexRestClient.postNdexObject("/network/" + networkId + "/member", postData, Membership.class);
 	}
@@ -796,14 +802,14 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 
 //	network	POST	/network/{networkUUID}/asNetwork/query	SimplePathQuery	Network	
 	// Neighborhood PathQuery
-    public Network getNeighborhood(String networkId, String searchString, int depth) throws JsonProcessingException, IOException {
+    public Network getNeighborhood(String networkId, String searchString, int depth) throws JsonProcessingException, IOException, NdexException {
     	SimplePathQuery query = new SimplePathQuery();
     	query.setSearchString(searchString);
     	query.setSearchDepth(depth);
     	return getNeighborhood(networkId, query);
     }
     	
-    public Network getNeighborhood(String networkId, SimplePathQuery query) throws JsonProcessingException, IOException {
+    public Network getNeighborhood(String networkId, SimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
     	String route = "/network/" + networkId +"/asNetwork/query";	
     	JsonNode postData = objectMapper.valueToTree(query);
     	return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
@@ -904,7 +910,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 
 //	network	POST	/network/asPropertyGraph	PropertyGraphNetwork	NetworkSummary
-	public NetworkSummary insertPropertyGraphNetwork(PropertyGraphNetwork network) throws JsonProcessingException, IOException {
+	public NetworkSummary insertPropertyGraphNetwork(PropertyGraphNetwork network) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/asPropertyGraph";
 		removeUUIDFromNetwork(network);
 		JsonNode postData = objectMapper.valueToTree(network);
@@ -924,7 +930,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 //	network	POST	/network/asPropertyGraph/group/{group UUID}	PropertyGraphNetwork	NetworkSummary
 	public NetworkSummary createNetworkForGroupFromPropertyGraphNetwork(
 			PropertyGraphNetwork network, 
-			String groupId) throws JsonProcessingException, IOException {
+			String groupId) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/asPropertyGraph/group/" + groupId;
 		removeUUIDFromNetwork(network);
 		JsonNode postData = objectMapper.valueToTree(network);

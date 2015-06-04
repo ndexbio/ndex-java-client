@@ -301,6 +301,12 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (User) ndexRestClient.getNdexObject("/user/authenticate", "", User.class);
 	}
 	
+	// Authenticate user 
+//	user	GET	/user/authenticate/	
+	public User authenticateUserNoOp() throws IOException, NdexException {
+		return (User) ndexRestClient.getNdexObject("/user/authenticate/", "", User.class);
+	}	
+	
 	// Get group permissions of user as list of memberships
 //			user	GET	/user/{userUUID}/group/{permission}/{skipBlocks}/{blockSize}		Membership[]
 	@SuppressWarnings("unchecked")
@@ -383,12 +389,11 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Change user password
 	// TODO
 //			user	POST	/user/password	string	
-	/*
-	public User updateUserPassword(User user, String newPassword) throws JsonProcessingException, IOException{
-		String postData = newPassword;
-		return (User)ndexRestClient.postNdexObject("/user/" + user.getExternalId() , postData, User.class);
+	public void changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
+		ndexRestClient.postNdexObject("/user/password/" + newPassword , null, User.class);
+		return;
 	}
-*/
+
 	
 	// Delete user (actually implemented as deprecate)
 	// Fails unless the authenticated user is the user to delete...

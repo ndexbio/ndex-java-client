@@ -82,8 +82,10 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 */
 	
 	public void setCredential(String username, String password) {
-		ndexRestClient.setCredential(username, password);
-		
+		ndexRestClient.setCredential(username, password);	
+	}
+	public void setPassword(String newPassword) {
+		ndexRestClient.setPassword(newPassword);
 	}
 	public String getUserName() {
 		return ndexRestClient.getUsername();
@@ -296,16 +298,12 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	// Authenticate user 
-//			user	GET	/user/authenticate/{username}/{password}	
-	public User authenticateUser(String username, String password) throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/authenticate/"+ username + "/" + password, "", User.class);
+//			user	GET	/user/authenticate	
+	public User authenticateUser(String userName, String password) throws IOException, NdexException {
+		return (User) ndexRestClient.getNdexObject("/user/authenticate", userName,  password, "", User.class);
 	}
 	
-	// Authenticate user 
-//	user	GET	/user/authenticate/	
-	public User authenticateUserNoOp() throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/authenticate/", "", User.class);
-	}	
+	
 	
 	// Get group permissions of user as list of memberships
 //			user	GET	/user/{userUUID}/group/{permission}/{skipBlocks}/{blockSize}		Membership[]
@@ -388,10 +386,22 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Change user password
 	// TODO
-//			user	POST	/user/password	string	
-	public void changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
-		ndexRestClient.postString("/user/password", newPassword, User.class);
-		return;
+    //			user	POST	/user/password	string	
+	// 
+	// ATTENTION: in case password has been successfully changed on the server, it will be changed on the 
+	//            client side as well.
+	//
+	public boolean changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
+		
+		boolean success = false;
+		
+		int returnCode = ndexRestClient.postString("/user/password", newPassword, User.class);
+		
+		if (HttpURLConnection.HTTP_NO_CONTENT == returnCode) {
+			success = true;
+			this.setPassword(newPassword);
+		}
+		return success;
 	}
 
 	

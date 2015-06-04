@@ -22,7 +22,6 @@ import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.UserUtils;
-import com.fasterxml.jackson.databind.JsonMappingException;
 
 
 /**
@@ -31,7 +30,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
  *
  *  APIs tested in this class:
  *  
- *  √   1) public User authenticateUser(String, String) accountName,
+ *      1) public User authenticateUser(String, String)  -- deprecated
  *  √   2) public User authenticateUserNoOp()
  *  √   3) public void changePassword(String password)
  *  √   4) public User createUser(final NewUser newUser)
@@ -216,77 +215,6 @@ public class testUserService
     	} catch (UnauthorizedOperationException e) {
     		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "User not found.");
     	} catch (Exception e) {
-    		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
-    	}
-    	assertNull("Retrieved non-existant user '" + nonExistentUser + "' using invalid password '" + nonExistentPassword + "'", user); 	
-    }
-    
-    /**
-     * Authenticate a user account on the server.
-     * 
-     * API tested: public User authenticateUserNoOp()
-     */
-    @Test
-    public void test0011AuthenticateUserNoOp() { 
-    	User   user = null;
-    	String nonExistentUser     = UUID.randomUUID().toString();   // random string to be used as user name
-    	String nonExistentPassword = UUID.randomUUID().toString();   // random string to be used as password
-    	
-    	// try to authenticate an existent user with the valid password
-    	try {
-    		user = null;
-    	    //user = ndex.authenticateUserNoOp(accountName, accountPassword);
-    	    user = ndex.authenticateUserNoOp();
-    	} catch (UnauthorizedOperationException e) {
-    		fail("Unable to authenticate user '" + accountName + "': " + e.getNDExError().getMessage());
-    	} catch (Exception e) {
-    		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
-    	}
-    	assertNotNull("Unable to retrieve valid user '" + accountName + 
-    			"' after authenticating with valid password '" + accountPassword + "'", user);
-        UserUtils.compareObjectsContents(user, userToCreate);
-        
-        
-        // try to authenticate the same (valid) user with a randomly-generated string for password;
-        // UnauthorizedOperationException is expected 
-    	try {
-    		user = null;
-    		ndex.setCredential(accountName, nonExistentPassword);
-    	    user = ndex.authenticateUserNoOp();
-    	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "Invalid accountName or password.");
-    	} catch (Exception e) {
-    		ndex.setCredential(accountName, accountPassword);
-    		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
-    	}
-    	assertNull("Retrieved user '" + accountName + "' using invalid password '" + nonExistentPassword + "'", user);
-    	
-    	
-        // try to authenticate a non-existent user with a valid (good) password;
-        // UnauthorizedOperationException is expected 
-    	try {
-    		user = null;
-    		ndex.setCredential(nonExistentUser, accountPassword);
-    	    user = ndex.authenticateUserNoOp();
-    	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "User not found.");
-    	} catch (Exception e) {
-    		ndex.setCredential(accountName, accountPassword);
-    		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
-    	}
-    	assertNull("Retrieved non-existant user '" + nonExistentUser + "' using valid password '" + accountPassword + "'", user);
-    	
-    	
-        // try to authenticate a non-existent user with a a non-existent password;
-        // UnauthorizedOperationException is expected 
-    	try {
-    		user = null;
-    		ndex.setCredential(nonExistentUser, nonExistentPassword);
-    	    user = ndex.authenticateUserNoOp();
-    	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "User not found.");
-    	} catch (Exception e) {
-    		ndex.setCredential(accountName, accountPassword);
     		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
     	}
     	assertNull("Retrieved non-existant user '" + nonExistentUser + "' using invalid password '" + nonExistentPassword + "'", user); 	
@@ -546,7 +474,6 @@ public class testUserService
      *  Create a test account and try to change it's password.
      * 
      * APIs tested: public void changePassword(String)
-     *              public User authenticateUser(String, String)
      *              public User authenticateUserNoOp()
      */
     @Test
@@ -555,9 +482,8 @@ public class testUserService
     	User   newUser2 = null;  	
     	String account  = "ddd";
     	String password = "ddd";
-   
-        // delete test account in case it exists on the server
-    	UserUtils.deleteUser(ndex, account, password);
+        NdexRestClient                 clientLocal = null;
+        NdexRestClientModelAccessLayer ndexLocal   = null;
 
     	// create user object; the properties describe the current test set-up
         NewUser newUserToCreate = UserUtils.getNewUser(
@@ -570,9 +496,19 @@ public class testUserService
 		        "http://www.yahoo.com",          // image
 		        "http://www.yahoo.com/finance"); // web-site
 
+        try {
+            clientLocal = new NdexRestClient(account, password, JUnitTestSuite.testServerURL);
+            ndexLocal   = new NdexRestClientModelAccessLayer(clientLocal);
+        } catch (Exception e) {
+        	fail("Unable to create ndex client: " + e.getMessage());
+        }
+        
+        // delete test account in case it exists on the server
+    	UserUtils.deleteUser(ndexLocal, account, password);
+        
         // create a new user account
         try {
-            newUser1 = ndex.createUser(newUserToCreate);
+            newUser1 = ndexLocal.createUser(newUserToCreate);
         } catch (NdexException e) {
             fail("Unable to create user account '" + newUserToCreate.getAccountName() + "' : " + e.getNDExError().getMessage());
         } catch (Exception e) {
@@ -586,13 +522,9 @@ public class testUserService
         
         // change password
         try {
-    	    ndex.setCredential(account, password);
-            ndex.changePassword(newPassword);
-        } catch (JsonMappingException e) {
-        	// expected exception
-        	assertTrue("wrong exception message: " + e.getMessage(), e.getMessage().startsWith("No content to map due to end-of-input"));
+        	ndexLocal.changePassword(newPassword);
         } catch (Exception e) {
-        	ndex.setCredential(account, password);
+        	//ndex.setCredential(account, password);
         	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
         }
         
@@ -600,8 +532,8 @@ public class testUserService
     	// try to authenticate the user after setting new password
     	try {
     		newUser2 = null;
-    	    ndex.setCredential(account, newPassword);
-    		newUser2 = ndex.authenticateUserNoOp();
+    	    // authenticate this test account using ndex global client
+    		newUser2 = ndex.authenticateUser(account, newPassword);
     	} catch (UnauthorizedOperationException e) {
     		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
     	} catch (Exception e) {
@@ -612,55 +544,58 @@ public class testUserService
         UserUtils.compareObjectsContents(newUser1, newUser2);
         
         
-        // change password back to the original one
-        try {
-    	    ndex.setCredential(account, newPassword);
-            ndex.changePassword(password);
-        } catch (JsonMappingException e) {
-        	// expected exception
-        	assertTrue("wrong exception message: " + e.getMessage(), e.getMessage().startsWith("No content to map due to end-of-input"));
-        } catch (Exception e) {
-        	ndex.setCredential(accountName, accountPassword);
-        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
-        }
-        
-    	// try to authenticate the user after changing the password back to the original one
+    	// try to authenticate the user after setting new password
     	try {
-    	    ndex.setCredential(account, password);
-    		newUser2 = null;
-    		newUser2 = ndex.authenticateUser(account, password);
+    		newUser2 = null;  
+    	    // authenticate this test account using ndexLocal client
+    		newUser2 = ndexLocal.authenticateUser(account, newPassword);
     	} catch (UnauthorizedOperationException e) {
-        	ndex.setCredential(accountName, accountPassword);
     		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
     	} catch (Exception e) {
-        	ndex.setCredential(accountName, accountPassword);
+    		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
+    	}
+    	assertNotNull("Unable to retrieve user '" + account + 
+    			"' after authenticating with new password '" + newPassword + "'", newUser2);
+        UserUtils.compareObjectsContents(newUser1, newUser2);        
+        
+        
+        // change password back to the original one
+        try {
+        	ndexLocal.changePassword(password); 
+        } catch (Exception e) {
+        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
+        }
+
+ 
+    	// try to authenticate the user after changing the password back to the original one
+    	try {
+    		newUser2 = null;
+    		// authenticate using global ndex client
+    		newUser2 = ndex.authenticateUser(account, password);
+    	} catch (UnauthorizedOperationException e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
+    	} catch (Exception e) {
     		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
     	}
     	assertNotNull("Unable to retrieve user '" + account + 
     			"' after authenticating with new password '" + newPassword + "'", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);
         	
-        
-    	// authenticate the user again, this time using ndex.authenticateUserNoOp(); method
     	try {
     		newUser2 = null;
-    		newUser2 = ndex.authenticateUserNoOp();
+    		// authenticate using local ndexLocal client
+    		newUser2 = ndexLocal.authenticateUser(account, password);
     	} catch (UnauthorizedOperationException e) {
-        	ndex.setCredential(accountName, accountPassword);
     		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
     	} catch (Exception e) {
-        	ndex.setCredential(accountName, accountPassword);
     		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
     	}
     	assertNotNull("Unable to retrieve user '" + account + 
     			"' after authenticating with new password '" + newPassword + "'", newUser2);
-        UserUtils.compareObjectsContents(newUser1, newUser2);
-        
-        
+        UserUtils.compareObjectsContents(newUser1, newUser2);        
+                
         // delete the test user account
-        ndex.setCredential(account, password);
-        UserUtils.deleteUser(ndex, account, password);
-    	ndex.setCredential(accountName, accountPassword);
+        UserUtils.deleteUser(ndexLocal, account, password);
     }
     
 

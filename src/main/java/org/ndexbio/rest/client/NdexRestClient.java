@@ -289,7 +289,7 @@ public class NdexRestClient {
 		return con;
 	}
 	
-	private HttpURLConnection postReturningConnection(final String route) throws IOException {
+	private HttpURLConnection postReturningConnection(final String route, final String postData) throws IOException {
 		URL request = new URL(_baseroute + route);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
@@ -297,6 +297,12 @@ public class NdexRestClient {
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.connect();
+
+		DataOutputStream output = new DataOutputStream(con.getOutputStream());
+		output.writeBytes(postData);
+		output.flush();
+		output.close();
+		
 		return con;
 	}
 
@@ -443,7 +449,7 @@ public class NdexRestClient {
 
 			ObjectMapper mapper = new ObjectMapper();
 
-			con = (null == postData) ? postReturningConnection(route) : postReturningConnection(route, postData);
+			con = postReturningConnection(route, postData);
 			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
 			
 			if (null == con) {
@@ -478,6 +484,56 @@ public class NdexRestClient {
 			if ( con != null ) con.disconnect();
 		}
 	}
+	
+	
+	public NdexObject postString(
+			final String route, 
+			final String postData,
+			final Class<? extends NdexObject>  mappedClass)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+
+		try {
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			con = postReturningConnection(route, postData);
+			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
+			
+			if (null == con) {
+				return null;
+			}
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    input = con.getErrorStream();
+			 
+				if (null != input) {
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			}
+	
+			input = con.getInputStream();
+			if (null != input) {
+				return mapper.readValue(input, mappedClass);
+			}
+			throw new IOException("failed to connect to ndex");
+
+		} finally {
+			if (null != input) input.close();
+			if ( con != null ) con.disconnect();
+		}
+	}
+	
 	
 	public List <? extends NdexObject> postNdexObjectList(
 			final String route, 

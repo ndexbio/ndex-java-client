@@ -288,6 +288,17 @@ public class NdexRestClient {
 		addAuthentication(con);
 		return con;
 	}
+	
+	private HttpURLConnection postReturningConnection(final String route) throws IOException {
+		URL request = new URL(_baseroute + route);
+
+		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		addAuthentication(con);
+		con.setRequestMethod("POST");
+		con.setDoOutput(true);
+		con.connect();
+		return con;
+	}
 
 	/*
 	 * PUT
@@ -432,8 +443,12 @@ public class NdexRestClient {
 
 			ObjectMapper mapper = new ObjectMapper();
 
-			con = postReturningConnection(route, postData);
+			con = (null == postData) ? postReturningConnection(route) : postReturningConnection(route, postData);
 			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
+			
+			if (null == con) {
+				return null;
+			}
 			
 			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||

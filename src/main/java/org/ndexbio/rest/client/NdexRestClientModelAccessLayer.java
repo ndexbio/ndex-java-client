@@ -389,7 +389,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Change user password
 	// TODO
 //			user	POST	/user/password	string	
-	public void changePassword(User user, String newPassword) throws JsonProcessingException, IOException, NdexException {
+	public void changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
 		ndexRestClient.postNdexObject("/user/password/" + newPassword , null, User.class);
 		return;
 	}

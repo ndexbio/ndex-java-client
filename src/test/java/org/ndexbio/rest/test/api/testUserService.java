@@ -587,7 +587,7 @@ public class testUserService
         // change password
         try {
     	    ndex.setCredential(account, password);
-            ndex.changePassword(newUser1, newPassword);
+            ndex.changePassword(newPassword);
         } catch (JsonMappingException e) {
         	// expected exception
         	assertTrue("wrong exception message: " + e.getMessage(), e.getMessage().startsWith("No content to map due to end-of-input"));
@@ -615,7 +615,7 @@ public class testUserService
         // change password back to the original one
         try {
     	    ndex.setCredential(account, newPassword);
-            ndex.changePassword(newUser1, password);
+            ndex.changePassword(password);
         } catch (JsonMappingException e) {
         	// expected exception
         	assertTrue("wrong exception message: " + e.getMessage(), e.getMessage().startsWith("No content to map due to end-of-input"));

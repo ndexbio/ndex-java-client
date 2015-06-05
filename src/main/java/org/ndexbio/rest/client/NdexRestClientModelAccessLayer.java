@@ -82,8 +82,10 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 */
 	
 	public void setCredential(String username, String password) {
-		ndexRestClient.setCredential(username, password);
-		
+		ndexRestClient.setCredential(username, password);	
+	}
+	public void setPassword(String newPassword) {
+		ndexRestClient.setPassword(newPassword);
 	}
 	public String getUserName() {
 		return ndexRestClient.getUsername();
@@ -296,10 +298,12 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	// Authenticate user 
-//			user	GET	/user/authenticate/{username}/{password}	
-	public User authenticateUser() throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/authenticate", "", User.class);
+//			user	GET	/user/authenticate	
+	public User authenticateUser(String userName, String password) throws IOException, NdexException {
+		return (User) ndexRestClient.getNdexObject("/user/authenticate", userName,  password, "", User.class);
 	}
+	
+	
 	
 	// Get group permissions of user as list of memberships
 //			user	GET	/user/{userUUID}/group/{permission}/{skipBlocks}/{blockSize}		Membership[]
@@ -382,13 +386,24 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Change user password
 	// TODO
-//			user	POST	/user/password	string	
-	/*
-	public User updateUserPassword(User user, String newPassword) throws JsonProcessingException, IOException{
-		String postData = newPassword;
-		return (User)ndexRestClient.postNdexObject("/user/" + user.getExternalId() , postData, User.class);
+    //			user	POST	/user/password	string	
+	// 
+	// ATTENTION: in case password has been successfully changed on the server, it will be changed on the 
+	//            client side as well.
+	//
+	public boolean changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
+		
+		boolean success = false;
+		
+		int returnCode = ndexRestClient.postString("/user/password", newPassword, User.class);
+		
+		if (HttpURLConnection.HTTP_NO_CONTENT == returnCode) {
+			success = true;
+			this.setPassword(newPassword);
+		}
+		return success;
 	}
-*/
+
 	
 	// Delete user (actually implemented as deprecate)
 	// Fails unless the authenticated user is the user to delete...

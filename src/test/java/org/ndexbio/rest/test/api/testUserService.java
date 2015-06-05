@@ -3,40 +3,26 @@ package org.ndexbio.rest.test.api;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+
 import java.util.UUID;
-
-import javax.ws.rs.Encoded;
-import javax.ws.rs.PathParam;
-
-import org.jboss.resteasy.spi.UnauthorizedException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
 import org.ndexbio.common.models.dao.orientdb.CommonDAOValues;
-import org.ndexbio.model.errorcodes.NDExError;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
-import org.ndexbio.model.object.Account;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-import org.ndexbio.rest.test.utilities.NetworkUtils;
-import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  *  This class contains JUNit tests for testing UserService APIs from the 
@@ -44,9 +30,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  *  APIs tested in this class:
  *  
- *  √   1) public User authenticateUser(String, String) accountName,
- *      2) public User authenticateUserNoOp()
- *      3) public void changePassword(String password)
+ *      1) public User authenticateUser(String, String)  -- deprecated
+ *  √   2) public User authenticateUserNoOp()
+ *  √   3) public void changePassword(String password)
  *  √   4) public User createUser(final NewUser newUser)
  *  √   5) public void deleteUser()
  *      6) public Response emailNewPassword( final String accountName)
@@ -233,7 +219,6 @@ public class testUserService
     	}
     	assertNull("Retrieved non-existant user '" + nonExistentUser + "' using invalid password '" + nonExistentPassword + "'", user); 	
     }
-    
     
     /**
      * Try to get non-existent user from the server.
@@ -483,6 +468,134 @@ public class testUserService
         //newUser1.setEmailAddress("newEmailAddress@xxxxxx.com");
         //newUser1.setExternalId(UUID.randomUUID());
         //newUser1.setType(newUser1.getType() + " -- updated");
+    }
+    
+    /**
+     *  Create a test account and try to change it's password.
+     * 
+     * APIs tested: public void changePassword(String)
+     *              public User authenticateUserNoOp()
+     */
+    @Test
+    public void test0040ChangePassword()  {
+    	User   newUser1 = null; 
+    	User   newUser2 = null;  	
+    	String account  = "ddd";
+    	String password = "ddd";
+        NdexRestClient                 clientLocal = null;
+        NdexRestClientModelAccessLayer ndexLocal   = null;
+
+    	// create user object; the properties describe the current test set-up
+        NewUser newUserToCreate = UserUtils.getNewUser(
+				account,
+				password,
+		        "New test account",              // description
+		        account+"@xxxxxx.com",           // email address
+		        "FirstName",                     // first name -- name of the test
+		        "LastName",                      // last name -- name of the test		        
+		        "http://www.yahoo.com",          // image
+		        "http://www.yahoo.com/finance"); // web-site
+
+        try {
+            clientLocal = new NdexRestClient(account, password, JUnitTestSuite.testServerURL);
+            ndexLocal   = new NdexRestClientModelAccessLayer(clientLocal);
+        } catch (Exception e) {
+        	fail("Unable to create ndex client: " + e.getMessage());
+        }
+        
+        // delete test account in case it exists on the server
+    	UserUtils.deleteUser(ndexLocal, account, password);
+        
+        // create a new user account
+        try {
+            newUser1 = ndexLocal.createUser(newUserToCreate);
+        } catch (NdexException e) {
+            fail("Unable to create user account '" + newUserToCreate.getAccountName() + "' : " + e.getNDExError().getMessage());
+        } catch (Exception e) {
+            fail("Unable to create user account '" + newUserToCreate.getAccountName() + "' : " + e.getMessage());
+        }    
+        assertNotNull("Unable to create user account'" + newUserToCreate.getAccountName() + "'", newUser1);
+        UserUtils.compareObjectsContents(newUser1, newUserToCreate);
+        
+        
+        String newPassword  = password + "New";
+        
+        // change password
+        try {
+        	ndexLocal.changePassword(newPassword);
+        } catch (Exception e) {
+        	//ndex.setCredential(account, password);
+        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
+        }
+        
+
+    	// try to authenticate the user after setting new password
+    	try {
+    		newUser2 = null;
+    	    // authenticate this test account using ndex global client
+    		newUser2 = ndex.authenticateUser(account, newPassword);
+    	} catch (UnauthorizedOperationException e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
+    	} catch (Exception e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
+    	}
+    	assertNotNull("Unable to retrieve user '" + account + 
+    			"' after authenticating with new password '" + newPassword + "'", newUser2);
+        UserUtils.compareObjectsContents(newUser1, newUser2);
+        
+        
+    	// try to authenticate the user after setting new password
+    	try {
+    		newUser2 = null;  
+    	    // authenticate this test account using ndexLocal client
+    		newUser2 = ndexLocal.authenticateUser(account, newPassword);
+    	} catch (UnauthorizedOperationException e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
+    	} catch (Exception e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
+    	}
+    	assertNotNull("Unable to retrieve user '" + account + 
+    			"' after authenticating with new password '" + newPassword + "'", newUser2);
+        UserUtils.compareObjectsContents(newUser1, newUser2);        
+        
+        
+        // change password back to the original one
+        try {
+        	ndexLocal.changePassword(password); 
+        } catch (Exception e) {
+        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
+        }
+
+ 
+    	// try to authenticate the user after changing the password back to the original one
+    	try {
+    		newUser2 = null;
+    		// authenticate using global ndex client
+    		newUser2 = ndex.authenticateUser(account, password);
+    	} catch (UnauthorizedOperationException e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
+    	} catch (Exception e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
+    	}
+    	assertNotNull("Unable to retrieve user '" + account + 
+    			"' after authenticating with new password '" + newPassword + "'", newUser2);
+        UserUtils.compareObjectsContents(newUser1, newUser2);
+        	
+    	try {
+    		newUser2 = null;
+    		// authenticate using local ndexLocal client
+    		newUser2 = ndexLocal.authenticateUser(account, password);
+    	} catch (UnauthorizedOperationException e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getNDExError().getMessage());
+    	} catch (Exception e) {
+    		fail("Unable to authenticate user '" + account + "': " + e.getMessage());
+    	}
+    	assertNotNull("Unable to retrieve user '" + account + 
+    			"' after authenticating with new password '" + newPassword + "'", newUser2);
+        UserUtils.compareObjectsContents(newUser1, newUser2);        
+                
+        // delete the test user account
+        UserUtils.deleteUser(ndexLocal, account, password);
     }
     
 

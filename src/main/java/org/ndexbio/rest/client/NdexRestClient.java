@@ -146,6 +146,33 @@ public class NdexRestClient {
 		con.setRequestProperty("Authorization", authString);	
 	}
 	
+	private void addAuthentication(HttpURLConnection con, String userName, String password) {
+		String authString = null;
+		
+		if ((userName == null) || (userName.trim()).isEmpty() ) {
+			// if User Name is null or empty, then treat this as anonymous
+			// request (i.e., do not add "Authorization" header)
+			return;
+		}
+		
+		switch ( this.authnType ) {
+		case BASIC:
+			String credentials = userName + ":" + password;
+			authString = "Basic " + new String(new Base64().encode(credentials.getBytes()));
+			break;
+		case OAUTH:
+			System.out.println("OAuth authentication is not implmented yet.");
+			return;
+			//break;
+		case SAML:
+			authString = "SAML " + new String(new Base64().encode(this.SAMLResponse.getBytes()));
+			break;
+		default:
+			
+			//break;
+		}
+		con.setRequestProperty("Authorization", authString);	
+	}
 	private String getAuthenticationString() {
 		String authString = null;
 		switch ( this.authnType ) {
@@ -196,7 +223,62 @@ public class NdexRestClient {
 			if ( con != null) con.disconnect();
 		}
 	}
+	public NdexObject getNdexObject(
+			final String route, 
+			final String userName,
+			final String password,
+			final String query,
+			final Class<? extends NdexObject> mappedClass)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+		try {
 
+			ObjectMapper mapper = new ObjectMapper();
+
+			con = getReturningConnection(route, query, userName, password);
+			try {
+
+				if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+					input = con.getErrorStream();
+					 
+					if (null != input) {
+		                // server sent an Ndex-specific exception (i.e., exception defined in 
+						// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+						// Re-construct and re-throw this exception here on the client side.
+						processNdexSpecificException(input, con.getResponseCode(), mapper);
+					}
+						
+					throw new IOException("failed to connect to ndex");
+				}				
+				
+				input = con.getInputStream();
+
+				if (null != input){
+					if ("gzip".equalsIgnoreCase(con.getContentEncoding()))  {
+						input = new GZIPInputStream(input);
+					}
+					return mapper.readValue(input, mappedClass);
+				}
+				throw new NdexException("failed to connect to ndex server.");
+			} catch (IOException e) {	
+				String s = e.getMessage();
+			    if ( s.startsWith("Server returned HTTP response code: 401")) {
+				    throw new NdexException ("User '" + getUsername() + "' unauthorized to access " + 
+			             getBaseroute() + route + 
+			             "\nServer returned : " + e);
+			    }
+			    throw e;
+			}	
+		} finally {
+			if (null != input) input.close();
+			if ( con != null ) con.disconnect();
+		}
+	}
 	public NdexObject getNdexObject(
 			final String route, 
 			final String query,
@@ -280,12 +362,36 @@ public class NdexRestClient {
 
 	public HttpURLConnection getReturningConnection(final String route,
 			final String query) throws IOException {
+		
+		return getReturningConnection(route, query, this.getUsername(), this.getPassword());
+	}
+
+	public HttpURLConnection getReturningConnection(final String route,
+			final String query, String userName, String password) throws IOException {
 		URL request = new URL(_baseroute + route + query);
 
 		System.out.println("GET (returning connection) URL = " + request);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		addAuthentication(con, userName, password);
+		return con;
+	}	
+	
+	
+	private HttpURLConnection postReturningConnection(final String route, final String postData) throws IOException {
+		URL request = new URL(_baseroute + route);
+
+		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		addAuthentication(con);
+		con.setRequestMethod("POST");
+		con.setDoOutput(true);
+		con.connect();
+
+		DataOutputStream output = new DataOutputStream(con.getOutputStream());
+		output.writeBytes(postData);
+		output.flush();
+		output.close();
+		
 		return con;
 	}
 
@@ -435,6 +541,10 @@ public class NdexRestClient {
 			con = postReturningConnection(route, postData);
 			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
 			
+			if (null == con) {
+				return null;
+			}
+			
 			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
@@ -463,6 +573,46 @@ public class NdexRestClient {
 			if ( con != null ) con.disconnect();
 		}
 	}
+	
+	
+	public int postString(
+			final String route, 
+			final String postData,
+			final Class<? extends NdexObject>  mappedClass)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+
+		try {
+
+			con = postReturningConnection(route, postData);
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    input = con.getErrorStream();
+			 
+				if (null != input) {
+					ObjectMapper mapper = new ObjectMapper();
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			}
+	
+            return con.getResponseCode();  
+
+		} finally {
+			if (null != input) input.close();
+			if ( con != null ) con.disconnect();
+		}
+	}
+	
 	
 	public List <? extends NdexObject> postNdexObjectList(
 			final String route, 

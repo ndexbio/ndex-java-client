@@ -2,26 +2,41 @@ package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.fail;
 
-
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.Network;
+import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
+import org.ndexbio.task.Configuration;
+
 
 public class testPerformanceUploadingNetworks {
     
-	static String networksFile = "src/test/resources/testPerformanceUploadingNetworks.properties";
-	static Map<String, String> testNetworks;
+	static String resourcePath = "src/test/resources/";
+	static String networksFile = resourcePath + "testPerformanceUploadingNetworks.properties";
+	static TreeMap<String, String> testNetworks;
 	
     private static NdexRestClient                 client;
     private static NdexRestClientModelAccessLayer ndex;
@@ -29,7 +44,14 @@ public class testPerformanceUploadingNetworks {
     private static String accountName     = "uuu";
     private static String accountPassword = "uuu";
     
-    private static User   testAccount     = null;
+    private static User    testAccount    = null;
+    private static NewUser testUser       = null;
+    
+	DecimalFormat df = new DecimalFormat("#,###");
+	
+	private static boolean overwriteExistingNetwork = true;
+	private static String fileNameExtension = ".json";
+
 	
     
 	/**
@@ -40,53 +62,256 @@ public class testPerformanceUploadingNetworks {
      * @return  void
      */
 	@Test
-    public void test0001BechmarkNetworkUpload() {
-		
-		// start uploading networks from testNetworks
-	    // NetworkUtils.startNetworksUpload returns map with the entries in the form  "file_name":"file_size_in_Bytes"
-		Map<String,String> uploadedNetworks = NetworkUtils.startNetworksUpload(ndex, testNetworks);
-
-		// wait for all networks to upload
-        List<Task> userTasks = NetworkUtils.waitForNetworksToUpload(ndex, testAccount);
+    public void test0001BenchmarkNetworkUploadAndDownload() {
+		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
+		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
+		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
+  
+        Map<String,String> uploadedNetworks = new HashMap<String, String>();
         
-        // all networks uploaded; print the statistics
-        for (Task task : userTasks) {
+        for (Entry<String, String> entry : testNetworks.entrySet()) {
+            	
+        	// shut down the server and database, and remove the database files from the filesystem
+    		cleanDatabase();
+    		
+    		// re-create test account since it was deleted at previous step by cleanDatabase()
+    		createTestAccount();
+        	
+        	String networkPath = entry.getValue().toString();
+        	//System.out.println("networkPath="+networkPath);
+        	File fileToUpload = new File(networkPath);
+        	
+        	// get memory statistics before running the benchmark
+        	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
+
+        	// upload network to the test account
+        	NetworkUtils.startNetworkUpload(ndex, fileToUpload, uploadedNetworks);
+        	Task task = NetworkUtils.waitForNetworkToUpload(ndex, testAccount);
         	
             long uploadTimeInMs = task.getFinishTime().getTime() - task.getStartTime().getTime();
             String formattedUploadTime = formatOutput(uploadTimeInMs);
-
-            /*
-            // it would be nice to know IDs of networks that we uploaded in order to get their node/edge count
-            // but at present we cannot do this yet
-    		try {
-    			// note: we are searching by filename without extension; this may report wrong number of
-    			// edges/nodes in case there are multiple networks with the same name.
-                // For this test we use different network names, so it is ok
-    			networkSummary =
-    			    ndex.findNetworks(FilenameUtils.removeExtension(task.getDescription()), true, accountName, Permissions.ADMIN, false, 0, 1);
-    		} catch (IOException e) {
-    			networkSummary = null;
-    		}            
             
-    		if ((null == networkSummary) ||(0  == networkSummary.size())) {
-    			edges = "unknown";
-    			nodes = "unknown";
-    			id    = UUID.randomUUID();
-    		} else {
-    			edges = String.valueOf(networkSummary.get(0).getEdgeCount());
-    			nodes = String.valueOf(networkSummary.get(0).getNodeCount());
-    			id    = networkSummary.get(0).getExternalId();
-    		}
-            */
-            System.out.println(
-                task.getDescription() + "\t\t" + 
-                "size: " + uploadedNetworks.get(task.getDescription()) + "\t\t" + 
-            	//"nodes: " + nodes + "\t" +
-                //"edges: " + edges + "\t" +
-                "duration: " + formattedUploadTime);
+            String networkUUID = task.getAttribute("networkUUID").toString(); 
+            
+		    	    
+		    // download network with ReadOnly flag set to false
+			try {
+		        // set target network to read-write mode
+				ndex.setNetworkFlag(networkUUID, "readOnly", "false");
+			} catch (Exception e) {
+				fail("can't set read-only flag to false");
+			}
+			
 
+			Network entireNetwork = null;
+
+            long timeBeforeDownload = System.currentTimeMillis();
+
+			try {
+				 entireNetwork = ndex.getNetwork(networkUUID);
+			} catch (IOException | NdexException e) {
+				entireNetwork = null;
+				fail("can't download entire network");				
+			}
+			
+			long downloadTimeInMs = System.currentTimeMillis() - timeBeforeDownload;
+            String formattedDownloadTime = formatOutput(downloadTimeInMs);
+		   
+
+            entireNetwork = null;
+            
+		    // download network with ReadOnly flag set to true
+			try {
+		        // set target network to read-only mode
+				NetworkUtils.setReadOnlyFlag(ndex, networkUUID, true);
+			} catch (Exception e) {
+				fail("can't set read-only flag to false");
+			}
+
+            timeBeforeDownload = System.currentTimeMillis();
+
+			try {
+				 entireNetwork = ndex.getNetwork(networkUUID);
+			} catch (IOException | NdexException e) {
+				entireNetwork = null;
+				fail("can't download entire network");				
+			}
+			
+			long downloadTimeReadOnlyInMs = System.currentTimeMillis() - timeBeforeDownload;
+            String formattedDownloadReadOnlyTime = formatOutput(downloadTimeReadOnlyInMs);
+            
+        	// get memory statistics after running the benchmark
+        	memoryAfter.put(entry.getKey(), getMemoryUtiliztaion());
+
+        	HashMap<String, String> benchmark = new HashMap<String, String>();
+        	benchmark.put("name",     task.getDescription());        	
+        	benchmark.put("size",     uploadedNetworks.get(task.getDescription()));
+        	benchmark.put("nodes",    NumberFormat.getNumberInstance(Locale.US).format(entireNetwork.getNodeCount()));
+        	benchmark.put("edges",    NumberFormat.getNumberInstance(Locale.US).format(entireNetwork.getEdgeCount()));
+        	benchmark.put("upload",   formattedUploadTime);
+        	benchmark.put("download", formattedDownloadTime); 
+        	benchmark.put("readonly", formattedDownloadReadOnlyTime);         	
+
+        	benchmarkData.put(entry.getKey(), benchmark);
+        	
+			try {
+				NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
+			} catch (Exception e) {
+				fail("can't set read-only flag to false");
+			}
+			
+			// save the network to the file system so that we could re-use it for the next benchmark
+			NetworkUtils.saveNetworkToFile(resourcePath+fileToUpload.getName()+fileNameExtension, entireNetwork, overwriteExistingNetwork);
+					
+			// delete network on the test server
+	    	NetworkUtils.deleteNetwork(ndex, networkUUID);
+	    	
+	    	entireNetwork = null;
         }
+		
+        printNetworkUploadAndDownloadReport(memoryBefore, memoryAfter, benchmarkData);
+        memoryBefore  = null;
+        memoryAfter   = null;
+        benchmarkData = null;
     }
+	
+	/**
+	 * This methods uploads networks listed in the properties file (networksFile), 
+	 * calculates and prints how long it took for every network to upload. 
+	 * 
+     * @param   void
+     * @return  void
+     */
+	@Test
+    public void test0002BenchmarkNetworkCreate() {
+		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
+		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
+		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
+  
+         
+        for (Entry<String, String> entry : testNetworks.entrySet()) {
+            	
+        	// shut down the server and database, and remove the database files from the filesystem
+    		cleanDatabase();
+    		
+    		// re-create test account since it was deleted at previous step by cleanDatabase()
+    		createTestAccount();
+        	
+        	String networkPath = entry.getValue().toString();
+        	String networkName = FilenameUtils.getName(networkPath);
+        	
+        	// name of the file containing network in JSON format; this file is created by previous test
+        	String fileName = resourcePath + networkName + fileNameExtension;
+        	
+        	// construct Network object 
+        	Network network = NetworkUtils.readNetworkFromFile(fileName); 
+            NetworkSummary networkSummary = null;
+        	
+        	// get memory statistics before creating network
+        	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
+        	
+            long timeBeforeCreate = System.currentTimeMillis();
+            
+        	try {
+				networkSummary = ndex.createNetwork(network);
+			} catch (Exception e) {
+                fail("unable to create network " + networkName + " : " + e.getMessage() );
+			}
+        	
+			long createTimeInMs = System.currentTimeMillis() - timeBeforeCreate;
+            String formattedCreateTime = formatOutput(createTimeInMs);
+        	
+        	// get memory statistics after creating network
+        	memoryAfter.put(entry.getKey(), getMemoryUtiliztaion());
+        	
+        	HashMap<String, String> benchmark = new HashMap<String, String>();
+        	benchmark.put("name",   networkName);        	
+        	benchmark.put("size",   NumberFormat.getNumberInstance(Locale.US).format(new File(networkPath).length()));
+        	benchmark.put("json",   NumberFormat.getNumberInstance(Locale.US).format(new File(fileName).length()));
+        	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
+        	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
+        	benchmark.put("upload", formattedCreateTime);
+
+        	benchmarkData.put(entry.getKey(), benchmark);
+        	
+			// delete network on the test server
+	    	NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());
+        }
+		
+        printNetworkCreateReport(memoryBefore, memoryAfter, benchmarkData);
+    }
+
+	
+	
+	private void printNetworkUploadAndDownloadReport(
+			Map<String, Map<String, String>> memoryBefore,
+			Map<String, Map<String, String>> memoryAfter,
+			Map<String, Map<String, String>> benchmarkData) {
+		
+        for (Entry<String, String> entry : testNetworks.entrySet()) {
+        	String key = entry.getKey();
+        	
+            printRuntimeMemoryUsage("\n--- Memory before running test0001BenchmarkNetworkUploadAndDownload, Bytes ---", memoryBefore.get(key));
+            
+            System.out.println(
+                benchmarkData.get(key).get("name") + "\t" + 
+                "size: "   +  benchmarkData.get(key).get("size") + "\t" + 
+                "nodes: " + benchmarkData.get(key).get("nodes") + "\t" + 
+                "edges: " +  benchmarkData.get(key).get("edges") + "\t" + 
+                "upload time: " + benchmarkData.get(key).get("upload") + "\t" + 
+                "download time: " + benchmarkData.get(key).get("download") + "\t" + 
+                "download read-only time: " + benchmarkData.get(key).get("readonly") );
+ 
+        	printRuntimeMemoryUsage("--- Memory after  running test0001BenchmarkNetworkUploadAndDownload, Bytes ---", memoryAfter.get(key));
+        }
+	}
+
+	private void printNetworkCreateReport(
+			Map<String, Map<String, String>> memoryBefore,
+			Map<String, Map<String, String>> memoryAfter,
+			Map<String, Map<String, String>> benchmarkData) {
+		
+        for (Entry<String, String> entry : testNetworks.entrySet()) {
+        	String key = entry.getKey();
+        	
+            printRuntimeMemoryUsage("\n--- Memory before running test0002BenchmarkNetworkCreate, Bytes ---", memoryBefore.get(key));
+            
+            System.out.println(
+                benchmarkData.get(key).get("name") + "\t" + 
+                "size: "   +  benchmarkData.get(key).get("size") + "\t" + 
+                "JSON size: "   +  benchmarkData.get(key).get("json") + "\t" + 		
+                "nodes: " + benchmarkData.get(key).get("nodes") + "\t" + 
+                "edges: " +  benchmarkData.get(key).get("edges") + "\t" + 
+                "creation time: " + benchmarkData.get(key).get("upload") + "\t" );
+ 
+        	printRuntimeMemoryUsage("--- Memory after  running test0002BenchmarkNetworkCreate, Bytes ---", memoryAfter.get(key));
+        }
+	}	
+
+	private Map<String, String> getMemoryUtiliztaion() {
+		
+		Map<String, String> memory = new HashMap<String,String>();
+
+	    Runtime runtime = Runtime.getRuntime();
+
+		memory.put("heap", df.format(runtime.totalMemory()));
+		memory.put("max",  df.format(runtime.maxMemory()));
+		memory.put("used", df.format(runtime.totalMemory() - runtime.freeMemory()));
+		memory.put("free", df.format(runtime.freeMemory()));
+		
+		return memory;
+	}
+	
+	private void printRuntimeMemoryUsage(String header, Map<String, String> memory) {
+
+	    System.out.println(header);
+
+	    System.out.println("   Heap Size (Total Memory): " + memory.get("heap"));
+	    System.out.println("                 Max Memory: " + memory.get("max"));	    
+	    System.out.println("                Used Memory: " + memory.get("used"));
+	    System.out.println("                Free Memory: " + memory.get("free"));
+	}
+	
 
 	/**
 	 * This methods runs once before any of the test methods in the class.
@@ -104,7 +329,7 @@ public class testPerformanceUploadingNetworks {
 		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
 		
 		// create user object; the properties describe the current test
-		NewUser testUser = UserUtils.getNewUser(
+		testUser = UserUtils.getNewUser(
 				accountName,
 				accountPassword,
 		        "This account is used for network uploading benchmark testing",  // description
@@ -114,15 +339,30 @@ public class testPerformanceUploadingNetworks {
 		        "http://www.yahoo.com",               // image
 		        "http://www.yahoo.com/finance");      // web-site
 
-		// create ndex client and a test user account
         try {
             client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
-            ndex   = new NdexRestClientModelAccessLayer(client);
+        } catch (Exception e) {
+			fail("Unable to create client: " + e.getMessage());
+        }
+        
+        try {
+            ndex = new NdexRestClientModelAccessLayer(client);
+        } catch (Exception e) {
+			fail("Unable to create ndex rest client model access layer: " + e.getMessage());
+        }
+        
+        createTestAccount(); 
+    }
+    
+    
+    private static void createTestAccount() {
+        try {
             testAccount = ndex.createUser(testUser);
         } catch (Exception e) {
 			fail("Unable to create test user account: " + e.getMessage());
         }
     }
+
 
     /**
      * Clean-up method.  The last method called in this class by JUnit framework.
@@ -163,6 +403,78 @@ public class testPerformanceUploadingNetworks {
         long hours        = ( ( (millisecondsToConvert / 1000) / 60 ) / 60 ) % 60;
         
         return String.format("%02dh:%02dm:%02ds:%03dms", hours, minutes, seconds, milliseconds);
+	}
+	
+	
+	private void cleanDatabase() {
+        
+		stopServer(); 
+		
+		Configuration configuration = null;
+		try {
+			configuration = Configuration.getInstance();
+		} catch (Exception e) {
+			fail("unable to get Configuration instance.");
+		}
+	
+		String dbURL = configuration.getDBURL().replaceAll("plocal:", "");
+		
+		// remove the database directory from the filesystem
+		try {
+			FileUtils.deleteDirectory(new File(dbURL));
+		} catch (IOException e1) {
+			fail("unable to delete " + dbURL);
+		}
+
+		startServer();
+	}
+	
+	private void stopServer() {
+		if (!JUnitTestSuite.getUseJettyServer()) {
+			fail("need to use Jetty Server for performance benchmarking.");
+		}
+		
+		Server server = JUnitTestSuite.getServer();
+		
+	    try {
+	    	server.stop();
+	    } catch (Exception e) {
+	    	fail("can't stop server: " + e.getMessage());
+	    }
+		
+        // wait for the server to stop 
+		while (true) {
+			if (server.isStopped()) {
+				return;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {}
+		}
+	}
+	
+	private void startServer() {
+		if (!JUnitTestSuite.getUseJettyServer()) {
+			fail("need to use Jetty Server for performance benchmarking.");
+		}
+		
+		Server server = JUnitTestSuite.getServer();
+		
+	    try {
+	    	server.start();
+	    } catch (Exception e) {
+	    	fail("can't start server: " + e.getMessage());
+	    }
+	    
+        // wait for the server to start 
+		while (true) {
+			if (server.isStarted()) {
+				return;
+			}
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {}
+		}
 	}
     
 }

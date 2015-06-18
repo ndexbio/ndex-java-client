@@ -8,7 +8,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.ndexbio.common.access.NdexDatabase;
@@ -17,9 +16,9 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
 	//testNetworkAService.class
-    testUserService.class
+    //testUserService.class
     //testTaskService.class,
-	//testPerformanceUploadingNetworks.class
+	testPerformanceUploadingNetworks.class
 })
 
 
@@ -86,7 +85,7 @@ public class JUnitTestSuite {
         }
     }
 
-    private static boolean startServer() {
+    public static boolean startServer() {
         boolean success = true;
         server = new Server(8080);
 
@@ -99,7 +98,6 @@ public class JUnitTestSuite {
 
         try {
             server.start();
-            //server.join();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,6 +115,13 @@ public class JUnitTestSuite {
             NdexDatabase.close();
             server.stop();
         }
+    }
+
+    public static boolean getUseJettyServer() {
+    	return useJettyServer;
+    };
+    public static Server getServer() {
+    	return server;
     }
 
 }        

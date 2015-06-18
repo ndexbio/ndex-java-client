@@ -7,15 +7,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Enumeration;
-import java.util.Map;
+
 import java.util.Properties;
 import java.util.TreeMap;
 
-import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class PropertyFileUtils {
-	public static Map<String, String> parsePropertyFile(String path) {
-		Map<String, String> testNetworks = null;
+	public static TreeMap<String, String> parsePropertyFile(String path) {
+		TreeMap<String, String> testNetworks = null;
 		try {
 			File file = new File(path);
 			FileInputStream fileInput = new FileInputStream(file);
@@ -35,10 +34,8 @@ public class PropertyFileUtils {
 			}			
 			
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
 			fail("Properties file with networks to upload not found: " + e.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace();
 			fail("Unable to read properties file with networks to upload: " + e.getMessage());
 		}
 		

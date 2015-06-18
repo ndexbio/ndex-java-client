@@ -97,7 +97,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public boolean checkCredential() throws NdexException{
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
-			User currentUser = authenticateUser();
+			User currentUser = authenticateUser(ndexRestClient.getUsername(), ndexRestClient.getPassword());
 			if (null == currentUser || null == currentUser.getExternalId()) return false;
 			ndexRestClient.setUserUid(currentUser.getExternalId());
 			return true;

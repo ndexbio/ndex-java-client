@@ -107,7 +107,6 @@ public class MultipartUtility {
         writer.append("--" + boundary).append(LINE_FEED);
         writer.append("Content-Disposition: form-data; name=\"" + name + "\"")
                 .append(LINE_FEED).append(LINE_FEED);
-        writer.append(LINE_FEED);
         writer.append(value).append(LINE_FEED);
         writer.flush();
     } 

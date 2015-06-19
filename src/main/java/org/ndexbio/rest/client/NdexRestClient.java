@@ -400,7 +400,7 @@ public class NdexRestClient {
 			final String query, String userName, String password) throws IOException {
 		URL request = new URL(_baseroute + route + query);
 
-		System.out.println("GET (returning connection) URL = " + request);
+		//System.out.println("GET (returning connection) URL = " + request);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		addAuthentication(con, userName, password);
@@ -480,7 +480,7 @@ public class NdexRestClient {
 		
 		
 		URL request = new URL(_baseroute + route);
-		System.out.println("PUT (returning connection) URL = " + request);
+		//System.out.println("PUT (returning connection) URL = " + request);
 		ObjectMapper objectMapper = new ObjectMapper();
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		addAuthentication(con);
@@ -768,6 +768,27 @@ public class NdexRestClient {
 	 * DELETE
 	 * this method is deprecated;  delete() should be used instead.
 	 */
+	public void delete(final String route) throws IOException {
+        InputStream input = null;
+        HttpURLConnection con = null;
+
+        URL request = new URL(_baseroute + route);
+        try {
+
+	        con = (HttpURLConnection) request.openConnection();
+	        addAuthentication(con);
+	        con.setDoOutput(true);
+	        con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+	        con.setRequestMethod("DELETE");
+
+	        input = con.getInputStream();
+        }
+        finally {
+	        if (null != input) input.close();
+	        if (con != null) con.disconnect();
+        }
+    }	
+	/*
 	public JsonNode delete(final String route) throws JsonProcessingException,
 			IOException {
 		InputStream input = null;
@@ -798,7 +819,7 @@ public class NdexRestClient {
 			if (null != input) input.close();
 			if ( con != null) con.disconnect();
 		}
-	}
+	}*/
 	
 
 	

@@ -35,8 +35,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.Ignore;
-
 public class JUnitTestProperties {
     private  String testerName      = null;
     private  String testerPassword  = null;

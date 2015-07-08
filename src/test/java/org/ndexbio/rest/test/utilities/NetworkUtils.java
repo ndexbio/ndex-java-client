@@ -2,7 +2,6 @@ package org.ndexbio.rest.test.utilities;
 
 import java.io.File;
 import java.io.IOException;
-
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +9,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
@@ -20,6 +20,7 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class NetworkUtils {
@@ -61,39 +62,30 @@ public class NetworkUtils {
         try {
             ndex.deleteNetwork(networkUUID);
         } catch (Exception e) {
-        	// here we may get the
-        	// "com.fasterxml.jackson.databind.JsonMappingException: No content to map due to end-of-input"
-        	// ignore it an keep deleting networks
+        	fail("Unable to delete network " + networkUUID + " : " + e.getMessage());
         }
-        /*
-        while (true) {
-		    try {
-			    //get network summary
-		 	    NetworkSummary networkSummary = ndex.getNetworkSummaryById(networkUUID);
-		 	    return;
-		    } catch (Exception e) {
-			    //fail("unable to get network summary for network " + networkUUID);
-			    return;
-		    }
-        }
-        */
-        
+        return;
 	}    
     
 	public static void startNetworkUpload(NdexRestClientModelAccessLayer ndex, File networkToUpload, Map<String,String> uploadedNetworks) {
 
 		try {
-
-    	    ndex.uploadNetwork(networkToUpload.getCanonicalPath());
-    	    
+    	    ndex.uploadNetwork(networkToUpload.getCanonicalPath());    
     	    // put name:size to map
-    	    uploadedNetworks.put(networkToUpload.getName(), NumberFormat.getNumberInstance(Locale.US).format(networkToUpload.length()));
-    			
+    	    uploadedNetworks.put(networkToUpload.getName(), NumberFormat.getNumberInstance(Locale.US).format(networkToUpload.length()));		
 	    } catch (Exception e) {
-
             fail("Unable to upload test network " + networkToUpload.getName() + " : " + e.getMessage());
         }
 		
+		return;
+	}
+	
+	public static void startNetworkUpload(NdexRestClientModelAccessLayer ndex, File networkToUpload) {
+		try {
+    	    ndex.uploadNetwork(networkToUpload.getCanonicalPath());    		
+	    } catch (Exception e) {
+            fail("Unable to upload test network " + networkToUpload.getName() + " : " + e.getMessage());
+        }
 		return;
 	}
 	
@@ -125,7 +117,7 @@ public class NetworkUtils {
     	
     	return map;
     }
-	public static Task waitForNetworkToUpload(NdexRestClientModelAccessLayer ndex, User userAccount) {
+	public static Task waitForTaskToFinish(NdexRestClientModelAccessLayer ndex, User userAccount) {
 		List<Task> userTasks = null;
 		Status status;
 		
@@ -151,7 +143,7 @@ public class NetworkUtils {
                 	Thread.sleep(10000); 
                 } catch (Exception e) {}
             } else {
-            	// network uploaded -- break out of the loop and return
+            	// task finished -- get another one  
             	break;
             }
   
@@ -288,6 +280,32 @@ public class NetworkUtils {
 		}
         
 		return network;
+	}
+	
+	public static void compareObjectsContents(Network network1, Network network2) {
+
+        assertEquals("Node count doesn't match", 
+        	network1.getNodeCount(), network2.getNodeCount());
+
+        assertEquals("Node count doesn't match",
+        	network1.getNodes().size(), network2.getNodes().size());
+
+        assertEquals("Edge count doesn't match",
+        	network1.getEdgeCount(), network2.getEdgeCount());
+
+        assertEquals("Edge count doesn't match",
+        	network1.getEdges().size(), network2.getEdges().size());       
+
+        assertEquals("Base terms doesn't match",
+        	network1.getBaseTerms().size(), network2.getBaseTerms().size());
+
+        assertEquals("Name spaces count doesn't match",
+        	network1.getNamespaces().size(), network2.getNamespaces().size());
+
+        assertEquals("Citations count doesn't match",
+        	network1.getCitations().size(), network2.getCitations().size());
+     
+        return;
 	}
     
 }

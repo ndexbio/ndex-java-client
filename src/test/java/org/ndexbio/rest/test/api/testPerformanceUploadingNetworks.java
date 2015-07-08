@@ -52,6 +52,65 @@ public class testPerformanceUploadingNetworks {
 	private static boolean overwriteExistingNetwork = true;
 	private static String fileNameExtension = ".json";
 
+	/**
+	 * This methods runs once before any of the test methods in the class.
+	 * It builds a Map of networks for testing from the property file, creates a test user 
+	 * account (accountName) with password (accountPassword),
+	 * and ndex client used by other tests.
+	 * 
+     * @param   void
+     * @return  void
+     */
+    @BeforeClass
+    public static void setUp() throws Exception {
+		
+    	// build Map of networks for testing from the property file
+		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
+		
+		// create user object; the properties describe the current test
+		testUser = UserUtils.getNewUser(
+				accountName,
+				accountPassword,
+		        "This account is used for network uploading benchmark testing",  // description
+		        "benchmark@ucsd.com",                 // email address
+		        "Upload",                             // first name -- name of the test
+		        "Network Benchmark",                  // last name -- name of the test		        
+		        "http://www.yahoo.com",               // image
+		        "http://www.yahoo.com/finance");      // web-site
+
+        try {
+            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+        } catch (Exception e) {
+			fail("Unable to create client: " + e.getMessage());
+        }
+        
+        try {
+            ndex = new NdexRestClientModelAccessLayer(client);
+        } catch (Exception e) {
+			fail("Unable to create ndex rest client model access layer: " + e.getMessage());
+        }
+        
+        testAccount = UserUtils.createUserAccount(ndex, testUser);
+    }
+
+    /**
+     * Clean-up method.  The last method called in this class by JUnit framework.
+     * It removes all networks uploaded to the test account, and removes the test
+     * account itself.
+     * 
+     * @throws  Exception
+     * @param   void
+     * @return  void
+     */
+    @AfterClass
+    public static void tearDown() throws Exception {
+    	
+    	// delete all networks from the test account
+    	NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
+    	
+    	// delete the test user account
+    	UserUtils.deleteUser(ndex);
+    }
 	
     
 	/**
@@ -75,7 +134,7 @@ public class testPerformanceUploadingNetworks {
     		cleanDatabase();
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
-    		createTestAccount();
+    		testAccount = UserUtils.createUserAccount(ndex, testUser);
         	
         	String networkPath = entry.getValue().toString();
         	//System.out.println("networkPath="+networkPath);
@@ -86,7 +145,7 @@ public class testPerformanceUploadingNetworks {
 
         	// upload network to the test account
         	NetworkUtils.startNetworkUpload(ndex, fileToUpload, uploadedNetworks);
-        	Task task = NetworkUtils.waitForNetworkToUpload(ndex, testAccount);
+        	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);
         	
             long uploadTimeInMs = task.getFinishTime().getTime() - task.getStartTime().getTime();
             String formattedUploadTime = formatOutput(uploadTimeInMs);
@@ -195,7 +254,7 @@ public class testPerformanceUploadingNetworks {
     		cleanDatabase();
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
-    		createTestAccount();
+    		testAccount = UserUtils.createUserAccount(ndex, testUser);
         	
         	String networkPath = entry.getValue().toString();
         	String networkName = FilenameUtils.getName(networkPath);
@@ -313,75 +372,6 @@ public class testPerformanceUploadingNetworks {
 	}
 	
 
-	/**
-	 * This methods runs once before any of the test methods in the class.
-	 * It builds a Map of networks for testing from the property file, creates a test user 
-	 * account (accountName) with password (accountPassword),
-	 * and ndex client used by other tests.
-	 * 
-     * @param   void
-     * @return  void
-     */
-    @BeforeClass
-    public static void setUp() throws Exception {
-		
-    	// build Map of networks for testing from the property file
-		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
-		
-		// create user object; the properties describe the current test
-		testUser = UserUtils.getNewUser(
-				accountName,
-				accountPassword,
-		        "This account is used for network uploading benchmark testing",  // description
-		        "benchmark@ucsd.com",                 // email address
-		        "Upload",                             // first name -- name of the test
-		        "Network Benchmark",                  // last name -- name of the test		        
-		        "http://www.yahoo.com",               // image
-		        "http://www.yahoo.com/finance");      // web-site
-
-        try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
-        } catch (Exception e) {
-			fail("Unable to create client: " + e.getMessage());
-        }
-        
-        try {
-            ndex = new NdexRestClientModelAccessLayer(client);
-        } catch (Exception e) {
-			fail("Unable to create ndex rest client model access layer: " + e.getMessage());
-        }
-        
-        createTestAccount(); 
-    }
-    
-    
-    private static void createTestAccount() {
-        try {
-            testAccount = ndex.createUser(testUser);
-        } catch (Exception e) {
-			fail("Unable to create test user account: " + e.getMessage());
-        }
-    }
-
-
-    /**
-     * Clean-up method.  The last method called in this class by JUnit framework.
-     * It removes all networks uploaded to the test account, and removes the test
-     * account itself.
-     * 
-     * @throws  Exception
-     * @param   void
-     * @return  void
-     */
-    @AfterClass
-    public static void tearDown() throws Exception {
-    	
-    	// delete all networks from the test account
-    	NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
-    	
-    	// delete the test user account
-    	UserUtils.deleteUser(ndex);
-    }
     
     /**
      * This method takes as an argument a long value representing milliseconds, and
@@ -404,7 +394,6 @@ public class testPerformanceUploadingNetworks {
         
         return String.format("%02dh:%02dm:%02ds:%03dms", hours, minutes, seconds, milliseconds);
 	}
-	
 	
 	private void cleanDatabase() {
         

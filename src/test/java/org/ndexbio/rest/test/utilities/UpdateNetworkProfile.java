@@ -33,7 +33,7 @@ public class UpdateNetworkProfile extends Thread {
 		
 		// wait till the network profile update is finished
         while (true) {
-        	
+        	// System.out.println(Thread.currentThread().getName() + ": check if profile updated");
         	try {
         	    updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
         	} catch (Exception e) {
@@ -45,6 +45,7 @@ public class UpdateNetworkProfile extends Thread {
         		!updatedNetworkSummary.getVersion().equals(networkSummary.getVersion()))	
         	{	
                 try {
+                	// System.out.println(Thread.currentThread().getName() + ": not updated yet ; sleep for 1 sec");
                 	// profile not updated yet -- sleep 1 seconds and check again
                 	Thread.sleep(1000);
                 	updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
@@ -54,6 +55,7 @@ public class UpdateNetworkProfile extends Thread {
                 
         	} else {
             	// profile has been modified on the server; break out of the loop
+        		// System.out.println(Thread.currentThread().getName() + ": profile updated ; end the update thread");
             	break;
             } 	
         } 

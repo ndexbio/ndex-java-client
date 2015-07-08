@@ -8,8 +8,8 @@ import java.util.List;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
-import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
@@ -167,7 +167,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Delete a group
 //			group	DELETE	/group/{groupUUID}	
 	public void deleteGroup(String id) throws JsonProcessingException, IOException{
-		ndexRestClient.delete("/grop/" + id);
+		ndexRestClient.delete("/group/" + id);
 	}	
 	
 	// Add or modify account permission for a group by posting a membership
@@ -586,7 +586,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
 	// Delete a network (actually implemented as deprecation)
 //	network	DELETE	/network/{networkUUID}
-	public void deleteNetwork(String id) throws JsonProcessingException, IOException{
+	public void deleteNetwork(String id) throws IOException{
 		ndexRestClient.delete("/network/" + id);
 	}
 	

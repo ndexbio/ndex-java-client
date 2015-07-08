@@ -1,6 +1,7 @@
 package org.ndexbio.rest.test.utilities;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
@@ -13,6 +14,7 @@ public class UserUtils {
             ndex.deleteUser();
         } catch (Exception e) {
         	// ignore this exception -- the account we try to delete may not exist
+        	//fail("Unable to delete user account: " + e.getMessage());
         }
 	}
 	
@@ -25,6 +27,7 @@ public class UserUtils {
             ndex.deleteUser();
         } catch (Exception e) {
         	// ignore this exception -- the account we try to delete may not exist
+        	// fail("Unable to delete user account: " + e.getMessage());
         } finally {
     	    ndex.setCredential(previousUserName, previousPassword);
         }
@@ -76,5 +79,18 @@ public class UserUtils {
         assertEquals("web sites do not match: ",       user1.getWebsite(),      user2.getWebsite());
         
         return;
+	}
+	
+	public static User createUserAccount(
+        NdexRestClientModelAccessLayer ndex, NewUser user) {
+
+        User newUser = null;
+        
+	    try {
+	    	newUser = ndex.createUser(user);
+	    } catch (Exception e) {
+			fail("Unable to create user account: " + e.getMessage());
+	    }        
+	    return newUser;
 	}
 }

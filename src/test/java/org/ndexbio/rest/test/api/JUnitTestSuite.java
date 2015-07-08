@@ -8,7 +8,6 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.ndexbio.common.access.NdexDatabase;
@@ -16,10 +15,10 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
-	//testNetworkAService.class
-    testUserService.class
-    //testTaskService.class,
-	//testPerformanceUploadingNetworks.class
+	testNetworkConcurrentAcess.class,
+    testUserService.class,
+    testTaskService.class,
+	testPerformanceUploadingNetworks.class
 })
 
 
@@ -30,24 +29,10 @@ public class JUnitTestSuite {
 
     // with startServer=true; a Jetty server will be started for testing;
     // with startServer=false; the external server will be used (URL is specified in task* classes)
-    private  static boolean useJettyServer = true;
-
-    // the testerName account should exist on the server prior to testing
-    public static String testerName      = null;
-    public static String testerPassword  = null;
-
-    // the userName account will be created by the test suites in the course of testing
-    public static String userName        = null;
-    public static String password        = null;
+    private  static boolean useJettyServer = false;
 
     // URL of the test server
     public static String testServerURL   = null;
-
-    // path to the network to run the tests on
-    public static String networkToUpload = null;
-
-    // path to the network to run the tests on
-    public static String networkToUploadName = null;
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -67,13 +52,7 @@ public class JUnitTestSuite {
         fis.close();
 
         useJettyServer      = Boolean.parseBoolean(p.getProperty("useJettyServer"));
-        testerName          = p.getProperty("testerName");
-        testerPassword      = p.getProperty("testerPassword");
-        userName            = p.getProperty("userName");
-        password            = p.getProperty("password");
         testServerURL       = p.getProperty("testServerURL");
-        networkToUpload     = p.getProperty("networkToUpload");
-        networkToUploadName = p.getProperty("networkToUploadName");
         
         if (useJettyServer) {
 
@@ -86,7 +65,7 @@ public class JUnitTestSuite {
         }
     }
 
-    private static boolean startServer() {
+    public static boolean startServer() {
         boolean success = true;
         server = new Server(8080);
 
@@ -99,7 +78,6 @@ public class JUnitTestSuite {
 
         try {
             server.start();
-            //server.join();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,6 +95,13 @@ public class JUnitTestSuite {
             NdexDatabase.close();
             server.stop();
         }
+    }
+
+    public static boolean getUseJettyServer() {
+    	return useJettyServer;
+    };
+    public static Server getServer() {
+    	return server;
     }
 
 }        

@@ -57,22 +57,13 @@ public class testUserService
 {
     private static NdexRestClient                 client;
     private static NdexRestClientModelAccessLayer ndex;
-    
-    //static private JUnitTestProperties configProperties = null;
-    
-    
+ 
     private static String accountName     = "aaa";
     private static String accountPassword = "aaa";
-    
-    //private static User   testAccount     = null;
-    
-   
+
     // userToCreate is the user that will be created on the NDEx server as part of testing
     // prior to testing, this account should not exist on this server
     private static NewUser userToCreate  = null;
-    
-    // this user is returned by a successful call to ndex.createUser(userToCreate) method
-    //private static User userCreated = null;
 
 	/**
 	 * This methods runs once before any of the test methods in the class.

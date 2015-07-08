@@ -5,51 +5,14 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
-import org.junit.Ignore;
-
 public class JUnitTestProperties {
-    private  String testerName      = null;
-    private  String testerPassword  = null;
-    private  String userName        = null;
-    private  String password        = null;
     private  String testServerURL   = null;
-    private  String networkToUpload = null;
     
-    public String getTesterName() {
-        return testerName;
-    }
-    public void setTesterName(String testerName) {
-        this.testerName = testerName;
-    }
-    public String getTesterPassword() {
-        return testerPassword;
-    }
-    public void setTesterPassword(String testerPassword) {
-        this.testerPassword = testerPassword;
-    }
-    public String getUserName() {
-        return userName;
-    }
-    public String getNetworkToUpload() {
-        return networkToUpload;
-    }
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-    public String getPassword() {
-        return password;
-    }
-    public void setPassword(String password) {
-        this.password = password;
-    }
     public String getTestServerURL() {
         return testServerURL;
     }
     public void setTestServerURL(String testServerURL) {
         this.testServerURL = testServerURL;
-    }
-    public void setNetworkToUpload(String networkToUpload) {
-        this.networkToUpload = networkToUpload;
     }        
     public JUnitTestProperties(String properties) {
             
@@ -74,13 +37,8 @@ public class JUnitTestProperties {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-            
-        testerName      = p.getProperty("testerName"); 
-        testerPassword  = p.getProperty("testerPassword");
-        userName        = p.getProperty("userName");
-        password        = p.getProperty("password");
-        testServerURL   = p.getProperty("testServerURL");
-        networkToUpload = p.getProperty("networkToUpload");
+
+        testServerURL = p.getProperty("testServerURL");
     }
 
 }

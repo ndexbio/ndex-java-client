@@ -57,12 +57,12 @@ public class NetworkUtils {
 	
     public static void deleteNetworks(
     		NdexRestClientModelAccessLayer ndex, String accountName, 
-    		Map<String, String> networksToUpload) {
+    		Map<String, String> networks) {
     	
     	// list of all networks from the test account 
     	List<NetworkSummary> allNetworks = null;
     	
-    	int count = (networksToUpload != null) ? networksToUpload.size() : 0;
+    	int count = (networks != null) ? networks.size() : 0;
     	
 		try {
 			allNetworks =

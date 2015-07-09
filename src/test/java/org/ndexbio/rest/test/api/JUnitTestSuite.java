@@ -45,6 +45,7 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
+	testGroupService.class,
 	testNetworkConcurrentAcess.class,
     testUserService.class,
     testTaskService.class,

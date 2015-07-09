@@ -45,12 +45,12 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
-	//testGroupService.class,
+	testGroupService.class
 	//testNetworkConcurrentAcess.class,
     //testUserService.class,
     //testTaskService.class,
 	//testPerformanceUploadingNetworks.class
-	testPerformanceCreatingNetworks.class
+	//testPerformanceCreatingNetworks.class
 })
 
 
@@ -61,7 +61,7 @@ public class JUnitTestSuite {
 
     // with startServer=true; a Jetty server will be started for testing;
     // with startServer=false; the external server will be used (URL is specified in task* classes)
-    private  static boolean useJettyServer = false;
+    private  static boolean useJettyServer = true;
 
     // URL of the test server
     public static String testServerURL   = null;

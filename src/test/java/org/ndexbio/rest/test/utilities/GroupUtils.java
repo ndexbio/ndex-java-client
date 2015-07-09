@@ -21,7 +21,7 @@ public class GroupUtils {
 		try {
 			newGroup = ndex.createGroup(group);
 		} catch (NdexException e) {
-        	fail("Unable to create group : " + e.getMessage());			
+			fail("Unable to create group : " + e.getMessage());
         } catch (Exception e) {
         	fail("Unable to create group : " + e.getMessage());
         } 
@@ -51,8 +51,5 @@ public class GroupUtils {
 		
 		return;
 	}
-
-
-		
 
 }

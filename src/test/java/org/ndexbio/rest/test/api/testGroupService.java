@@ -32,9 +32,17 @@ package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.ndexbio.model.exceptions.DuplicateObjectException;
+import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
@@ -42,6 +50,8 @@ import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.GroupUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  *  This class contains JUNit tests for testing GroupService APIs from the 
@@ -76,7 +86,10 @@ public class testGroupService {
     private static NewUser testUser       = null;
     
     private static String groupName       = "TestGroupName"; 
-
+    
+    private static Group newGroup         = null;
+    private static Group group            = null;
+    
 	/**
 	 * This methods runs once before any of the test methods in the class.
 	 * It creates ndex client used by other tests.
@@ -111,6 +124,15 @@ public class testGroupService {
     	
 		// create test account
     	testAccount = UserUtils.createUserAccount(ndex, testUser);
+    	
+
+    	group = new Group();
+    	
+    	group.setAccountName(groupName);
+    	group.setDescription("This group is used to test GroupService APIs");
+    	group.setImage("http://imgur.com/gallery/ukfzg2C");
+    	group.setOrganizationName("UCSD Cytoscape Consortium | NDEx Project");
+    	group.setWebsite("http://www.ndexbio.org");
     }
     
     /**
@@ -127,37 +149,71 @@ public class testGroupService {
     	
     	// delete the test user account
     	UserUtils.deleteUser(ndex);
-    } 
+    }
     
+
+    
+	/**
+	 * This methods runs after every test case.
+	 * It deletes test group that was created on the server.
+	 * 
+     * APIs tested: public void deleteGroup(String)
+     * 
+     * @param   void
+     * @return  void
+     */
+    @After
+    public void deleteGroup() {
+    	// delete the test group
+    	GroupUtils.deleteGroup(ndex, newGroup);
+    } 
+ 
     
     /**
      * Create a group on the server, and delete it.
      * 
      * APIs tested: public Group createGroup(Group)
-     *              public void deleteGroup(String)              
+     *             
      */
     @Test
     public void test0001CreateGroup() {
-    	Group group = new Group();
-    	
-    	group.setAccountName(groupName);
-    	group.setDescription("This group is used to test GroupService APIs");
-    	group.setImage("http://imgur.com/gallery/ukfzg2C");
-    	group.setOrganizationName("UCSD Cytoscape Consortium | NDEx Project");
-    	group.setWebsite("http://www.ndexbio.org");
     
     	// create new group
-    	Group newGroup = GroupUtils.createGroup(ndex, group);
+    	newGroup = GroupUtils.createGroup(ndex, group);
     	
-    	// check the contents of the newly created  Group obect
+    	// check the contents of the newly created  Group object
     	GroupUtils.compareGroupObjectsContents(group, newGroup);
-    	
-    	// create the same group again (group already exists on server)
-    	// Group anotherNewGroup = GroupUtils.createGroup(ndex, group);    	
-    	
-    	GroupUtils.deleteGroup(ndex, newGroup);
     }
     
+    /**
+     * Create a group on the server, and try to create it again.
+     * DuplicateObjectException is expected.
+     * 
+     * APIs tested: public Group createGroup(Group)
+     *            
+     */
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
+    
+    @Test
+    public void test0002CreateDuplicateGroup() throws JsonProcessingException, IOException, NdexException {
+    
+    	// create new group
+    	newGroup = GroupUtils.createGroup(ndex, group);
+    	
+    	// check the contents of the newly created  Group object
+    	GroupUtils.compareGroupObjectsContents(group, newGroup);
+    	
+    	// expected exception is DuplicateObjectException
+        thrown.expect(DuplicateObjectException.class);
+
+    	// expected message of DuplicateObjectException
+        thrown.expectMessage("Group with name " + groupName.toLowerCase() + " already exists.");
+        
+    	// create the same group again using ndex client
+        // expect DuplicateObjectException because group already exists on the server 
+    	newGroup = ndex.createGroup(group);
+    }
     
 
 }

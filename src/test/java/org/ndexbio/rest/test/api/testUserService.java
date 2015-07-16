@@ -208,7 +208,7 @@ public class testUserService
     		user = null;
     	    user = ndex.authenticateUser(accountName, nonExistentPassword);
     	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "Invalid accountName or password.");
+    		assertEquals("wrong message received: ", "Invalid username or password.", e.getMessage());
     	} catch (Exception e) {
     		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
     	}
@@ -216,12 +216,12 @@ public class testUserService
     	
     	
         // try to authenticate a non-existent user with a valid (good) password;
-        // UnauthorizedOperationException is expected 
+        // ObjectNotFoundException is expected 
     	try {
     		user = null;
     	    user = ndex.authenticateUser(nonExistentUser, accountPassword);
-    	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "User not found.");
+    	} catch (ObjectNotFoundException e) {
+    		assertEquals("wrong message received: ", "User " + nonExistentUser + " not found.", e.getMessage());
     	} catch (Exception e) {
     		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
     	}
@@ -229,12 +229,12 @@ public class testUserService
     	
     	
         // try to authenticate a non-existent user with a a non-existent password;
-        // UnauthorizedOperationException is expected 
+        // ObjectNotFoundException is expected 
     	try {
     		user = null;
     	    user = ndex.authenticateUser(nonExistentUser, nonExistentPassword);
-    	} catch (UnauthorizedOperationException e) {
-    		assertEquals("wrong message received: ", e.getNDExError().getMessage(), "User not found.");
+    	} catch (ObjectNotFoundException e) {
+    		assertEquals("wrong message received: ", "User " + nonExistentUser + " not found.", e.getMessage());    	    
     	} catch (Exception e) {
     		fail("Unable to authenticate user '" + accountName + "': " + e.getMessage());
     	}
@@ -430,14 +430,14 @@ public class testUserService
         // update user information
         try {
         	newUser2 = null;
-    	    ndex.setCredential(account, password);
+    	    ndex.setCredentials(account, password);
         	newUser2 = ndex.updateUser(newUser1);
         } catch (ObjectNotFoundException e) {
         	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
         	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
         } finally {
-        	 ndex.setCredential(accountName, accountPassword);
+        	 ndex.setCredentials(accountName, accountPassword);
         }
         assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);
@@ -451,14 +451,14 @@ public class testUserService
         newUser1.setWebsite(newUser1.getWebsite().replaceAll(postFix, ""));
         try {
         	newUser2 = null;
-    	    ndex.setCredential(account, password);
+    	    ndex.setCredentials(account, password);
         	newUser2 = ndex.updateUser(newUser1);
         } catch (ObjectNotFoundException e) {
         	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
         	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
         } finally {
-        	 ndex.setCredential(accountName, accountPassword);
+        	 ndex.setCredentials(accountName, accountPassword);
         }
         assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);        
@@ -545,7 +545,7 @@ public class testUserService
         try {
         	ndexLocal.changePassword(newPassword);
         } catch (Exception e) {
-        	//ndex.setCredential(account, password);
+        	//ndex.setCredentials(account, password);
         	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
         }
         

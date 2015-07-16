@@ -33,18 +33,25 @@ package org.ndexbio.rest.test.api;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runners.MethodSorters;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
+import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NewUser;
+import org.ndexbio.model.object.SimpleQuery;
+import org.ndexbio.model.object.SimpleUserQuery;
 import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -62,7 +69,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  *  √   1) public Group createGroup(Group)
  *  √   2) public void deleteGroup(String)
  *      3) public List<Group> findGroups(SimpleUserQuery, int, int)     
- *      4) public Group getGroup(String)
+ *  √   4) public Group getGroup(String)
  *      5) public List<Membership> getGroupNetworkMemberships(String, String, int, int)
  *      6) public List<Membership> getGroupUserMemberships(String, String, int, int)    
  *      7) public Membership getNetworkMembership(String, String) 
@@ -71,7 +78,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  *     10) public void updateMember(String, Membership)   
  *     
  */
-
+//The @FixMethodOrder(MethodSorters.NAME_ASCENDING) annotation sorts (and
+//executes) the test methods by name in lexicographic order
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testGroupService {
 
     private static NdexRestClient                 client;
@@ -125,7 +134,6 @@ public class testGroupService {
 		// create test account
     	testAccount = UserUtils.createUserAccount(ndex, testUser);
     	
-
     	group = new Group();
     	
     	group.setAccountName(groupName);
@@ -150,9 +158,7 @@ public class testGroupService {
     	// delete the test user account
     	UserUtils.deleteUser(ndex);
     }
-    
 
-    
 	/**
 	 * This methods runs after every test case.
 	 * It deletes test group that was created on the server.
@@ -167,13 +173,12 @@ public class testGroupService {
     	// delete the test group
     	GroupUtils.deleteGroup(ndex, newGroup);
     } 
- 
-    
+
     /**
      * Create a group on the server, and delete it.
      * 
      * APIs tested: public Group createGroup(Group)
-     *             
+     *              public Group getGroup(String)
      */
     @Test
     public void test0001CreateGroup() {
@@ -183,6 +188,13 @@ public class testGroupService {
     	
     	// check the contents of the newly created  Group object
     	GroupUtils.compareGroupObjectsContents(group, newGroup);
+    	
+    	// now, get the newly created group using getGroup API
+    	String groupId = newGroup.getExternalId().toString();
+    	Group createdGroup = GroupUtils.getGroup(ndex, groupId);
+    	
+    	// check the contents of the newly created  Group object
+    	GroupUtils.compareGroupObjectsContents(group, createdGroup);
     }
     
     /**
@@ -215,5 +227,163 @@ public class testGroupService {
     	newGroup = ndex.createGroup(group);
     }
     
+    /**
+     * Try to create a group with the same name as user/account name. 
+     * DuplicateObjectException is expected.
+     * 
+     * APIs tested: public Group createGroup(Group)
+     *            
+     */
+    @Test
+    public void test0003CreateGroupWithInvalidName() throws JsonProcessingException, IOException, NdexException {
+    	
+    	newGroup = new Group();
 
+    	// set the group name to be user/account name
+    	newGroup.setAccountName(accountName);
+    	
+    	// initialize other properties
+    	newGroup.setDescription(group.getDescription());
+    	newGroup.setImage(group.getImage());
+    	newGroup.setOrganizationName(group.getOrganizationName());
+    	newGroup.setWebsite(group.getWebsite());
+    	
+    	// expected exception is DuplicateObjectException
+        thrown.expect(DuplicateObjectException.class);
+
+    	// expected message of DuplicateObjectException
+        thrown.expectMessage("Group with name " + accountName.toLowerCase() + " already exists.");
+        
+    	// try to create new group with the same name as user/account
+        // exception is expected
+    	ndex.createGroup(newGroup);
+    }
+    
+    /**
+     * Try to create a group with a bad account name (illegal character in name).
+     * 
+     * APIs tested: public Group createGroup(Group)
+     *            
+     */
+    @Test
+    public void test0004CreateGroupWithInvalidName() throws JsonProcessingException, IOException, NdexException {
+    	
+    	newGroup = new Group();
+    	
+    	// set the group name to be user/account name
+    	newGroup.setAccountName("$!BadName!");
+    	
+    	// initialize other properties
+    	newGroup.setDescription(group.getDescription());
+    	newGroup.setImage(group.getImage());
+    	newGroup.setOrganizationName(group.getOrganizationName());
+    	newGroup.setWebsite(group.getWebsite());
+    	
+    	// expected exception is DuplicateObjectException
+        thrown.expect(DuplicateObjectException.class);
+
+    	// expected message of DuplicateObjectException
+        // thrown.expectMessage("Group with name " + accountName.toLowerCase() + " already exists.");
+        thrown.expectMessage("Is DuplicateObjectException correct exception for this test case? Discuss with Jing");
+        
+    	// try to create new group with the bad name
+        // exception is expected
+        Group groupWithBadName = GroupUtils.createGroup(ndex, newGroup);
+        
+        if (null != groupWithBadName) {
+        	GroupUtils.deleteGroup(ndex, groupWithBadName);
+        }
+    }
+    
+    
+    /**
+     * Try to create a group with a non-existent user/account.
+     * 
+     * APIs tested: public Group createGroup(Group)
+     *            
+     */
+    @Test
+    public void test0005TryToCreateGroupWithNonExistentUser() throws JsonProcessingException, IOException, NdexException {
+    	
+    	// create new group
+    	newGroup = GroupUtils.createGroup(ndex, group);
+    	
+    	// check the contents of the newly created  Group object
+    	GroupUtils.compareGroupObjectsContents(group, newGroup);
+    	
+        Group newGroup1 = new Group();
+        Group newGroup2 = null;
+
+    	// initialize properties
+    	newGroup1.setAccountName(group.getAccountName() + System.currentTimeMillis());
+    	newGroup1.setDescription(group.getDescription());
+    	newGroup1.setImage(group.getImage());
+    	newGroup1.setOrganizationName(group.getOrganizationName());
+    	newGroup1.setWebsite(group.getWebsite());
+    	
+    	// set user name to a random value
+    	String userName = "RandomUserName" + System.currentTimeMillis();
+    	ndex.setCredentials(userName, accountPassword);
+    	
+    	// expected exception is ObjectNotFoundException
+        thrown.expect(ObjectNotFoundException.class);
+        
+    	// expected message of ObjectNotFoundException
+        // thrown.expectMessage("Group with name " + accountName.toLowerCase() + " already exists.");
+        thrown.expectMessage("User " + userName.toLowerCase() + " not found.");
+
+    	
+    	try {
+        	// since the user account doesn't exist on the server
+        	// we expect authentication failure when trying to create the group
+    		newGroup2 = ndex.createGroup(newGroup1);
+    	} finally {	
+    	    // set user name back to accountName
+    	    ndex.setCredentials(accountName, accountPassword);
+    	    assertNull(newGroup2);
+    	}
+    	
+    }
+    
+    /**
+     * Try to create a group with a non-existent user/account.
+     * 
+     * APIs tested: public List<Group> findGroups(SimpleUserQuery, int, int) 
+     *            
+     */
+    //@Test
+    public void test0006FindGroups() {
+    	
+    	//SimpleQuery simpleQuery = new SimpleQuery();
+    	SimpleUserQuery simpleUserQuery = new SimpleUserQuery();
+    	
+    	//List<Group> listGroups = ndex.findGroups();
+    	
+    	/*
+    	Group newGroup = new Group(), newGroup1 = null;
+
+    	// initialize properties
+    	newGroup.setAccountName("New"+group.getAccountName());
+    	newGroup.setDescription(group.getDescription());
+    	newGroup.setImage(group.getImage());
+    	newGroup.setOrganizationName(group.getOrganizationName());
+    	newGroup.setWebsite(group.getWebsite());
+    	
+    	// set user name to a random value
+    	String userName = "RandomUserName" + System.currentTimeMillis();
+    	ndex.setCredentials(userName, accountPassword);
+    	
+    	try {
+        	// since the user account doesn't exist on the server
+        	// we expect authentication failure when trying to create the group
+    		newGroup1 = ndex.createGroup(newGroup);
+    	} catch (Exception e) {
+    		fail(e.getMessage());
+    	} finally {	
+    	    // set user name back to accountName
+    	    ndex.setCredentials(accountName, accountPassword);
+    	}
+    	*/
+    }    
+    
 }

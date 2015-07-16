@@ -2,12 +2,7 @@ package org.ndexbio.rest.test.utilities;
 
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Group;
-import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-
-
-
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -50,6 +45,18 @@ public class GroupUtils {
 		assertNotEquals("external IDs are same",       group.getExternalId(),       newGroup.getExternalId());
 		
 		return;
+	}
+
+	public static Group getGroup(
+			NdexRestClientModelAccessLayer ndex, String groupId) {
+		Group group = null;
+		try {
+			group = ndex.getGroup(groupId);
+        } catch (Exception e) {
+        	fail("Unable to get group " + groupId + " : " +  e.getMessage());
+        }	
+		
+		return group;
 	}
 
 }

@@ -32,8 +32,13 @@ package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.*;
 
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
+//The @FixMethodOrder(MethodSorters.NAME_ASCENDING) annotation sorts (and
+//executes) the test methods by name in lexicographic order
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testTaskService {
 
     @Test

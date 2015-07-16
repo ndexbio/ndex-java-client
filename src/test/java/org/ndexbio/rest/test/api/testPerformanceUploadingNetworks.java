@@ -47,7 +47,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jetty.server.Server;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
@@ -61,7 +63,9 @@ import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 import org.ndexbio.task.Configuration;
 
-
+//The @FixMethodOrder(MethodSorters.NAME_ASCENDING) annotation sorts (and
+//executes) the test methods by name in lexicographic order
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testPerformanceUploadingNetworks {
     
 	static String resourcePath = "src/test/resources/";

@@ -52,14 +52,14 @@ public class UserUtils {
         String previousUserName = ndex.getUserName();
         String previousPassword = ndex.getPassword();
         		
-		ndex.setCredential(user, password);
+		ndex.setCredentials(user, password);
         try {
             ndex.deleteUser();
         } catch (Exception e) {
         	// ignore this exception -- the account we try to delete may not exist
         	// fail("Unable to delete user account: " + e.getMessage());
         } finally {
-    	    ndex.setCredential(previousUserName, previousPassword);
+    	    ndex.setCredentials(previousUserName, previousPassword);
         }
 	}
 

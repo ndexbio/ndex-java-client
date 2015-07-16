@@ -47,6 +47,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.codec.binary.Base64;
 import org.ndexbio.model.errorcodes.NDExError;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
+import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
@@ -222,7 +223,7 @@ public class NdexRestClient {
 		return authString;	
 	}
 
-	public void setCredential(String username, String password) {
+	public void setCredentials(String username, String password) {
 		this._username = username;
 		this._password = password;
 	}
@@ -272,6 +273,7 @@ public class NdexRestClient {
 				if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 					(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
 					(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||	
 					(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
 					input = con.getErrorStream();
@@ -326,6 +328,7 @@ public class NdexRestClient {
 				if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 					(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
 					(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||	
 					(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
 					input = con.getErrorStream();
@@ -550,6 +553,10 @@ public class NdexRestClient {
 		    	// httpServerResponseCode is HTTP Status-Code 409: Conflict.
 		    	throw new DuplicateObjectException(ndexError);
 		    
+		    case (HttpURLConnection.HTTP_FORBIDDEN):
+		    	// httpServerResponseCode is HTTP Status-Code 403: Forbidden.
+		    	throw new ForbiddenOperationException(ndexError);
+		    
 		    default:
 		    	// default case is: HTTP Status-Code 500: Internal Server Error.
 		    	throw new NdexException(ndexError);
@@ -578,6 +585,7 @@ public class NdexRestClient {
 			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
 				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
 			    input = con.getErrorStream();
@@ -620,6 +628,7 @@ public class NdexRestClient {
 			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
 				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||	
 				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
 			    input = con.getErrorStream();

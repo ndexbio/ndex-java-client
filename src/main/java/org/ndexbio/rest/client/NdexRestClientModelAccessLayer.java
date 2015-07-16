@@ -111,8 +111,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 	
-	public void setCredential(String username, String password) {
-		ndexRestClient.setCredential(username, password);	
+	public void setCredentials(String username, String password) {
+		ndexRestClient.setCredentials(username, password);	
 	}
 	public void setPassword(String newPassword) {
 		ndexRestClient.setPassword(newPassword);

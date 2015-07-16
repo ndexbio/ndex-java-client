@@ -58,6 +58,7 @@ import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.utilities.FileAndServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
@@ -104,9 +105,9 @@ public class testPerformanceCreatingNetworks {
 		testUser = UserUtils.getNewUser(
 				accountName,
 				accountPassword,
-		        "This account is used for network uploading benchmark testing",  // description
+		        "This account is used for network creating benchmark testing",  // description
 		        "benchmark@ucsd.com",                 // email address
-		        "Upload",                             // first name -- name of the test
+		        "Create",                             // first name -- name of the test
 		        "Network Benchmark",                  // last name -- name of the test		        
 		        "http://www.yahoo.com",               // image
 		        "http://www.yahoo.com/finance");      // web-site
@@ -122,8 +123,6 @@ public class testPerformanceCreatingNetworks {
         } catch (Exception e) {
 			fail("Unable to create ndex rest client model access layer: " + e.getMessage());
         }
-        
-        // testAccount = UserUtils.createUserAccount(ndex, testUser);
     }
 
     /**
@@ -139,10 +138,10 @@ public class testPerformanceCreatingNetworks {
     public static void tearDown() throws Exception {
     	
     	// delete all networks from the test account
-    	NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
+    	// NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
     	
     	// delete the test user account
-    	UserUtils.deleteUser(ndex);
+    	// UserUtils.deleteUser(ndex);
     }
 	
 	/**
@@ -162,7 +161,7 @@ public class testPerformanceCreatingNetworks {
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
         	// shut down the server and database, and remove the database files from the filesystem
-    		cleanDatabase();
+    		FileAndServerUtils.cleanDatabase();
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
@@ -202,9 +201,6 @@ public class testPerformanceCreatingNetworks {
         	benchmark.put("upload", formattedCreateTime);
 
         	benchmarkData.put(entry.getKey(), benchmark);
-        	
-			// delete network on the test server
-	    	NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());
         }
 		
         printNetworkCreateReport(memoryBefore, memoryAfter, benchmarkData);
@@ -280,79 +276,6 @@ public class testPerformanceCreatingNetworks {
         return String.format("%02dh:%02dm:%02ds:%03dms", hours, minutes, seconds, milliseconds);
 	}
 	
-	private void cleanDatabase() {
-        
-		stopServer(); 
-		
-		Configuration configuration = null;
-		try {
-			configuration = Configuration.getInstance();
-		} catch (Exception e) {
-			fail("unable to get Configuration instance.");
-		}
-	
-		String dbURL = configuration.getDBURL().replaceAll("plocal:", "");
-		
-		// remove the database directory from the filesystem
-		try {
-			FileUtils.deleteDirectory(new File(dbURL));
-		} catch (IOException e1) {
-			fail("unable to delete " + dbURL);
-		}
-
-		startServer();
-	}
-	
-	private void stopServer() {
-		if (!JUnitTestSuite.getUseJettyServer()) {
-			fail("need to use Jetty Server for performance benchmarking.");
-		}
-		
-		Server server = JUnitTestSuite.getServer();
-		
-	    try {
-	    	server.stop();
-	    } catch (Exception e) {
-	    	fail("can't stop server: " + e.getMessage());
-	    }
-		
-        // wait for the server to stop 
-		while (true) {
-			if (server.isStopped()) {
-				return;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
-		}
-	}
-	
-	private void startServer() {
-		if (!JUnitTestSuite.getUseJettyServer()) {
-			fail("need to use Jetty Server for performance benchmarking.");
-		}
-		
-		Server server = JUnitTestSuite.getServer();
-		
-	    try {
-	    	server.start();
-	    } catch (Exception e) {
-	    	fail("can't start server: " + e.getMessage());
-	    }
-	    
-        // wait for the server to start 
-		while (true) {
-			if (server.isStarted()) {
-				return;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
-		}
-	}
-    
-	
-    
 	/**
 	 * This methods uploads networks in JSON format listed in the properties file (networksFile), 
 	 * calculates and prints how long it took for every network to upload. 

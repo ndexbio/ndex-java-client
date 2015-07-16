@@ -58,6 +58,7 @@ import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.utilities.FileAndServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
@@ -165,7 +166,7 @@ public class testPerformanceUploadingNetworks {
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
         	// shut down the server and database, and remove the database files from the filesystem
-    		cleanDatabase();
+    		FileAndServerUtils.cleanDatabase();
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
@@ -224,7 +225,7 @@ public class testPerformanceUploadingNetworks {
             timeBeforeDownload = System.currentTimeMillis();
 
 			try {
-				 entireNetwork = ndex.getNetwork(networkUUID);
+				entireNetwork = ndex.getNetwork(networkUUID);
 			} catch (IOException | NdexException e) {
 				entireNetwork = null;
 				fail("can't download entire network");				
@@ -255,11 +256,6 @@ public class testPerformanceUploadingNetworks {
 			
 			// save the network to the file system so that we could re-use it for the next benchmark
 			NetworkUtils.saveNetworkToFile(resourcePath+fileToUpload.getName()+fileNameExtension, entireNetwork, overwriteExistingNetwork);
-					
-			// delete network on the test server
-	    	NetworkUtils.deleteNetwork(ndex, networkUUID);
-	    	
-	    	entireNetwork = null;
         }
 		
         printNetworkUploadAndDownloadReport(memoryBefore, memoryAfter, benchmarkData);
@@ -285,7 +281,7 @@ public class testPerformanceUploadingNetworks {
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
         	// shut down the server and database, and remove the database files from the filesystem
-    		cleanDatabase();
+    		FileAndServerUtils.cleanDatabase();
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
@@ -326,9 +322,6 @@ public class testPerformanceUploadingNetworks {
         	benchmark.put("upload", formattedCreateTime);
 
         	benchmarkData.put(entry.getKey(), benchmark);
-        	
-			// delete network on the test server
-	    	NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());
         }
 		
         printNetworkCreateReport(memoryBefore, memoryAfter, benchmarkData);
@@ -429,75 +422,5 @@ public class testPerformanceUploadingNetworks {
         return String.format("%02dh:%02dm:%02ds:%03dms", hours, minutes, seconds, milliseconds);
 	}
 	
-	private void cleanDatabase() {
-        
-		stopServer(); 
-		
-		Configuration configuration = null;
-		try {
-			configuration = Configuration.getInstance();
-		} catch (Exception e) {
-			fail("unable to get Configuration instance.");
-		}
-	
-		String dbURL = configuration.getDBURL().replaceAll("plocal:", "");
-		
-		// remove the database directory from the filesystem
-		try {
-			FileUtils.deleteDirectory(new File(dbURL));
-		} catch (IOException e1) {
-			fail("unable to delete " + dbURL);
-		}
-
-		startServer();
-	}
-	
-	private void stopServer() {
-		if (!JUnitTestSuite.getUseJettyServer()) {
-			fail("need to use Jetty Server for performance benchmarking.");
-		}
-		
-		Server server = JUnitTestSuite.getServer();
-		
-	    try {
-	    	server.stop();
-	    } catch (Exception e) {
-	    	fail("can't stop server: " + e.getMessage());
-	    }
-		
-        // wait for the server to stop 
-		while (true) {
-			if (server.isStopped()) {
-				return;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
-		}
-	}
-	
-	private void startServer() {
-		if (!JUnitTestSuite.getUseJettyServer()) {
-			fail("need to use Jetty Server for performance benchmarking.");
-		}
-		
-		Server server = JUnitTestSuite.getServer();
-		
-	    try {
-	    	server.start();
-	    } catch (Exception e) {
-	    	fail("can't start server: " + e.getMessage());
-	    }
-	    
-        // wait for the server to start 
-		while (true) {
-			if (server.isStarted()) {
-				return;
-			}
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {}
-		}
-	}
     
 }

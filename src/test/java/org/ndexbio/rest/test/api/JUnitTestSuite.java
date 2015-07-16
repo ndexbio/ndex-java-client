@@ -45,12 +45,12 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
-	testGroupService.class
+	//testGroupService.class
 	//testNetworkConcurrentAcess.class,
     //testUserService.class,
     //testTaskService.class,
 	//testPerformanceUploadingNetworks.class
-	//testPerformanceCreatingNetworks.class
+	testPerformanceCreatingNetworks.class
 })
 
 
@@ -65,6 +65,9 @@ public class JUnitTestSuite {
 
     // URL of the test server
     public static String testServerURL   = null;
+    
+    private  static boolean deleteDatabase = true;
+    
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -83,8 +86,9 @@ public class JUnitTestSuite {
         p.load(fis);
         fis.close();
 
-        useJettyServer      = Boolean.parseBoolean(p.getProperty("useJettyServer"));
-        testServerURL       = p.getProperty("testServerURL");
+        useJettyServer  = Boolean.parseBoolean(p.getProperty("useJettyServer"));
+        testServerURL   = p.getProperty("testServerURL");
+        deleteDatabase  = Boolean.parseBoolean(p.getProperty("deleteDatabase"));
         
         if (useJettyServer) {
 
@@ -135,6 +139,8 @@ public class JUnitTestSuite {
     public static Server getServer() {
     	return server;
     }
-
+    public static boolean deleteDatabase() {
+    	return deleteDatabase;
+    }
 }        
         

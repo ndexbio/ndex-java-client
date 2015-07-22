@@ -1,4 +1,6 @@
 /**
+
+ * 
  * Copyright (c) 2013, 2015, The Regents of the University of California, The Cytoscape Consortium
  * All rights reserved.
  *
@@ -46,7 +48,7 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
 	//testGroupService.class
-	//testNetworkConcurrentAcess.class,
+	//testNetworkConcurrentAcess.class
     //testUserService.class,
     //testTaskService.class,
 	//testPerformanceUploadingNetworks.class
@@ -114,7 +116,6 @@ public class JUnitTestSuite {
 
         try {
             server.start();
-
         } catch (Exception e) {
             e.printStackTrace();
             success = false;

@@ -34,10 +34,10 @@ public class FileAndServerUtils {
 		startServer();
 	}
 	
-	private  static void stopServer() {
-		if (!JUnitTestSuite.getUseJettyServer()) {
-			fail("need to use Jetty Server for performance benchmarking.");
-		}
+	public static void stopServer() {
+		//if (!JUnitTestSuite.getUseJettyServer()) {
+		//	fail("need to use Jetty Server for performance benchmarking.");
+		//}
 		
 		Server server = JUnitTestSuite.getServer();
 		
@@ -58,7 +58,7 @@ public class FileAndServerUtils {
 		}
 	}
 	
-	private static void startServer() {
+	public static void startServer() {
 		if (!JUnitTestSuite.getUseJettyServer()) {
 			fail("need to use Jetty Server for performance benchmarking.");
 		}

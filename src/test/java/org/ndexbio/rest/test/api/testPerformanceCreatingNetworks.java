@@ -32,15 +32,24 @@ package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -58,6 +67,7 @@ import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.JettyServer.JettyServer;
 import org.ndexbio.rest.test.utilities.FileAndServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
@@ -85,6 +95,17 @@ public class testPerformanceCreatingNetworks {
 	DecimalFormat df = new DecimalFormat("#,###");
 	
 	private static boolean overwriteExistingNetwork = true;
+	
+    private static Process process = null;
+	
+    private static Socket         socket     = null;
+    private static PrintWriter    toServer   = null;
+    private static BufferedReader fromServer = null;
+    
+    private static InetAddress    host       = null;
+    
+    private static String         responseFromServer = null;
+
 
 	/**
 	 * This methods runs once before any of the test methods in the class.
@@ -97,6 +118,77 @@ public class testPerformanceCreatingNetworks {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+		
+    	FileAndServerUtils.stopServer();
+        
+        // --------------------------------------------------------------------
+        // start JettyServer in a separate JVM
+		String javaHome = System.getProperty("java.home");
+		String javaBin = javaHome +
+		                File.separator + "bin" +
+		                File.separator + "java";
+		String classpath = System.getProperty("java.class.path");
+        
+		//System.out.println(" javaHome=" + javaHome);
+		//System.out.println("  javaBin=" + javaBin);		        
+		//System.out.println("classpath=" + classpath);		   
+
+		
+        final String dir = System.getProperty("user.dir");
+        //System.out.println("current dir = " + dir);
+			
+	    List < String > command = new ArrayList <String>();
+	    command.add(javaBin);
+	    command.add("org/ndexbio/rest/test/JettyServer/JettyServer");
+
+		ProcessBuilder builder = new ProcessBuilder(command);
+	    Map< String, String > environment = builder.environment();
+	    environment.put("CLASSPATH", classpath);
+	    environment.put("ndexConfigurationPath", "/opt/ndex/conf/ndex.properties");		
+	    
+	    builder.inheritIO();
+	    
+		try {
+			process = builder.start();
+		} catch (IOException e) {	
+			fail("Unable to start JettyServer in a separate JVM : " + e.getMessage());
+		}
+		
+        // --------------------------------------------------------------------
+		// create client socket to communicate to JettyProcess
+		host = InetAddress.getByName("localhost"); 
+		//System.out.println("Connecting to server on port " + JettyServer.getServerPort()); 
+
+		
+		for (int i = 0; i < 20; i++) {
+		    try {
+		        socket = new Socket(host, JettyServer.getServerPort()); 
+		    } catch (IOException e) {
+			    // unable to create socket -- chances are the server hasn't started yet
+		    }
+		    
+		    if (null != socket) {
+		    	// socket created -- get out of the loop
+		    	break;
+		    } else {
+				try {
+					// socket is not created yet -- sleep for one sec and try again
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					
+				}
+		    }
+		}
+		
+		if (null == socket) {
+			fail("unable to create socket to Jetty server");
+		}
+		
+		toServer = new PrintWriter(socket.getOutputStream(), true);
+		//toServer = new DataOutputStream(socket.getOutputStream());
+		fromServer = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		
+
 		
     	// build Map of networks for testing from the property file
 		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
@@ -122,10 +214,12 @@ public class testPerformanceCreatingNetworks {
             ndex = new NdexRestClientModelAccessLayer(client);
         } catch (Exception e) {
 			fail("Unable to create ndex rest client model access layer: " + e.getMessage());
-        }
+        } 
+
     }
 
     /**
+     * @throws IOException 
      * Clean-up method.  The last method called in this class by JUnit framework.
      * It removes all networks uploaded to the test account, and removes the test
      * account itself.
@@ -133,36 +227,78 @@ public class testPerformanceCreatingNetworks {
      * @throws  Exception
      * @param   void
      * @return  void
+     * @throws  
      */
     @AfterClass
-    public static void tearDown() throws Exception {
+    public static void tearDown() throws IOException  {
     	
     	// delete all networks from the test account
     	// NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
     	
     	// delete the test user account
     	// UserUtils.deleteUser(ndex);
+			
+    	//toServer.println("shutdown");
+		toServer.println("shutdownAndQuit");
+
+    	try {
+			responseFromServer = fromServer.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			fail("Unable to read response from Jetty server : " + e.getMessage());
+		}
+  
+    	if (null != toServer)  toServer.close();
+    	
+    	if (null != fromServer)
+			try {
+				fromServer.close();
+			} catch (IOException e) {}
+    	
+    	if (null != socket)
+			try {
+				socket.close();
+			} catch (IOException e) {}
+
+    	process.destroy();
+
     }
-	
+ 
+    @Test
+    public void test0002BenchmarkNetworkCreate() {
+    	//fail("implement me");
+    	
+    }
 	/**
 	 * This methods creates networks in JSON format listed in the properties file (networksFile), 
 	 * calculates and prints how long it took for every network to upload. 
 	 * 
      * @param   void
      * @return  void
+	 * @throws IOException 
      */
 	@Test  
-    public void test0001BenchmarkNetworkCreate() {
+    public void test0001BenchmarkNetworkCreate() throws IOException {
 		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
-  
-         
+
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
         	// shut down the server and database, and remove the database files from the filesystem
-    		FileAndServerUtils.cleanDatabase();
-    		
+    		//FileAndServerUtils.cleanDatabase();
+
+        	toServer.println("cleanDatabase");
+        	try {
+				responseFromServer = fromServer.readLine();
+			} catch (IOException e) {
+				fail("Unable to read response from Jetty server : " + e.getMessage());
+			}
+        	System.out.println("responseFromServer = " + responseFromServer);
+        	if ((responseFromServer == null) || (responseFromServer.equalsIgnoreCase("failed"))) {
+        		fail("Unable to restart Jetty Server and clean database");
+        	}
+        	
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
         	

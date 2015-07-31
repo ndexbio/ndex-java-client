@@ -3,7 +3,6 @@ package org.ndexbio.rest.test.JettyServer;
 //import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,14 +10,17 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.ndexbio.common.access.NdexDatabase;
 import org.ndexbio.rest.NdexHttpServletDispatcher;
 import org.ndexbio.task.Configuration;
+
 
 public class JettyServer {
 	
@@ -32,14 +34,13 @@ public class JettyServer {
 
 	private boolean successOfOperation = false;
 	
-	
 	public void run() {
 		
 		if (!initializeAndStartServer()) {
             System.out.println("Unable to start Jetty server");
             System.exit(0);			
 		}
-		
+	    
 		try {
 			try {
 			    serverSocket = new ServerSocket(serverPort);
@@ -49,18 +50,14 @@ public class JettyServer {
                 System.exit(0);
 			}
 			
-
-		    //System.out.println("Waiting for client on port " + serverSocket + " ....."); 
 	        Socket server = serverSocket.accept();
-	        //System.out.println("Got connection from " + server.getRemoteSocketAddress()); 
 	        
 			while(true) {
 
 			    PrintWriter toClient = new PrintWriter(server.getOutputStream(), true);
 				BufferedReader fromClient = new BufferedReader(new InputStreamReader(server.getInputStream()));
 				    
-				command = fromClient.readLine();
-				//System.out.println("command = " + command);			    
+				command = fromClient.readLine();			    
 				
 				if (null == command) {
 					// didn't receive anything (is it possible?) -- wait for another connection
@@ -69,28 +66,28 @@ public class JettyServer {
 				
 				successOfOperation = false;
 				
-				switch(command) {		  	    
-				    case "shutdown":
+				switch(command) {
+			        case "restartServerWithCleanDatabase":
+		        	    // shut down the server and database, remove the database files from the filesystem,
+			    	    // and restart the server and database   	
+			    	    successOfOperation = restartServerWithCleanDatabase();
+			  	        break;
+			  	        
+				    case "stopServerRemoveDatabase":
+                        // shut down the server and database, and close sockets after that
+				    	successOfOperation = stopServerRemoveDatabase();
+				    	break;	
+				    	
+				    case "stopServer":
                         // shut down the server and database
 				    	successOfOperation = stopServer();
 				    	break;
-				    	
-				    case "shutdownAndQuit":
-                        // shut down the server and database and close sockets
-				    	successOfOperation = stopServer();
-				    	break;	
-				    	
+				    		
 				    case "start":
                         // start the server and database				    	
 				    	successOfOperation = startServer();
 					    break;
-					    
-				    case "cleanDatabase":
-			        	// shut down the server and database, remove the database files from the filesystem
-				    	// and restart the server and database
-				    	successOfOperation = cleanDatabase();
-				  	    break;
-				  	    
+					    				  	    
 			        default:
 			            continue;
 			    	    // break;
@@ -99,7 +96,10 @@ public class JettyServer {
                 // send "success" or "failure" to the client
                 toClient.println(successOfOperation ? "done" : "failed");
 		
-				if ((command != null) && (command.equalsIgnoreCase("shutdownAndQuit"))) {
+				if ((command != null) && 
+					( (command.equalsIgnoreCase("stopServerRemoveDatabase") ||
+					   command.equalsIgnoreCase("stopServer")) )) 
+				{
 			        if (null != toClient)   toClient.close();
 			    	if (null != fromClient) fromClient.close();
 			    	if (null != server)     server.close();
@@ -112,6 +112,15 @@ public class JettyServer {
 	}
 			
 	public static void main(String[] args) {
+		
+	    Map<String, String> env = System.getenv();
+	    String logbackConfig = env.get("logback.configurationFile");
+    	System.out.println("logback.configurationFile=" + logbackConfig);	    
+	    if (null != logbackConfig) {
+	    	System.out.println("Settinng property logback.configurationFile=" + logbackConfig);
+	    	System.setProperty("logback.configurationFile", logbackConfig);
+	    }
+
 		JettyServer srv = new JettyServer();
 		srv.run();
 	}
@@ -134,6 +143,7 @@ public class JettyServer {
 	private static boolean stopServer() {
 		
 	    try {
+	    	NdexDatabase.close();
 	    	server.stop();
 	    } catch (Exception e) {
 	    	System.out.println("can't stop server: " + e.getMessage());
@@ -171,12 +181,24 @@ public class JettyServer {
 		}
 	}
 	
-	private static boolean cleanDatabase() {
+	private static boolean restartServerWithCleanDatabase() {
         
-		if (!stopServer()) {
-			return false;
-		}
-		
+        if (!stopServerRemoveDatabase() ){
+        	return false;
+        }
+
+		return startServer();
+	}
+
+	private static boolean stopServerRemoveDatabase() {
+        
+		stopServer(); 
+
+		return removeDatabase();
+	}
+	
+	
+	private static boolean removeDatabase() {
 		Configuration configuration = null;
 		try {
 			configuration = Configuration.getInstance();
@@ -194,11 +216,15 @@ public class JettyServer {
 			System.out.println("unable to delete " + dbURL);
 			return false;
 		}
-
-		return startServer();
+		
+		return true;
 	}
 	
 	public static int getServerPort() {
 		return serverPort;
+	}
+	
+	public static Server getJettyServer() {
+		return server;
 	}
 }

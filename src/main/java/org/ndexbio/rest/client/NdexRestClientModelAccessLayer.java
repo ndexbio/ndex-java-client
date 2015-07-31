@@ -100,9 +100,26 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		inputStream.close();
 		con.disconnect();
 
-		return status;
-    	
+		return status;	
     }
+    
+    public void shutDownJettyServer() throws IOException  {
+    	String route = "/admin/shutdown";
+
+    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
+   
+		InputStream inputStream = null;
+		try {
+			inputStream = con.getInputStream();
+		} catch (IOException e) {
+			// we expect this exception since server is shut down
+			System.out.println("e.getMessage()=" + e.getMessage());
+		}
+		con.disconnect();
+
+		return;
+    }
+    
     
 	/*-----------------------------------------
 	 * 

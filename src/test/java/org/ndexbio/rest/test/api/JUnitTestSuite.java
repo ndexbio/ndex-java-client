@@ -1,6 +1,4 @@
 /**
-
- * 
  * Copyright (c) 2013, 2015, The Regents of the University of California, The Cytoscape Consortium
  * All rights reserved.
  *

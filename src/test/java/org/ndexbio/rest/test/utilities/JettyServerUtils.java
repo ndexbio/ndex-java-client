@@ -43,7 +43,7 @@ public class JettyServerUtils {
 	    Map< String, String > environment = builder.environment();
 	    
 	    environment.put("CLASSPATH", classpath);    
-	    environment.put("ndexConfigurationPath", "/opt/ndex/conf/ndex.properties");	
+	    environment.put("ndexConfigurationPath", System.getenv("ndexConfigurationPath"));
 	    environment.put("logback.configurationFile", "src/test/java/org/ndexbio/rest/test/JettyServer/jetty-logback.xml");	
 	   
 	    builder.inheritIO();

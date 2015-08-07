@@ -99,7 +99,11 @@ public class testPerformanceCreatingNetworks {
     private static User    testAccount    = null;
     private static NewUser testUser       = null;
     
-	DecimalFormat df = new DecimalFormat("#,###");
+	DecimalFormat df1 = new DecimalFormat("#,###");
+	DecimalFormat df2 = new DecimalFormat("#,##0.000");	
+	
+	
+	private static boolean generateExcelReport = true;
 	
 	private static boolean overwriteExistingNetwork = true;
 	
@@ -188,6 +192,8 @@ public class testPerformanceCreatingNetworks {
 		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
+		
+		String creationTime = "";
 
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	    	
@@ -230,12 +236,49 @@ public class testPerformanceCreatingNetworks {
         	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
         	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
         	benchmark.put("upload", formattedCreateTime);
+        	
+            if (generateExcelReport) {
+            	//creationTime = creationTime.concat(" ").concat(formattedCreateTime);
+
+            	creationTime = creationTime.concat(" ").concat(df2.format(
+            			TimeUnit.MILLISECONDS.toSeconds(createTimeInMs) + (createTimeInMs % 1000)/1000.0));
+            }
 
         	benchmarkData.put(entry.getKey(), benchmark);
         }
 		
         printNetworkCreateReport(memoryBefore, memoryAfter, benchmarkData);
+        
+        if (generateExcelReport) {
+        	System.out.println("creationTime=" + creationTime);
+            generateExcelReport(creationTime);
+        }
     }
+
+	private void generateExcelReport(String creationTime) throws IOException {
+
+		Process proc = null;
+		try {
+			proc = Runtime.getRuntime().exec("python src/test/java/org/ndexbio/rest/test/utilities/mine.py --ifile logs/ndex.log " + creationTime);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+		BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+
+		// read the output from the command
+		System.out.println("Here is the standard output of the command:\n");
+		String s = null;
+		while ((s = stdInput.readLine()) != null) { System.out.println(s); }
+
+		// read any errors from the attempted command
+		System.out.println("Here is the standard error of the command (if any):\n");
+		while ((s = stdError.readLine()) != null) { System.out.println(s); }
+	}
+
+
 
 
 	private void printNetworkCreateReport(
@@ -265,10 +308,10 @@ public class testPerformanceCreatingNetworks {
 
 	    Runtime runtime = Runtime.getRuntime();
 
-		memory.put("heap", df.format(runtime.totalMemory()));
-		memory.put("max",  df.format(runtime.maxMemory()));
-		memory.put("used", df.format(runtime.totalMemory() - runtime.freeMemory()));
-		memory.put("free", df.format(runtime.freeMemory()));
+		memory.put("heap", df1.format(runtime.totalMemory()));
+		memory.put("max",  df1.format(runtime.maxMemory()));
+		memory.put("used", df1.format(runtime.totalMemory() - runtime.freeMemory()));
+		memory.put("free", df1.format(runtime.freeMemory()));
 		
 		return memory;
 	}

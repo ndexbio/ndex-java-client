@@ -74,7 +74,7 @@ import org.ndexbio.rest.test.utilities.UserUtils;
  *     12) public List<Task> getTasks_aux(String, int, int)
  *  √  13) public User getUser(String)
  *     14) public List<Membership> getUserGroupMemberships(String, String, int, int)
- *     15) public List<Membership> getUserNetworkMemberships(Strring, String, int, int)
+ *     15) public List<Membership> getUserNetworkMemberships(String, String, int, int)
  *  √  16) public User updateUser(String, User)
  *  
  */

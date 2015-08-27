@@ -78,12 +78,12 @@ public class JettyServer {
 				    	successOfOperation = stopServerRemoveDatabase();
 				    	break;	
 				    	
-				    case "stopServer":
+				    case "restartServerWithoutCleaningDatabase":
                         // shut down the server and database
-				    	successOfOperation = stopServer();
+				    	successOfOperation = restartServerWithoutCleaningDatabase();
 				    	break;
 				    		
-				    case "start":
+				    case "startServer":
                         // start the server and database				    	
 				    	successOfOperation = startServer();
 					    break;
@@ -111,6 +111,7 @@ public class JettyServer {
 		catch(IOException e) { e.printStackTrace(); }
 	}
 			
+
 	public static void main(String[] args) {
 		
 	    Map<String, String> env = System.getenv();
@@ -187,6 +188,15 @@ public class JettyServer {
         	return false;
         }
 
+		return startServer();
+	}
+	
+	private boolean restartServerWithoutCleaningDatabase() {
+
+		if (! stopServer()) {
+			return false;
+		}
+		
 		return startServer();
 	}
 

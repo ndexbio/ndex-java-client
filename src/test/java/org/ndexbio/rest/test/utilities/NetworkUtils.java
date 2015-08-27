@@ -337,5 +337,47 @@ public class NetworkUtils {
      
         return;
 	}
+
+	public static Network getNetwork(NdexRestClientModelAccessLayer ndex, String networkUUID) {
+		Network network = null;		
+		try {
+			network = ndex.getNetwork(networkUUID);
+		} catch (IOException | NdexException e) {
+			fail("unable to download network " + networkUUID + " : " + e.getMessage());				
+		}
+		return network;
+	}
+
+	public static NetworkSummary createNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
+    	NetworkSummary summary = null;
+		try {
+			summary = ndex.createNetwork(network);
+		} catch (Exception e) {
+            fail("unable to create network : " + e.getMessage() );
+		}
+		return summary;
+	}
+
+	public static Network getNeighborhood(NdexRestClientModelAccessLayer ndex, String networkUUID, String query, int depth) {
+		
+		Network subNetworkRetrieved = null;
+		try {
+			subNetworkRetrieved = ndex.getNeighborhood(networkUUID, query, depth);
+		} catch (Exception e) {
+            fail("unable to retrieve subnetwork : " + e.getMessage() );
+		}
+		return subNetworkRetrieved;
+	}
+
+	public static NetworkSummary getNetworkSummaryById(NdexRestClientModelAccessLayer ndex, String networkUUID) {
+    	
+		NetworkSummary networkSummary = null;
+		try {
+			networkSummary = ndex.getNetworkSummaryById(networkUUID);
+		} catch (Exception e) {
+            fail("unable to get network summary : " + e.getMessage() );
+		}
+		return networkSummary;
+	}
     
 }

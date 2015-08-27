@@ -149,7 +149,7 @@ public class testPerformanceUploadingNetworks {
 	
     
 	/**
-	 * This methods uploads networks listed in the properties file (networksFile), 
+	 * This methods uploads networks listed in the properties file (networksToUpload), 
 	 * calculates and prints how long it took for every network to upload. 
 	 * 
      * @param   void
@@ -265,7 +265,7 @@ public class testPerformanceUploadingNetworks {
     }
 	
 	/**
-	 * This methods uploads networks listed in the properties file (networksFile), 
+	 * This methods uploads networks listed in the properties file (networksToUpload), 
 	 * calculates and prints how long it took for every network to upload. 
 	 * 
      * @param   void

@@ -53,8 +53,7 @@ public class JettyServerUtils {
 		} catch (IOException e) {	
 			fail("Unable to start JettyServer in a separate JVM : " + e.getMessage());
 		}
-		
-        // --------------------------------------------------------------------
+
 		// create client socket to communicate to JettyProcess
 	    InetAddress host = null;
 		try {
@@ -118,10 +117,10 @@ public class JettyServerUtils {
     	return responseFromServer;
 	}
 	
-	public static void shutdown() {
+	public static void shutdownServerRemoveDatabase() {
 		
 		// stop Jetty Server
-		sendCommand("stopServer");
+		sendCommand("stopServerRemoveDatabase");
 
     	  
     	if (null != toServer)  toServer.close();

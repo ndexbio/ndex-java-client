@@ -50,7 +50,8 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
     //testUserService.class,
     //testTaskService.class,
 	//testPerformanceUploadingNetworks.class
-	testPerformanceCreatingNetworks.class
+	//testNetworkAService.class
+	testPerformanceNetworkAPIs.class
 })
 
 

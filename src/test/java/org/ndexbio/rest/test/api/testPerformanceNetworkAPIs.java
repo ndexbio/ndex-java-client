@@ -226,7 +226,7 @@ public class testPerformanceNetworkAPIs {
         	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
         	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
         	
-    		// re-create test account since it was deleted at previous step by cleanDatabase()
+    		// re-create test account since it was deleted at previous step
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format
@@ -315,7 +315,7 @@ public class testPerformanceNetworkAPIs {
         	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
         	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
         	
-    		// re-create test account since it was deleted at previous step by cleanDatabase()
+    		// re-create test account since it was deleted at previous step
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format
@@ -417,7 +417,7 @@ public class testPerformanceNetworkAPIs {
         	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
         	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
 
-    		// re-create test account since it was deleted at previous step by cleanDatabase()
+    		// re-create test account since it was deleted at previous step
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format

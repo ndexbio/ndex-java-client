@@ -42,6 +42,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
+
 import org.ndexbio.common.models.dao.orientdb.CommonDAOValues;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
@@ -49,11 +50,12 @@ import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
+
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
-
 
 /**
  *  This class contains JUNit tests for testing UserService APIs from the 
@@ -91,6 +93,9 @@ public class testUserService
  
     private static String accountName     = "aaa";
     private static String accountPassword = "aaa";
+    
+    // URL of the test server
+    private static String testServerURL = null;
 
     // userToCreate is the user that will be created on the NDEx server as part of testing
     // prior to testing, this account should not exist on this server
@@ -107,6 +112,8 @@ public class testUserService
      */
     @BeforeClass
     public static void setUp() throws Exception {
+    	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
+    	
 		// start Jetty server in a new instance of JVM
 		jettyServer = JettyServerUtils.startJettyInNewJVM();  
 		
@@ -123,7 +130,7 @@ public class testUserService
         
 		// create ndex client and a test user account
         try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+            client = new NdexRestClient(accountName, accountPassword, testServerURL);
             ndex   = new NdexRestClientModelAccessLayer(client);
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());
@@ -526,7 +533,7 @@ public class testUserService
 		        "http://www.yahoo.com/finance"); // web-site
 
         try {
-            clientLocal = new NdexRestClient(account, password, JUnitTestSuite.testServerURL);
+            clientLocal = new NdexRestClient(account, password, testServerURL);
             ndexLocal   = new NdexRestClientModelAccessLayer(clientLocal);
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());

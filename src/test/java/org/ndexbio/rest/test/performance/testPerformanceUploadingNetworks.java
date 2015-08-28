@@ -28,13 +28,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package org.ndexbio.rest.test.api;
+package org.ndexbio.rest.test.performance;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.HashMap;
@@ -43,28 +42,28 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.eclipse.jetty.server.Server;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import org.ndexbio.model.exceptions.NdexException;
+
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
+
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-import org.ndexbio.rest.test.utilities.FileAndServerUtils;
+import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
-import org.ndexbio.task.Configuration;
+
 
 //The @FixMethodOrder(MethodSorters.NAME_ASCENDING) annotation sorts (and
 //executes) the test methods by name in lexicographic order
@@ -74,6 +73,8 @@ public class testPerformanceUploadingNetworks {
 	static String resourcePath = "src/test/resources/";
 	static String networksToUploadPropertyFile = "src/test/resources/testPerformanceUploadingNetworks.properties";
 	
+    // URL of the test server
+    private static String testServerURL = null;
 	
 	static TreeMap<String, String> testNetworks;
 	
@@ -104,6 +105,9 @@ public class testPerformanceUploadingNetworks {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+    	
+    	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
+    	
 		// start Jetty server in a new instance of JVM
 		jettyServer = JettyServerUtils.startJettyInNewJVM(); 
 		
@@ -122,7 +126,7 @@ public class testPerformanceUploadingNetworks {
 		        "http://www.yahoo.com/finance");      // web-site
 
         try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+            client = new NdexRestClient(accountName, accountPassword, testServerURL);
         } catch (Exception e) {
 			fail("Unable to create client: " + e.getMessage());
         }

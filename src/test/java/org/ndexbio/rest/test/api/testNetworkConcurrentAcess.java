@@ -33,10 +33,9 @@ package org.ndexbio.rest.test.api;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
+
 import java.util.TreeMap;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,7 +47,6 @@ import org.junit.Test;
  * src/main/java/org.ndexbio.rest.services package of ndexbio-rest module.
  */
 import org.junit.runners.MethodSorters;
-import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -57,6 +55,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.DownloadNetwork;
+import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
@@ -72,6 +71,9 @@ public class testNetworkConcurrentAcess {
 	static String networksFile = resourcePath + "testNetworkConcurrentAcess.properties";
 	static TreeMap<String, String> testNetworks;
 	
+    // URL of the test server
+    private static String testServerURL = null;
+    
 	static File fileToUpload = null;
 	
     private static NdexRestClient                 client;
@@ -98,6 +100,8 @@ public class testNetworkConcurrentAcess {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+    	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
+    	
 		// start Jetty server in a new instance of JVM
 		jettyServer = JettyServerUtils.startJettyInNewJVM();    	
     	
@@ -121,7 +125,7 @@ public class testNetworkConcurrentAcess {
         
 		// create ndex client and a test user account
         try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+            client = new NdexRestClient(accountName, accountPassword, testServerURL);
             ndex   = new NdexRestClientModelAccessLayer(client);
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());

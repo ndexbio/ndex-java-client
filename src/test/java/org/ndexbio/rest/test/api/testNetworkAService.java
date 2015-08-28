@@ -3,34 +3,22 @@ package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.util.List;
 
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
-import org.ndexbio.model.exceptions.DuplicateObjectException;
-import org.ndexbio.model.exceptions.ForbiddenOperationException;
-import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.exceptions.ObjectNotFoundException;
-import org.ndexbio.model.exceptions.UnauthorizedOperationException;
-import org.ndexbio.model.object.Group;
+
 import org.ndexbio.model.object.NewUser;
-import org.ndexbio.model.object.SimpleQuery;
-import org.ndexbio.model.object.SimpleUserQuery;
 import org.ndexbio.model.object.User;
+
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-import org.ndexbio.rest.test.utilities.GroupUtils;
+import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 
 /**
@@ -76,7 +64,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 //executes) the test methods by name in lexicographic order
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testNetworkAService {
-
+    // URL of the test server
+    private static String testServerURL = null;
+    
     private static NdexRestClient                 client;
     private static NdexRestClientModelAccessLayer ndex;
  
@@ -99,6 +89,9 @@ public class testNetworkAService {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+    	
+    	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
+    	
 		// start Jetty server in a new instance of JVM
 		jettyServer = JettyServerUtils.startJettyInNewJVM(); 
 		
@@ -115,7 +108,7 @@ public class testNetworkAService {
         
 		// create ndex client and a test user account
         try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+            client = new NdexRestClient(accountName, accountPassword, testServerURL);
             ndex   = new NdexRestClientModelAccessLayer(client);
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());

@@ -28,7 +28,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  */
-package org.ndexbio.rest.test.api;
+package org.ndexbio.rest.test.performance;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -62,6 +62,7 @@ import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
@@ -103,6 +104,8 @@ public class testPerformanceNetworkAPIs {
 	static String networksNeighborhoodQueryPropertyFile = "src/test/resources/testPerformanceNeighborhoodQuery.properties";	
 	static TreeMap<String, String> testNeighorhoodQueryNetworksToUpload;	
 
+    // URL of the test server
+    private static String testServerURL = null;
 	
     private static NdexRestClient                 client;
     private static NdexRestClientModelAccessLayer ndex;
@@ -134,8 +137,9 @@ public class testPerformanceNetworkAPIs {
      * @return  void
      */
     @BeforeClass
-    public static void setUp() /*throws Exception*/ {
-		
+    public static void setUp()  {
+    	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
+    	
 		// start Jetty server in a new instance of JVM
 		jettyServer = JettyServerUtils.startJettyInNewJVM();
 
@@ -168,7 +172,7 @@ public class testPerformanceNetworkAPIs {
 		        "http://www.yahoo.com/finance");      // web-site
 
         try {
-            client = new NdexRestClient(accountName, accountPassword, JUnitTestSuite.testServerURL);
+            client = new NdexRestClient(accountName, accountPassword, testServerURL);
         } catch (Exception e) {
 			fail("Unable to create client: " + e.getMessage());
         }

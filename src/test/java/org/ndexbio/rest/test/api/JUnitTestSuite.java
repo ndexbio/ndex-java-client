@@ -30,32 +30,25 @@
  */
 package org.ndexbio.rest.test.api;
 
-import java.io.FileInputStream;
-import java.util.Properties;
-
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
-import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.rest.NdexHttpServletDispatcher;
+
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses ({
 	testGroupService.class,
-	testNetworkConcurrentAcess.class,
-    testUserService.class,
-	testTaskService.class,
-	testPerformanceUploadingNetworks.class,
 	testNetworkAService.class,
-	testPerformanceNetworkAPIs.class
+	testNetworkConcurrentAcess.class,
+	testTaskService.class,
+	testUserService.class
 })
 
 
 public class JUnitTestSuite {
+
+}
+
+	/*
     private  static Server server;
 
     // the following parameters are read from the configuration file
@@ -142,5 +135,5 @@ public class JUnitTestSuite {
     public static boolean deleteDatabase() {
     	return deleteDatabase;
     }
-}        
-        
+*/
+ 

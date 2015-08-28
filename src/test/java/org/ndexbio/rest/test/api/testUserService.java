@@ -33,8 +33,8 @@ package org.ndexbio.rest.test.api;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-
 import java.util.UUID;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -51,6 +51,7 @@ import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
 
@@ -94,6 +95,8 @@ public class testUserService
     // userToCreate is the user that will be created on the NDEx server as part of testing
     // prior to testing, this account should not exist on this server
     private static NewUser userToCreate  = null;
+    
+    private static Process jettyServer    = null;
 
 	/**
 	 * This methods runs once before any of the test methods in the class.
@@ -104,6 +107,8 @@ public class testUserService
      */
     @BeforeClass
     public static void setUp() throws Exception {
+		// start Jetty server in a new instance of JVM
+		jettyServer = JettyServerUtils.startJettyInNewJVM();  
 		
     	// create user object; the properties describe the current test set-up
         userToCreate = UserUtils.getNewUser(
@@ -129,7 +134,7 @@ public class testUserService
     }
 
     /**
-     * Clean-up method.  
+     * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
      * @param   void
@@ -137,7 +142,10 @@ public class testUserService
      */
     @AfterClass
     public static void tearDown() throws Exception {
-    }    
+
+    	// stop the Jetty server, remove database; destroy Jetty Server process
+        JettyServerUtils.shutdownServerRemoveDatabase();
+    }
 
     /**
      * Create a user account on the server.

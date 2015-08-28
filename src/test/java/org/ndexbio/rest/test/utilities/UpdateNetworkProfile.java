@@ -64,11 +64,8 @@ public class UpdateNetworkProfile extends Thread {
 		// wait till the network profile update is finished
         while (true) {
         	// System.out.println(Thread.currentThread().getName() + ": check if profile updated");
-        	try {
-        	    updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
-        	} catch (Exception e) {
-        		fail("Unable to download summary of network " + testNetworkUUID + " : " + e.getMessage());
-            }
+
+        	updatedNetworkSummary = NetworkUtils.getNetworkSummaryById(ndex, testNetworkUUID);
         		
         	if (!updatedNetworkSummary.getName().equals(networkSummary.getName()) ||
         		!updatedNetworkSummary.getDescription().equals(networkSummary.getDescription()) ||
@@ -78,7 +75,7 @@ public class UpdateNetworkProfile extends Thread {
                 	// System.out.println(Thread.currentThread().getName() + ": not updated yet ; sleep for 1 sec");
                 	// profile not updated yet -- sleep 1 seconds and check again
                 	Thread.sleep(1000);
-                	updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
+                	//updatedNetworkSummary = NetworkUtils.getNetworkSummaryById(ndex, testNetworkUUID);
                 } catch (Exception e) {
             		fail("Unable to download summary of network " + testNetworkUUID + " : " + e.getMessage());
                 }

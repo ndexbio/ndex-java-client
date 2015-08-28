@@ -239,14 +239,10 @@ public class NetworkUtils {
               
         while (true) {
         			
-    		try {
-    			//get network summary
-    			networkSummary = ndex.getNetworkSummaryById(networkUUID);
-    		} catch (IOException | NdexException e1) {
-    			fail("unable to get network summary for network " + networkUUID);
-    		}
-    		
-            
+    		//get network summary
+    		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
+
+        
             // check if the flag is set
     		if (readOnly)  {
     			// trying to set readOnly flag to true; make sure that network is cached.
@@ -376,6 +372,16 @@ public class NetworkUtils {
 			networkSummary = ndex.getNetworkSummaryById(networkUUID);
 		} catch (Exception e) {
             fail("unable to get network summary : " + e.getMessage() );
+		}
+		return networkSummary;
+	}
+
+	public static NetworkSummary updateNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
+		NetworkSummary networkSummary = null;
+    	try {
+			networkSummary = ndex.updateNetwork(network);
+		} catch (Exception  e) {
+			fail("Unable to update network " + network.getExternalId() + " : " + e.getMessage());
 		}
 		return networkSummary;
 	}

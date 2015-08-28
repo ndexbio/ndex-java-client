@@ -57,6 +57,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.DownloadNetwork;
+import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UpdateNetworkProfile;
@@ -85,6 +86,8 @@ public class testNetworkConcurrentAcess {
 	private static String  testNetworkUUID = null;
 	
 	private static final int NUM_OF_THREADS_TO_CREATE = 5;
+	
+    private static Process jettyServer    = null;
     
 	/**
 	 * This methods runs once before any of the test methods in the class.
@@ -95,6 +98,9 @@ public class testNetworkConcurrentAcess {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+		// start Jetty server in a new instance of JVM
+		jettyServer = JettyServerUtils.startJettyInNewJVM();    	
+    	
     	// build Map of networks for testing from the property file
 		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
 		
@@ -120,7 +126,7 @@ public class testNetworkConcurrentAcess {
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());
         }
-        
+
         // in case user account exists, delete it
     	UserUtils.deleteUser(ndex);
     	
@@ -131,27 +137,31 @@ public class testNetworkConcurrentAcess {
     
     /**
      * Clean-up method.  The last method called in this class by JUnit framework.
-     * It removes all networks uploaded to the test account, and removes the test
-     * account itself.
      * 
      * @throws  Exception
      * @param   void
      * @return  void
      */
     @AfterClass
-    public static void tearDown() throws Exception {	
-    	// delete the test user account
-    	// UserUtils.deleteUser(ndex);
+    public static void tearDown() throws Exception {
+
+    	// stop the Jetty server, remove database; destroy Jetty Server process
+        JettyServerUtils.shutdownServerRemoveDatabase();
     }
     
 	/**
 	 * This methods runs before every test case.
-	 * It uploads test network to the server.
+	 * It restarts the server with clean database (removes the database), and uploads test network to the server.
 	 * 
      * @param   void
      * @return  void
      */
     @Before public void loadNetwork() {
+        // stop Jetty server if it is running, remove database from file system, start Jetty server
+    	// (i.e., (re)start server with clean database)
+    	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+    	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
+    	
 		// create test account
 		testAccount = UserUtils.createUserAccount(ndex, testUser);
     	
@@ -164,26 +174,7 @@ public class testNetworkConcurrentAcess {
     	// get UUID of the network we just uploaded
     	testNetworkUUID = task.getAttribute("networkUUID").toString();
     }
-    
-    
-	/**
-	 * This methods runs after every test case.
-	 * It deletes test network that was uploaded to the server.
-	 * 
-     * @param   void
-     * @return  void
-     */
-    @After public void deleteNetwork() {
-    	// delete the network we uploaded before
-    	NetworkUtils.deleteNetwork(ndex, testNetworkUUID);
-    	
-    	// wait till network is deleted
-    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);
-    	
-    	// delete the test user account
-    	UserUtils.deleteUser(ndex);
-    }
-    
+  
 	
     /*
      * Test whether NDEx can handle concurrent access (multiple clients/threads) to the same network correctly. 
@@ -201,13 +192,9 @@ public class testNetworkConcurrentAcess {
     @Test
     public void test0001DownloadNetworkModifyProfile() {    	
     	
-    	// now, download test network from the server
-    	Network originalNetwork = null;
-    	try {
-			originalNetwork = ndex.getNetwork(testNetworkUUID);
-		} catch (IOException | NdexException  e) {
-			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
-		}
+    	// download test network from the server
+		Network originalNetwork = NetworkUtils.getNetwork(ndex, testNetworkUUID);
+    	
     		
     	// modify profile of the network on the server
     	NetworkSummary networkSummary = new NetworkSummary();
@@ -244,12 +231,7 @@ public class testNetworkConcurrentAcess {
         NetworkUtils.compareObjectsContents(originalNetwork, network);
 
         // now, let's check if the network profile has updated correctly
-        NetworkSummary updatedNetworkSummary = null;
-    	try {
-    	    updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
-    	} catch (Exception e) {
-			fail("Unable to download summary of network " + testNetworkUUID + " : " + e.getMessage());
-        }
+        NetworkSummary updatedNetworkSummary = NetworkUtils.getNetworkSummaryById(ndex, testNetworkUUID);
     	
     	assertEquals("Network name didn't update correctly", updatedNetworkSummary.getName(), networkSummary.getName());
     	assertEquals("Network description didn't update correctly", updatedNetworkSummary.getDescription(), networkSummary.getDescription());
@@ -269,11 +251,7 @@ public class testNetworkConcurrentAcess {
 			fail("Unable to restore original profile values for  network " + testNetworkUUID + " : " + e.getMessage());
 		}
     
-    	try {
-    	    updatedNetworkSummary = ndex.getNetworkSummaryById(testNetworkUUID);
-    	} catch (Exception e) {
-			fail("Unable to download summary of network " + testNetworkUUID + " : " + e.getMessage());
-        }
+    	updatedNetworkSummary = NetworkUtils.getNetworkSummaryById(ndex, testNetworkUUID);
     	
     	assertEquals("Failed to restore original name of network", updatedNetworkSummary.getName(), networkSummary.getName());
     	assertEquals("Failed to restore original summary of network", updatedNetworkSummary.getDescription(), networkSummary.getDescription());
@@ -293,13 +271,8 @@ public class testNetworkConcurrentAcess {
     @Test
     public void test0010DownloadNetworkModifyProfile() {
     	// download test network from the server
-    	Network originalNetwork = null;
-    	try {
-			originalNetwork = ndex.getNetwork(testNetworkUUID);
-		} catch (IOException | NdexException  e) {
-			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
-		}   	
-    	
+    	Network originalNetwork = NetworkUtils.getNetwork(ndex, testNetworkUUID);
+ 	
     	DownloadNetwork downloadThread = new DownloadNetwork(ndex, testNetworkUUID);
     	
     	// modify profile of the network on the server
@@ -368,117 +341,20 @@ public class testNetworkConcurrentAcess {
      */    
     @Test
     public void test0020UpdateNetwork() throws InterruptedException {
-    	
     	// download test network from the server
-    	Network network = null;
-    	try {
-			network = ndex.getNetwork(testNetworkUUID);
-		} catch (IOException | NdexException  e) {
-			fail("Unable to download network " + testNetworkUUID + " : " + e.getMessage());
-		}
+    	Network network = NetworkUtils.getNetwork(ndex, testNetworkUUID);
 
     	// modify network profile 
     	network.setName("Modified -- " + network.getName());
     	network.setDescription("Modified -- " + network.getDescription());
-    	network.setVersion("Modified -- " + network.getVersion());
-    	
+    	network.setVersion("Modified -- " + network.getVersion());   	
     	
     	// send the modified network back to the server (update it on the server)
-    	NetworkSummary updatedNetworkSummary = null;
-    	try {
-			updatedNetworkSummary = ndex.updateNetwork(network);
-		} catch (Exception  e) {
-			fail("Unable to update network " + testNetworkUUID + " : " + e.getMessage());
-		}
-   	
+    	NetworkSummary updatedNetworkSummary = NetworkUtils.updateNetwork(ndex, network);
+
     	// check if the network summary updated correctly
     	assertEquals("Failed to update network name",        network.getName(),        updatedNetworkSummary.getName());
     	assertEquals("Failed to update network description", network.getDescription(), updatedNetworkSummary.getDescription());
     	assertEquals("Failed to update network version",     network.getVersion(),     updatedNetworkSummary.getVersion());
-    }   
-    
-    
-    
-    
-	/*
-    @BeforeClass
-    public static void setUp() throws Exception {
-
-        // JUnitTestSuite.properties is defined in Run->Run Configurations->JUnit->JUnitTestSuite, Arguments Tab:
-        // -DJUnitTestSuite.properties=src/main/resources/JUnitTestSuite.properties
-        // the properties file is src/main/resources/JUnitTestSuite.properties
-
-        //configProperties = new JUnitTestProperties("JUnitTestSuite.properties");
-
-        client = new NdexRestClient(JUnitTestSuite.testerName,
-                                    JUnitTestSuite.testerPassword,
-                                    JUnitTestSuite.testServerURL);
-
-        ndex = new NdexRestClientModelAccessLayer(client);
-        
-
-        // get a list of "test" networks from the servers, i.e, networks with the same name as the one used for testing
-        List<NetworkSummary> networkList = null;
-        try {
-        	networkList = ndex.findNetworks(JUnitTestSuite.networkToUploadName, true, JUnitTestSuite.testerName, 0, 300);
-        } catch (Exception e) {
-        	e.printStackTrace();
-        	System.exit(0);
-        }
-        
-        // delete the existing test networks on the server
-        if ((networkList != null) && (networkList.size() > 0)) {
-        	
-    	    for (NetworkSummary networkSummary : networkList) {
-    	    	String networkUUIDToDelete = networkSummary.getExternalId().toString();	  
-    	        try {
-    	        	ndex.deleteNetwork(networkUUIDToDelete);
-    	        } catch (Exception e) {
-    	        	// here we may get the "com.fasterxml.jackson.databind.JsonMappingException: No content to map due to end-of-input" exception;
-    	        	// ignore it and keep deleting the networks
-    	        }  	    	
-    	    }
-        }
-    
-        // upload network to the server for testing 
-        try {
-            ndex.uploadNetwork(JUnitTestSuite.networkToUpload);
-        } catch (Exception e) {
-        	System.out.println("Unable to upload test network " + JUnitTestSuite.networkToUpload + ";" + e.getMessage());
-        	System.exit(0);
-        }    
-
-        networkList = null;
-        
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-        
-        System.out.println(dateFormat.format(Calendar.getInstance().getTime()) + 
-        		": started uploading network " +  JUnitTestSuite.networkToUploadName + " to " + JUnitTestSuite.testServerURL);
-        
-        // before we start testing, we need to wait for the test network upload to finish 
-        while (true) {
-	
-            try {
-            	// check if network has uploaded
-            	networkList = ndex.findNetworks(JUnitTestSuite.networkToUploadName, true, JUnitTestSuite.testerName, 0, 300);
-            } catch (Exception e) {
-            	System.out.println("Unable to upload test network " + JUnitTestSuite.networkToUpload + ";" + e.getMessage());
-            	System.exit(0);
-            }
-            
-            if ((networkList == null) || (networkList.size() == 0)) {
-            	// network not uploaded yet -- sleep 10 seconds and check again
-            	Thread.sleep(10000); 
-            } else {
-            	// network uploaded; get its ID and break out of the loop
-            	testNetworkUUID = networkList.get(0).getExternalId().toString();
-            	break;
-            }
-            	
-        }
-        System.out.println(dateFormat.format(Calendar.getInstance().getTime()) + 
-        		": finished uploading network " +  JUnitTestSuite.networkToUploadName + " to " + JUnitTestSuite.testServerURL);
-    }
-    */
-    
+    }       
 }

@@ -33,12 +33,12 @@ package org.ndexbio.rest.test.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-
+import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
@@ -48,22 +48,18 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FilenameUtils;
-
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
-
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.JettyServerUtils;
@@ -301,7 +297,7 @@ public class testPerformanceNetworkAPIs {
      * @param   void
      * @return  void
      */
-	//@Test  
+	@Test  
     public void test0002BenchmarkNetworkUpload() {
 
 		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
@@ -398,7 +394,7 @@ public class testPerformanceNetworkAPIs {
      * @param   void
      * @return  void
      */
-	//@Test  
+	@Test  
     public void test0003BenchmarkNetworkDownloadWithReadonlyOnOff() {
 		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
@@ -581,7 +577,7 @@ public class testPerformanceNetworkAPIs {
      * @param   void
      * @return  void
      */
-	//@Test  
+	@Test  
     public void test0004BenchmarkNeighborhoodQuery() throws JSONException {
 		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
@@ -772,9 +768,10 @@ public class testPerformanceNetworkAPIs {
      *
      * @param   void
      * @return  void
+	 * @throws IOException 
      */
     @Test
-	public void test9999GenerateExcelReport() {
+	public void test9999GenerateExcelReport() throws IOException {
 
     	ObjectMapper objectMapper = new ObjectMapper();
     	JsonNode args = objectMapper.valueToTree(clientDataForStatisticsReport);
@@ -795,7 +792,7 @@ public class testPerformanceNetworkAPIs {
 		
 		/*
 		/* uncomment this to get output from running "python src/test/java/org/ndexbio/rest/test/utilities/mine.py -i logs/ndex.log " 
-		 * 
+		 */ 
 		BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 		BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
 
@@ -805,8 +802,12 @@ public class testPerformanceNetworkAPIs {
 
 		// read any errors from the attempted command, if any
 		while ((s = stdError.readLine()) != null) { System.out.println(s); }
-		*/
+		/**/
 
+		// wait for the python scrript process to finish
+		try {
+			proc.waitFor();
+		} catch (InterruptedException e) { e.printStackTrace(); } 
 	}	
 
 	private void printNetworkNeighborhoodQueryReport(

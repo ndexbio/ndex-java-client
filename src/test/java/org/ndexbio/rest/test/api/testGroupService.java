@@ -56,6 +56,7 @@ import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.GroupUtils;
+import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -99,6 +100,8 @@ public class testGroupService {
     private static Group newGroup         = null;
     private static Group group            = null;
     
+    private static Process jettyServer    = null;
+    
 	/**
 	 * This methods runs once before any of the test methods in the class.
 	 * It creates ndex client used by other tests.
@@ -108,6 +111,9 @@ public class testGroupService {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+    	
+		// start Jetty server in a new instance of JVM
+		jettyServer = JettyServerUtils.startJettyInNewJVM();
 		
     	// create user object; the properties describe the current test set-up
         testUser = UserUtils.getNewUser(
@@ -145,8 +151,6 @@ public class testGroupService {
     
     /**
      * Clean-up method.  The last method called in this class by JUnit framework.
-     * It removes all networks uploaded to the test account, and removes the test
-     * account itself.
      * 
      * @throws  Exception
      * @param   void
@@ -156,7 +160,10 @@ public class testGroupService {
     public static void tearDown() throws Exception {
     	
     	// delete the test user account
-    	UserUtils.deleteUser(ndex);
+    	//UserUtils.deleteUser(ndex);
+    	
+    	// stop the Jetty server, remove database; destroy Jetty Server process
+        JettyServerUtils.shutdownServerRemoveDatabase();
     }
 
 	/**

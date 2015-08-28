@@ -123,19 +123,31 @@ public class JettyServerUtils {
 		sendCommand("stopServerRemoveDatabase");
 
     	  
-    	if (null != toServer)  toServer.close();
+    	if (null != toServer)  {
+    		toServer.close();
+    		toServer = null;
+    	}
     	
     	if (null != fromServer)
 			try {
 				fromServer.close();
+				fromServer = null;
 			} catch (IOException e) {}
     	
     	if (null != socket)
 			try {
 				socket.close();
+				socket = null;
 			} catch (IOException e) {}
     	
     	jettyServerProcess.destroy();
+    	try {
+    		// wait for the process to terminate
+			jettyServerProcess.waitFor();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	jettyServerProcess = null;
 	}
 	

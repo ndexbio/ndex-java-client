@@ -366,7 +366,6 @@ with open(outputfile, "w") as w:
         #print "apiMethods         =", apiMethods
         #print "apiTransactionsIDs =", apiTransactionsIDs
     
-    
         clientNetworkNames = []
         clientFileSizes = []
         clientRTTs = []      
@@ -408,12 +407,15 @@ with open(outputfile, "w") as w:
             w.write("\t")
     
             transactionData = allTransactions[apiTransactionsIDs[0]]['transactionData']
-            if transactionData[method]['deltaMemory'] is not None:
-                w.write(method + ".memoryDeltaHeap\t")
-                w.write(method + ".memoryDeltaMax\t")
-                w.write(method + ".memoryDeltaFree\t")
-                w.write(method + ".memoryDeltaUsed\t")  
-
+            try:
+                if transactionData[method]['deltaMemory'] is not None:
+                    w.write(method + ".memoryDeltaHeap\t")
+                    w.write(method + ".memoryDeltaMax\t")
+                    w.write(method + ".memoryDeltaFree\t")
+                    w.write(method + ".memoryDeltaUsed\t")  
+            except KeyError:
+                continue
+                            
         w.write("\n")      
         
         #headers created, now write data

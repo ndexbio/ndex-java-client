@@ -30,6 +30,7 @@
  */
 package org.ndexbio.rest.test.api;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -59,6 +60,7 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.FileAndServerUtils;
+import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
@@ -68,9 +70,11 @@ import org.ndexbio.task.Configuration;
 //executes) the test methods by name in lexicographic order
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testPerformanceUploadingNetworks {
-    
+	
 	static String resourcePath = "src/test/resources/";
-	static String networksFile = resourcePath + "testPerformanceUploadingNetworks.properties";
+	static String networksToUploadPropertyFile = "src/test/resources/testPerformanceUploadingNetworks.properties";
+	
+	
 	static TreeMap<String, String> testNetworks;
 	
     private static NdexRestClient                 client;
@@ -87,6 +91,8 @@ public class testPerformanceUploadingNetworks {
 	private static boolean overwriteExistingNetwork = true;
 	private static String fileNameExtension = ".json";
 
+    private static Process jettyServer    = null;
+	
 	/**
 	 * This methods runs once before any of the test methods in the class.
 	 * It builds a Map of networks for testing from the property file, creates a test user 
@@ -98,9 +104,11 @@ public class testPerformanceUploadingNetworks {
      */
     @BeforeClass
     public static void setUp() throws Exception {
+		// start Jetty server in a new instance of JVM
+		jettyServer = JettyServerUtils.startJettyInNewJVM(); 
 		
     	// build Map of networks for testing from the property file
-		testNetworks = PropertyFileUtils.parsePropertyFile(networksFile);
+		testNetworks = PropertyFileUtils.parsePropertyFile(networksToUploadPropertyFile);
 		
 		// create user object; the properties describe the current test
 		testUser = UserUtils.getNewUser(
@@ -130,8 +138,6 @@ public class testPerformanceUploadingNetworks {
 
     /**
      * Clean-up method.  The last method called in this class by JUnit framework.
-     * It removes all networks uploaded to the test account, and removes the test
-     * account itself.
      * 
      * @throws  Exception
      * @param   void
@@ -139,12 +145,9 @@ public class testPerformanceUploadingNetworks {
      */
     @AfterClass
     public static void tearDown() throws Exception {
-    	
-    	// delete all networks from the test account
-    	NetworkUtils.deleteNetworks(ndex, accountName, testNetworks);
-    	
-    	// delete the test user account
-    	UserUtils.deleteUser(ndex);
+
+    	// stop the Jetty server, remove database; destroy Jetty Server process
+        JettyServerUtils.shutdownServerRemoveDatabase();
     }
 	
     
@@ -165,8 +168,10 @@ public class testPerformanceUploadingNetworks {
         
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
-        	// shut down the server and database, and remove the database files from the filesystem
-    		FileAndServerUtils.cleanDatabase();
+            // stop Jetty server if it is runs, remove database from file system, start Jetty server
+        	// (i.e., (re)start server with clean database)
+        	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+        	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
@@ -189,50 +194,20 @@ public class testPerformanceUploadingNetworks {
             
 		    	    
 		    // download network with ReadOnly flag set to false
-			try {
-		        // set target network to read-write mode
-				ndex.setNetworkFlag(networkUUID, "readOnly", "false");
-			} catch (Exception e) {
-				fail("can't set read-only flag to false");
-			}
-			
-
-			Network entireNetwork = null;
-
+            NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
             long timeBeforeDownload = System.currentTimeMillis();
-
-			try {
-				 entireNetwork = ndex.getNetwork(networkUUID);
-			} catch (IOException | NdexException e) {
-				entireNetwork = null;
-				fail("can't download entire network");				
-			}
-			
+            Network entireNetwork = NetworkUtils.getNetwork(ndex, networkUUID);		
 			long downloadTimeInMs = System.currentTimeMillis() - timeBeforeDownload;
             String formattedDownloadTime = formatOutput(downloadTimeInMs);
 		   
-
-            entireNetwork = null;
             
 		    // download network with ReadOnly flag set to true
-			try {
-		        // set target network to read-only mode
-				NetworkUtils.setReadOnlyFlag(ndex, networkUUID, true);
-			} catch (Exception e) {
-				fail("can't set read-only flag to false");
-			}
-
+            NetworkUtils.setReadOnlyFlag(ndex, networkUUID, true);
             timeBeforeDownload = System.currentTimeMillis();
-
-			try {
-				entireNetwork = ndex.getNetwork(networkUUID);
-			} catch (IOException | NdexException e) {
-				entireNetwork = null;
-				fail("can't download entire network");				
-			}
-			
+            entireNetwork = NetworkUtils.getNetwork(ndex, networkUUID);
 			long downloadTimeReadOnlyInMs = System.currentTimeMillis() - timeBeforeDownload;
             String formattedDownloadReadOnlyTime = formatOutput(downloadTimeReadOnlyInMs);
+            
             
         	// get memory statistics after running the benchmark
         	memoryAfter.put(entry.getKey(), getMemoryUtiliztaion());
@@ -248,11 +223,8 @@ public class testPerformanceUploadingNetworks {
 
         	benchmarkData.put(entry.getKey(), benchmark);
         	
-			try {
-				NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
-			} catch (Exception e) {
-				fail("can't set read-only flag to false");
-			}
+		    // set ReadOnly flag back to false
+            NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
 			
 			// save the network to the file system so that we could re-use it for the next benchmark
 			NetworkUtils.saveNetworkToFile(resourcePath+fileToUpload.getName()+fileNameExtension, entireNetwork, overwriteExistingNetwork);
@@ -280,8 +252,10 @@ public class testPerformanceUploadingNetworks {
          
         for (Entry<String, String> entry : testNetworks.entrySet()) {
             	
-        	// shut down the server and database, and remove the database files from the filesystem
-    		FileAndServerUtils.cleanDatabase();
+            // stop Jetty server if it is runs, remove database from file system, start Jetty server
+        	// (i.e., (re)start server with clean database)
+        	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+        	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
     		
     		// re-create test account since it was deleted at previous step by cleanDatabase()
     		testAccount = UserUtils.createUserAccount(ndex, testUser);
@@ -294,19 +268,11 @@ public class testPerformanceUploadingNetworks {
         	
         	// construct Network object 
         	Network network = NetworkUtils.readNetworkFromFile(fileName); 
-            NetworkSummary networkSummary = null;
         	
         	// get memory statistics before creating network
         	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
-        	
             long timeBeforeCreate = System.currentTimeMillis();
-            
-        	try {
-				networkSummary = ndex.createNetwork(network);
-			} catch (Exception e) {
-                fail("unable to create network " + networkName + " : " + e.getMessage() );
-			}
-        	
+            NetworkSummary networkSummary = NetworkUtils.createNetwork(ndex, network); 
 			long createTimeInMs = System.currentTimeMillis() - timeBeforeCreate;
             String formattedCreateTime = formatOutput(createTimeInMs);
         	

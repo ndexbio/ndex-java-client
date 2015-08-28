@@ -374,26 +374,35 @@ with open(outputfile, "w") as w:
         clientEdgesRetrieved = []                     
         clientNodes = []             
         clientEdges = []
-    
+        noOfClientArguments = 0
+        
         # check if file name was passed to this script as argument from the client (caller of the script)
         if api in clientArgsDictionary:
             clientDataDictionary = clientArgsDictionary[api]
             if "networkName" in clientDataDictionary:
                 clientNetworkNames = clientDataDictionary["networkName"]
+                noOfClientArguments = len(clientNetworkNames)
             if "fileSize" in clientDataDictionary:
-                clientFileSizes = clientDataDictionary["fileSize"] 
+                clientFileSizes = clientDataDictionary["fileSize"]
+                noOfClientArguments = len(clientFileSizes) 
             if "clientRTT" in clientDataDictionary:
-                clientRTTs = clientDataDictionary["clientRTT"]      
+                clientRTTs = clientDataDictionary["clientRTT"]
+                noOfClientArguments = len(clientRTTs) 
             if "clientReadOnlyRTT" in clientDataDictionary:
-                clientReadOnlyRTTs = clientDataDictionary["clientReadOnlyRTT"]                                  
+                clientReadOnlyRTTs = clientDataDictionary["clientReadOnlyRTT"]
+                noOfClientArguments = len(clientReadOnlyRTTs)                                   
             if "nodesRetrieved" in clientDataDictionary:
-                clientNodesRetrieved = clientDataDictionary["nodesRetrieved"]             
+                clientNodesRetrieved = clientDataDictionary["nodesRetrieved"] 
+                noOfClientArguments = len(clientNodesRetrieved)              
             if "edgesRetrieved" in clientDataDictionary:
-                clientEdgesRetrieved = clientDataDictionary["edgesRetrieved"]                     
+                clientEdgesRetrieved = clientDataDictionary["edgesRetrieved"] 
+                noOfClientArguments = len(clientEdgesRetrieved)                    
             if "nodes" in clientDataDictionary:
-                clientNodes = clientDataDictionary["nodes"]             
+                clientNodes = clientDataDictionary["nodes"]
+                noOfClientArguments = len(clientNodes)
             if "edges" in clientDataDictionary:
-                clientEdges = clientDataDictionary["edges"]                      
+                clientEdges = clientDataDictionary["edges"] 
+                noOfClientArguments = len(clientEdges)
                     
     
         # print headers
@@ -401,6 +410,11 @@ with open(outputfile, "w") as w:
             w.write("Transaction Id\tNetwork File\tFile Size\tNetwork UUID\tClient RTT\tNumber of Elements\tNodes\tEdges\tNodes Retrieved\tEdges Retrieved\tDepth\t")
         else:
             w.write("Transaction Id\tNetwork File\tFile Size\tNetwork UUID\tClient RTT\tNumber of Elements\t")
+        
+        # how many lines in the generates report file we need to skip before 
+        # writing client data (arguments the script received) to the file;  in other words, make sure that we only write 
+        # client data to last portion of of transactions
+        noOfTransactionsWithoutClientData = len(apiTransactionsIDs) - noOfClientArguments
         
         for method in apiMethods:
             w.write(method)
@@ -418,8 +432,13 @@ with open(outputfile, "w") as w:
                             
         w.write("\n")      
         
+        loopCounter = 0;
+        
         #headers created, now write data
         for transactionId in apiTransactionsIDs:
+            
+            loopCounter = loopCounter + 1
+            
             transaction = allTransactions[transactionId]
             #print "transaction=", transaction
 
@@ -428,7 +447,7 @@ with open(outputfile, "w") as w:
             if transaction['transactionProperty']['networkName'] is not None:
                 w.write(transaction['transactionProperty']['networkName']+"\t")
             else:
-                if len(clientNetworkNames) > 0:
+                if len(clientNetworkNames) > 0 and noOfTransactionsWithoutClientData < loopCounter :
                     w.write(clientNetworkNames.pop(0) +"\t")                      
                 else:
                     w.write("" +"\t")  
@@ -437,7 +456,7 @@ with open(outputfile, "w") as w:
             if transaction['transactionProperty']['fileSize'] is not None:
                 w.write("{:,}".format(transaction['transactionProperty']['fileSize'])+"\t")
             else:
-                if len(clientFileSizes) > 0:
+                if len(clientFileSizes) > 0 and noOfTransactionsWithoutClientData < loopCounter :
                     fs = clientFileSizes.pop(0)
                     w.write(fs +"\t")                      
                 else:
@@ -451,7 +470,7 @@ with open(outputfile, "w") as w:
             if transaction['transactionProperty']['clientRTT'] is not None: 
                  w.write(transaction['transactionProperty']['clientRTT'])
             else:
-                if len(clientRTTs) > 0:
+                if len(clientRTTs) > 0 and noOfTransactionsWithoutClientData < loopCounter :
                     w.write(clientRTTs.pop(0))                 
                 else:
                     w.write("") 
@@ -462,12 +481,12 @@ with open(outputfile, "w") as w:
        
             if api in "NetworkAService.queryNetwork": 
                 
-                if len(clientNodes) > 0: 
+                if len(clientNodes) > 0 and noOfTransactionsWithoutClientData < loopCounter :
                     w.write(clientNodes.pop(0)+"\t")
                 else:
                     w.write("\t")
                     
-                if len(clientEdges) > 0: 
+                if len(clientEdges) > 0 and noOfTransactionsWithoutClientData < loopCounter : 
                     w.write(clientEdges.pop(0)+"\t")
                 else:
                     w.write("\t")   

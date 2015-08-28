@@ -48,7 +48,6 @@ import org.ndexbio.rest.NdexHttpServletDispatcher;
 	testGroupService.class,
 	testNetworkConcurrentAcess.class,
     testUserService.class,
-
 	testTaskService.class,
 	testPerformanceUploadingNetworks.class,
 	testNetworkAService.class,

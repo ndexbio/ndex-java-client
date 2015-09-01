@@ -92,7 +92,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class testPerformanceNetworkAPIs {
  
-	static String networksToCreatePropertyFile = "src/test/resources/testPerformanceNetworkAPIs.properties";
+	static String networksToCreatePropertyFile = "src/test/resources/testPerformanceCreatingNetworks.properties";
 	static TreeMap<String, String> testJSONNetworksToCreate;
 	
 	static String networksToUploadPropertyFile = "src/test/resources/testPerformanceUploadingNetworks.properties";	

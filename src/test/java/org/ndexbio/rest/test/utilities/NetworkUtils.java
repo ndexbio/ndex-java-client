@@ -39,13 +39,24 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.BaseTerm;
+import org.ndexbio.model.object.network.Citation;
+import org.ndexbio.model.object.network.Edge;
+import org.ndexbio.model.object.network.FunctionTerm;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.Node;
+import org.ndexbio.model.object.network.ReifiedEdgeTerm;
+import org.ndexbio.model.object.network.Support;
+import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -310,27 +321,43 @@ public class NetworkUtils {
 	
 	public static void compareObjectsContents(Network network1, Network network2) {
 
-        assertEquals("Node count doesn't match", 
-        	network1.getNodeCount(), network2.getNodeCount());
+        assertEquals("supports count doesn't match",  network1.getSupports().size(), network2.getSupports().size());
+        assertEquals("function terms count doesn't match",  network1.getFunctionTerms().size(), network2.getFunctionTerms().size());
+        assertEquals("reifiedEdgeTerms count doesn't match",  network1.getReifiedEdgeTerms().size(), network2.getReifiedEdgeTerms().size());
+        
+        assertEquals("base terms count doesn't match",  network1.getBaseTerms().size(), network2.getBaseTerms().size());
+        
+        assertEquals("base terms count doesn't match",  network1.getBaseTerms().size(), network2.getBaseTerms().size());
 
-        assertEquals("Node count doesn't match",
-        	network1.getNodes().size(), network2.getNodes().size());
-
-        assertEquals("Edge count doesn't match",
-        	network1.getEdgeCount(), network2.getEdgeCount());
-
-        assertEquals("Edge count doesn't match",
-        	network1.getEdges().size(), network2.getEdges().size());       
-
-        assertEquals("Base terms doesn't match",
-        	network1.getBaseTerms().size(), network2.getBaseTerms().size());
-
-        assertEquals("Name spaces count doesn't match",
-        	network1.getNamespaces().size(), network2.getNamespaces().size());
-
-        assertEquals("Citations count doesn't match",
-        	network1.getCitations().size(), network2.getCitations().size());
+        assertEquals("name spaces count doesn't match", network1.getNamespaces().size(), network2.getNamespaces().size());
+        assertEquals("citations count doesn't match",   network1.getCitations().size(), network2.getCitations().size());
+ 
+        assertEquals("description doesn't match", network1.getDescription(),  network2.getDescription());
+        
+        assertEquals("edge count doesn't match", network1.getEdgeCount(),    network2.getEdgeCount());
+        assertEquals("edge count doesn't match", network1.getEdges().size(), network2.getEdgeCount());  
+        assertEquals("edge count doesn't match", network1.getEdgeCount(),    network1.getEdges().size());
+        assertEquals("edge count doesn't match", network2.getEdgeCount(),    network2.getEdges().size());
+        
+        assertEquals("node count doesn't match",  network1.getNodeCount(),    network2.getNodeCount());
+        assertEquals("node count doesn't match",  network1.getNodes().size(), network2.getNodeCount());
+        assertEquals("node count doesn't match",  network1.getNodeCount(),    network1.getNodes().size());
+        assertEquals("node count doesn't match",  network2.getNodeCount(),    network2.getNodes().size());       
      
+        assertEquals("isComplete doesn't match",  network1.getIsComplete(),   network2.getIsComplete());
+        assertEquals("isLocked   doesn't match",  network1.getIsLocked(),     network2.getIsLocked());
+        assertEquals("visibility doesn't match",  network1.getVisibility(),   network2.getVisibility());   
+        assertEquals("readOnlyCommitId doesn't match",  network1.getReadOnlyCommitId(), network2.getReadOnlyCommitId());
+        assertEquals("readOnlyCacheId doesn't match",  network1.getReadOnlyCacheId(),   network2.getReadOnlyCacheId());
+        assertEquals("name doesn't match",    network1.getName(),    network2.getName());        
+        assertEquals("owner doesn't match",   network1.getOwner(),   network2.getOwner());               
+        assertEquals("URI doesn't match",     network1.getURI(),     network2.getURI()); 
+        assertEquals("version doesn't match", network1.getVersion(), network2.getVersion());
+
+        assertEquals("number of Properties doesn't match", network1.getProperties().size(), network2.getProperties().size());
+        assertEquals("number of Presentation Properties doesn't match", 
+        		network1.getPresentationProperties().size(), network2.getPresentationProperties().size()); 
+        
         return;
 	}
 
@@ -384,6 +411,53 @@ public class NetworkUtils {
 			fail("Unable to update network " + network.getExternalId() + " : " + e.getMessage());
 		}
 		return networkSummary;
+	}
+
+	public static void compareObjectsContents(Network network, NetworkSummary networkSummary) {
+		
+        assertEquals("description doesn't match", network.getDescription(),  networkSummary.getDescription());
+        
+        assertEquals("edge count doesn't match", network.getEdgeCount(),    networkSummary.getEdgeCount());
+        assertEquals("edge count doesn't match", network.getEdges().size(), networkSummary.getEdgeCount());  
+
+        assertEquals("node count doesn't match",  network.getNodeCount(),    networkSummary.getNodeCount());
+        assertEquals("node count doesn't match",  network.getNodes().size(), networkSummary.getNodeCount());
+     
+        assertEquals("isComplete doesn't match",  network.getIsComplete(),   networkSummary.getIsComplete());
+        assertEquals("isLocked   doesn't match",  network.getIsLocked(),     networkSummary.getIsLocked());
+        assertEquals("visibility doesn't match",  network.getVisibility(),   networkSummary.getVisibility());   
+        assertEquals("readOnlyCommitId doesn't match",  network.getReadOnlyCommitId(), networkSummary.getReadOnlyCommitId());
+        assertEquals("readOnlyCacheId doesn't match",  network.getReadOnlyCacheId(),   networkSummary.getReadOnlyCacheId());
+        assertEquals("name doesn't match",    network.getName(),    networkSummary.getName());        
+        assertEquals("owner doesn't match",   network.getOwner(),   networkSummary.getOwner());               
+        assertEquals("URI doesn't match",     network.getURI(),     networkSummary.getURI()); 
+        assertEquals("version doesn't match", network.getVersion(), networkSummary.getVersion());
+
+        assertEquals("number of Properties doesn't match", network.getProperties().size(), networkSummary.getProperties().size());
+        assertEquals("number of Presentation Properties doesn't match", 
+        		network.getPresentationProperties().size(), networkSummary.getPresentationProperties().size());
+        
+		return;
+	}
+
+	public static void updateNetworkSummary(NdexRestClientModelAccessLayer ndex, 
+			NetworkSummary newNetworkSummary, String networkUUID) {
+
+    	try {
+			ndex.updateNetworkSummary(newNetworkSummary, networkUUID);
+		} catch (Exception  e) {
+		    // here we most likely get the 
+		    // "com.fasterxml.jackson.databind.JsonMappingException: No content to map due to end-of-input"
+		    // ignore it 
+		}
+		return ;
+	}
+
+	public static void compareNetworkSummary(NetworkSummary networkSummary1, NetworkSummary networkSummary2) {
+    	assertEquals("Network name didn't update correctly", networkSummary1.getName(), networkSummary2.getName());
+    	assertEquals("Network description didn't update correctly", networkSummary1.getDescription(), networkSummary2.getDescription());
+    	assertEquals("Network version didn't update correctly", networkSummary1.getVersion(), networkSummary2.getVersion());		
+		
 	}
     
 }

@@ -35,6 +35,8 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import javax.ws.rs.Path;
+
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
@@ -777,7 +779,17 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (List<FunctionTerm>) ndexRestClient.getNdexObjectList(route, "", FunctionTerm.class);
 	}
 	
-//	network	GET	/network/{networkUUID}/namespace/{skipBlocks}/{blockSize}		Namespace[]
+	@SuppressWarnings("unchecked")
+	public void addNetworkNamespace(
+			String networkId,
+			Namespace nameSpace) 
+			throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + networkId + "/namespace";	
+		JsonNode postData = objectMapper.valueToTree(nameSpace);	
+		ndexRestClient.postNdexObject(route, postData, Namespace.class);
+		return;
+	}
+	
 	@SuppressWarnings("unchecked")
 	public List<Namespace> getNetworkNamespaces(
 			String networkId,

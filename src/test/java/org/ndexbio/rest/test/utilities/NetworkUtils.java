@@ -59,6 +59,7 @@ import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import static org.junit.Assert.assertEquals;
@@ -459,5 +460,27 @@ public class NetworkUtils {
     	assertEquals("Network version didn't update correctly", networkSummary1.getVersion(), networkSummary2.getVersion());		
 		
 	}
-    
+
+	public static List<Namespace> getNetworkNamespaces(
+			NdexRestClientModelAccessLayer ndex, String networkUUID, int skipBlocks, int blockSize) {
+		List<Namespace> namespaces = null;
+		try {
+			namespaces = ndex.getNetworkNamespaces(networkUUID, skipBlocks, blockSize);
+		} catch (Exception e) {
+			fail("Unable to get network spaces :  " + e.getMessage());
+		} 
+		return namespaces;
+	}
+	
+	public static void addNetworkNamespace(
+			NdexRestClientModelAccessLayer ndex, String networkUUID, Namespace namespace) {
+		try {
+			ndex.addNetworkNamespace(networkUUID, namespace);
+		} catch (Exception e) {
+			// here we most likely get java.lang.AssertionError: Unable to get network spaces :  No content to map due to end-of-input
+			// ignore it
+		} 
+		return;
+	}
+	
 }

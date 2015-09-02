@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
@@ -25,6 +26,7 @@ import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
@@ -43,7 +45,7 @@ import org.ndexbio.rest.test.utilities.UserUtils;
  *
  *  APIs tested in this class:
  *  
- *      1) public void addNamespace(String networkId, Namespace namespace)
+ *  √   1) public void addNamespace(String networkId, Namespace namespace)
  *  √   2) public NetworkSummary createNetwork(Network newNetwork)
  *  -   3) public NetworkSummary createNetwork(PropertyGraphNetwork newNetwork)
  *  √   4) public void deleteNetwork(String id)
@@ -53,7 +55,7 @@ import org.ndexbio.rest.test.utilities.UserUtils;
  *  √   8) public Response getCompleteNetwork(String networkId)
  *  -   9) public PropertyGraphNetwork getCompleteNetworkAsPropertyGraph(String networkId)
  *     10) public Network getEdges(String networkId, int skipBlocks, int blockSize)
- *     11) public List<Namespace> getNamespaces(String networkId, int skipBlocks, int blockSize)
+ *  √  11) public List<Namespace> getNamespaces(String networkId, int skipBlocks, int blockSize)
  *  √  12) public NetworkSummary getNetworkSummary(String networkId)
  *     13) public List<Membership> getNetworkUserMemberships(String networkId, String permissions, int skipBlocks, int blockSize)
  *  -  14) public PropertyGraphNetwork getPropertyGraphEdges(String networkId, int skipBlocks,  int blockSize)
@@ -530,6 +532,138 @@ public class testNetworkAService {
     	
     	// delete network from the server
     	NetworkUtils.deleteNetwork(ndex, networkUUID); 
-    }     
+    }
+    
+    /**
+     * Upload network specified in the properties file to the server, 
+     * Get namespaces and check them. Delete this network from the server.
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public List<Namespace> getNamespaces(String networkId, int skipBlocks, int blockSize)
+     *              public void deleteNetwork(String id)
+     * 
+     * @param   void
+     * @return  void
+     */
+    @Test  
+    public void test0008getNamespaces()  {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToupload = 
+    			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
+		String absoluteNetworkPath = testNetworkToupload.get("uploadNetworkForNameSpace");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+    	
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+		
+		
+		// retrieve all namespaces and check some 
+		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		assertEquals("Wrong namespaces count: ", namespaces.size(), 39);
+		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
+		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
+		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
+		assertEquals("Wrong namespace name: ", namespaces.get(38).getPrefix(), "IntegumentarySystem");	
+		
+		
+		// now, retrieve only 5 namespaces
+		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 5);
+		assertEquals("Wrong namespaces count: ", namespaces.size(), 5);
+		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
+		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
+		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
+		assertEquals("Wrong namespace name: ", namespaces.get(3).getPrefix(),  "PFM");
+		assertEquals("Wrong namespace name: ", namespaces.get(4).getPrefix(),  "NCM");		
+
+		
+		// retrieve next 5 namespaces
+		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 5, 5);
+		assertEquals("Wrong namespaces count: ", namespaces.size(), 5);
+		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "PFH");
+		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "NCH");		
+		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "RGD");
+		assertEquals("Wrong namespace name: ", namespaces.get(3).getPrefix(),  "MGI");
+		assertEquals("Wrong namespace name: ", namespaces.get(4).getPrefix(),  "MESHD");	
+		
+		
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
+    }
+    
+    /**
+     * Upload network specified in the properties file to the server, 
+     * Get namespaces and check their count. Create a new namespace and add it to
+     * the network on the server. Get namespaces again and check that the new namespace
+     * has been added.
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public List<Namespace> getNamespaces(String networkId, int skipBlocks, int blockSize)
+     *              public void addNamespace(String networkId, Namespace namespace)
+     *              public void deleteNetwork(String id)
+     * 
+     * @param   void
+     * @return  void
+     */
+    @Test  
+    public void test0009addNamespace()  {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToupload = 
+    			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
+		String absoluteNetworkPath = testNetworkToupload.get("uploadNetworkForNameSpace");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+    	
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+		
+		
+		// retrieve all namespaces and check some 
+		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		assertEquals("Wrong namespaces count: ", namespaces.size(), 39);
+		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
+		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
+		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
+		assertEquals("Wrong namespace name: ", namespaces.get(38).getPrefix(), "IntegumentarySystem");	
+		
+		
+		
+		String prefix = "JunitTestPrefix";
+		String uri    = "http://belframework.org/schema/1.0/xbel";
+		String type   = "Namespace";
+		
+		
+		// create new namespace and add it to the network
+		Namespace newNameSpace = new Namespace();
+		newNameSpace.setPrefix(prefix);
+		newNameSpace.setUri(uri);	
+
+		NetworkUtils.addNetworkNamespace(ndex, networkUUID, newNameSpace);
+		
+		// now we should have 40 workspaces
+		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		assertEquals("Wrong namespaces count: ", namespaces.size(), 40);
+		assertEquals("Wrong namespace prefix: ", namespaces.get(39).getPrefix(), prefix);
+		assertEquals("Wrong namespace URI: ",    namespaces.get(39).getUri(),    uri);
+		assertEquals("Wrong namespace type: ",   namespaces.get(39).getType(),   type);		
+		
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
+    }
+
 }
 

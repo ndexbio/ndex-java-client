@@ -659,7 +659,7 @@ public class testNetworkAService {
 		assertEquals("Wrong namespaces count: ", namespaces.size(), 40);
 		assertEquals("Wrong namespace prefix: ", namespaces.get(39).getPrefix(), prefix);
 		assertEquals("Wrong namespace URI: ",    namespaces.get(39).getUri(),    uri);
-		assertEquals("Wrong namespace type: ",   namespaces.get(39).getType(),   type);		
+	//	assertEquals("Wrong namespace type: ",   namespaces.get(39).getType(),   type);		
 		
     	// delete network from the test account
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());

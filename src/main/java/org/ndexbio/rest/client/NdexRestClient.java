@@ -254,12 +254,12 @@ public class NdexRestClient {
 			if ( con != null) con.disconnect();
 		}
 	}
-	public NdexObject getNdexObject(
+	public Object getNdexObject(
 			final String route, 
 			final String userName,
 			final String password,
 			final String query,
-			final Class<? extends NdexObject> mappedClass)
+			final Class<? extends Object> mappedClass)
 			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -311,10 +311,10 @@ public class NdexRestClient {
 			if ( con != null ) con.disconnect();
 		}
 	}
-	public NdexObject getNdexObject(
+	public Object getNdexObject(
 			final String route, 
 			final String query,
-			final Class<? extends NdexObject> mappedClass)
+			final Class<? extends Object> mappedClass)
 			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -367,10 +367,10 @@ public class NdexRestClient {
 		}
 	}
 	
-	public List<? extends NdexObject> getNdexObjectList(
+	public List<? extends Object> getNdexObjectList(
 			final String route, 
 			final String query,
-			final Class<? extends NdexObject> mappedClass)
+			final Class<? extends Object> mappedClass)
 			throws JsonProcessingException, IOException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -453,10 +453,10 @@ public class NdexRestClient {
 		}
 	}
 	
-	public NdexObject putNdexObject(
+	public Object putNdexObject(
 			final String route, 
 			final JsonNode putData,
-			final Class<? extends NdexObject>  mappedClass)
+			final Class<? extends Object>  mappedClass)
 			throws JsonProcessingException, IOException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -563,10 +563,10 @@ public class NdexRestClient {
 		}
 	}
 
-	public NdexObject postNdexObject(
+	public Object postNdexObject(
 			final String route, 
 			final JsonNode postData,
-			final Class<? extends NdexObject>  mappedClass)
+			final Class<? extends Object>  mappedClass)
 			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -616,7 +616,7 @@ public class NdexRestClient {
 	public int postString(
 			final String route, 
 			final String postData,
-			final Class<? extends NdexObject>  mappedClass)
+			final Class<? extends Object>  mappedClass)
 			throws JsonProcessingException, IOException, NdexException {
 		InputStream input = null;
 		HttpURLConnection con = null;
@@ -653,10 +653,10 @@ public class NdexRestClient {
 	}
 	
 	
-	public List <? extends NdexObject> postNdexObjectList(
+	public List <? extends Object> postNdexObjectList(
 			final String route, 
 			final JsonNode postData,
-			final Class<? extends NdexObject>  mappedClass)
+			final Class<? extends Object>  mappedClass)
 			throws JsonProcessingException, IOException {
 		InputStream input = null;
 		HttpURLConnection con = null;

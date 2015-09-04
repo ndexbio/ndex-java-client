@@ -37,8 +37,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+
+import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.common.models.dao.orientdb.TaskDocDAO;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.exceptions.UnauthorizedOperationException;
+import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
@@ -57,10 +68,13 @@ import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.ReifiedEdgeTerm;
 import org.ndexbio.model.object.network.Support;
 import org.ndexbio.model.object.network.VisibilityType;
+import org.ndexbio.rest.annotations.ApiDoc;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -194,6 +208,44 @@ public class NetworkUtils {
         return userTasks.get(0);
 	}
 
+	public static Status waitForTaskToFinish(NdexRestClientModelAccessLayer ndex, String taskId) {
+		Status status;
+		Task task = null;
+		
+		while (true) {
+			try {
+				task = ndex.getTask(taskId);
+			} catch (Exception e) {
+				fail("unable to get task status : " + e.getMessage());
+			}
+			
+			status = task.getStatus();
+				
+			switch (status) {
+				case COMPLETED:
+				case COMPLETED_WITH_ERRORS:
+				case COMPLETED_WITH_WARNINGS:
+				case FAILED:
+					return status;
+				
+				case QUEUED:
+				case STAGED:
+				case PROCESSING:
+					break;
+				
+				default:
+					break;				
+			}
+			
+			// task is not completed yet; sleep and check the status again
+            try {
+            	Thread.sleep(5000); 
+            } catch (Exception e) {}
+			
+		}
+		
+	}
+	
 	public static List<Task> waitForNetworksToUpload(NdexRestClientModelAccessLayer ndex, User userAccount) {
 		List<Task> userTasks = null;
 		boolean allNetworksUploaded = true;
@@ -435,8 +487,6 @@ public class NetworkUtils {
         assertEquals("version doesn't match", network.getVersion(), networkSummary.getVersion());
 
         assertEquals("number of Properties doesn't match", network.getProperties().size(), networkSummary.getProperties().size());
-   //     assertEquals("number of Presentation Properties doesn't match", 
-   //     		network.getPresentationProperties().size(), networkSummary.getPresentationProperties().size());
         
 		return;
 	}
@@ -481,6 +531,73 @@ public class NetworkUtils {
 			// ignore it
 		} 
 		return;
+	}
+
+	public static List<Membership> getNetworkUserMemberships(
+			NdexRestClientModelAccessLayer ndex, String networkUUID,
+			String permission, int skipBlocks, int blockSize) {
+		List<Membership> memberships = null;
+		
+		try {
+			memberships = ndex.getNetworkUserMemberships(networkUUID, permission, skipBlocks, blockSize);
+		} catch (Exception e) {
+
+			fail("unable to get membeships for network : " + e.getMessage());
+		}
+		
+		return memberships;
+	}
+
+	public static int setNetworkPermission(NdexRestClientModelAccessLayer ndex,
+			String networkUUID, Membership membership) {
+		int status = -1;
+		
+		try {
+			status = ndex.setNetworkPermission(networkUUID, membership);
+		} catch (Exception e) {
+			fail("unable to set network membership : " + e.getMessage());
+		} 
+		return status;
+	}
+
+	public static void deleteNetworkMembership(
+			NdexRestClientModelAccessLayer ndex, String networkUUID, UUID userUUID) {
+		try {
+			ndex.revokeNetworkPermission(networkUUID, userUUID.toString());
+		} catch (Exception e) { } 
+	}
+
+	public static List<BaseTerm> getBaseTerms(NdexRestClientModelAccessLayer ndex, 
+			String networkUUID, int skipBlocks, int blockSize) {		
+		List<BaseTerm> baseTerms = null;		
+		try {
+			baseTerms = ndex.getNetworkBaseTerms(networkUUID, skipBlocks, blockSize);
+		} catch (IOException e) {
+			fail("unable to get base terms : " + e.getMessage());
+		}	
+		return baseTerms;
+	}
+
+	public static Network getEdges(NdexRestClientModelAccessLayer ndex,
+			String networkUUID, int skipBlocks, int blockSize) {		
+		Network network = null;		
+		try {
+			network = ndex.getEdges(networkUUID, skipBlocks, blockSize);
+		} catch (Exception e) {
+			fail("uanble to get network by edges : " + e.getMessage());
+		}		
+		return network;
+	}
+
+	public static String exportNetwork(NdexRestClientModelAccessLayer ndex, 
+			String networkUUID, String networkFileNameExtension) {
+		String taskId = null;	
+		try {
+			taskId = ndex.exportNetwork(networkUUID, networkFileNameExtension);
+		} catch (Exception e) {
+			fail("unable to export network to file : " + e.getMessage());
+		}
+		return taskId;
 	}
 	
 }

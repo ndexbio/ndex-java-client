@@ -23,9 +23,14 @@ import org.junit.runners.MethodSorters;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.object.Membership;
+import org.ndexbio.model.object.MembershipType;
 import org.ndexbio.model.object.NewUser;
+import org.ndexbio.model.object.Permissions;
+import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.BaseTerm;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -36,6 +41,8 @@ import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 
 
@@ -49,15 +56,15 @@ import org.ndexbio.rest.test.utilities.UserUtils;
  *  √   2) public NetworkSummary createNetwork(Network newNetwork)
  *  -   3) public NetworkSummary createNetwork(PropertyGraphNetwork newNetwork)
  *  √   4) public void deleteNetwork(String id)
- *      5) public int deleteNetworkMembership(String networkId, String  userUUID)
- *      6) public String exportNetwork(String networkId, String format)
- *      7) public List<BaseTerm> getBaseTerms(String networkId, int skipBlocks, int blockSize)
+ *  √   5) public int deleteNetworkMembership(String networkId, String  userUUID)
+ *  √   6) public String exportNetwork(String networkId, String format)
+ *  √   7) public List<BaseTerm> getBaseTerms(String networkId, int skipBlocks, int blockSize)
  *  √   8) public Response getCompleteNetwork(String networkId)
  *  -   9) public PropertyGraphNetwork getCompleteNetworkAsPropertyGraph(String networkId)
- *     10) public Network getEdges(String networkId, int skipBlocks, int blockSize)
+ *  √  10) public Network getEdges(String networkId, int skipBlocks, int blockSize)
  *  √  11) public List<Namespace> getNamespaces(String networkId, int skipBlocks, int blockSize)
  *  √  12) public NetworkSummary getNetworkSummary(String networkId)
- *     13) public List<Membership> getNetworkUserMemberships(String networkId, String permissions, int skipBlocks, int blockSize)
+ *  √  13) public List<Membership> getNetworkUserMemberships(String networkId, String permissions, int skipBlocks, int blockSize)
  *  -  14) public PropertyGraphNetwork getPropertyGraphEdges(String networkId, int skipBlocks,  int blockSize)
  *     15) public ProvenanceEntity getProvenance(String networkId)
  *  √  16) public Network queryNetwork(String networkId, SimplePathQuery queryParameters)
@@ -70,7 +77,7 @@ import org.ndexbio.rest.test.utilities.UserUtils;
  *     23) public int setNetworkProperties(String networkId, List<NdexPropertyValuePair> properties)		
  *     24) public ProvenanceEntity setProvenance(String networkId, ProvenanceEntity provenance)   					
  *     25) public NetworkSummary updateNetwork(Network newNetwork)
- *     26) public int updateNetworkMembership(String networkId, Membership membership)
+ *  √  26) public int updateNetworkMembership(String networkId, Membership membership)
  *  √  27) public void updateNetworkProfile(String networkId, NetworkSummary summary)
  *  √  28) public void uploadNetwork(UploadedFile uploadedNetwork)	    					
  *  
@@ -212,11 +219,11 @@ public class testNetworkAService {
     //@Test  
     public void test0002uploadNetwork()  {
     	// network to be uploaded to the Server
-    	TreeMap<String, String> testNetworkToupload = 
+    	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 		
     	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
-		String absoluteNetworkPath = testNetworkToupload.get("uploadNetwork");
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetwork");
 		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
     	
     	File fileToUpload = new File(absoluteNetworkPath);
@@ -404,11 +411,11 @@ public class testNetworkAService {
     //@Test  
     public void test0006updateNetworkSummary()  {
     	// network to be uploaded to the Server
-    	TreeMap<String, String> testNetworkToupload = 
+    	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 		
     	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
-		String absoluteNetworkPath = testNetworkToupload.get("uploadNetwork");
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetwork");
 		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
     	
     	File fileToUpload = new File(absoluteNetworkPath);
@@ -467,18 +474,18 @@ public class testNetworkAService {
      * @return  void
      * @throws JSONException 
      */
-    @Test  
+    //@Test  
     public void test0007testNeighborhoodQuery() throws JSONException  {
     	// network to be uploaded to the Server
-    	TreeMap<String, String> testNetworkToupload = 
+    	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 		
     	// absolute path name of the query parameters; defined in properties file: "neighborHoodQuery01 = ..."
-		String neighborHoodQuery01 = testNetworkToupload.get("neighborHoodQuery01");
+		String neighborHoodQuery01 = testNetworkToUpload.get("neighborHoodQuery01");
 		assertNotNull("neighborHoodQuery01 is null; check properties file", neighborHoodQuery01);
 		
     	// absolute path name of the query parameters; defined in properties file: "neighborHoodQuery02 = ..."
-		String neighborHoodQuery02 = testNetworkToupload.get("neighborHoodQuery02");
+		String neighborHoodQuery02 = testNetworkToUpload.get("neighborHoodQuery02");
 		assertNotNull("neighborHoodQuery01 is null; check properties file", neighborHoodQuery02);
     	
 		
@@ -508,8 +515,8 @@ public class testNetworkAService {
 		
 		
     	Network subNetworkRetrieved = NetworkUtils.getNeighborhood(ndex, networkUUID, query1, depth1);
-    	assertEquals(subNetworkRetrieved.getEdgeCount(), 85);
-    	assertEquals(subNetworkRetrieved.getNodeCount(), 87);
+    	assertEquals(85, subNetworkRetrieved.getEdgeCount());
+    	assertEquals(87, subNetworkRetrieved.getNodeCount());
     	
     	if (!absoluteNetworkPath1.equals(absoluteNetworkPath2)) {
         	// delete network from the server
@@ -526,8 +533,8 @@ public class testNetworkAService {
     	}
     	
     	subNetworkRetrieved = NetworkUtils.getNeighborhood(ndex, networkUUID, query2, depth2);
-    	assertEquals(subNetworkRetrieved.getEdgeCount(), 6731);  // 6731
-    	assertEquals(subNetworkRetrieved.getNodeCount(), 4142);  // 4142
+    	assertEquals(6731, subNetworkRetrieved.getEdgeCount());  // 6731
+    	assertEquals(4142, subNetworkRetrieved.getNodeCount());  // 4142
     	
     	
     	// delete network from the server
@@ -545,14 +552,14 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0008getNamespaces()  {
     	// network to be uploaded to the Server
-    	TreeMap<String, String> testNetworkToupload = 
+    	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 		
     	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
-		String absoluteNetworkPath = testNetworkToupload.get("uploadNetworkForNameSpace");
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForNameSpace");
 		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
     	
     	File fileToUpload = new File(absoluteNetworkPath);
@@ -567,31 +574,31 @@ public class testNetworkAService {
 		
 		// retrieve all namespaces and check some 
 		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
-		assertEquals("Wrong namespaces count: ", namespaces.size(), 39);
-		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
-		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
-		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
-		assertEquals("Wrong namespace name: ", namespaces.get(38).getPrefix(), "IntegumentarySystem");	
+		assertEquals("Wrong namespaces count: ", 39, namespaces.size());
+		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
+		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
+		assertEquals("Wrong namespace name: ", "NCR", namespaces.get(2).getPrefix());
+		assertEquals("Wrong namespace name: ", "IntegumentarySystem", namespaces.get(38).getPrefix());	
 		
 		
 		// now, retrieve only 5 namespaces
 		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 5);
-		assertEquals("Wrong namespaces count: ", namespaces.size(), 5);
-		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
-		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
-		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
-		assertEquals("Wrong namespace name: ", namespaces.get(3).getPrefix(),  "PFM");
-		assertEquals("Wrong namespace name: ", namespaces.get(4).getPrefix(),  "NCM");		
+		assertEquals("Wrong namespaces count: ", 5, namespaces.size());
+		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
+		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
+		assertEquals("Wrong namespace name: ", "NCR", namespaces.get(2).getPrefix());
+		assertEquals("Wrong namespace name: ", "PFM", namespaces.get(3).getPrefix());
+		assertEquals("Wrong namespace name: ", "NCM", namespaces.get(4).getPrefix());		
 
 		
 		// retrieve next 5 namespaces
 		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 5, 5);
 		assertEquals("Wrong namespaces count: ", namespaces.size(), 5);
-		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "PFH");
-		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "NCH");		
-		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "RGD");
-		assertEquals("Wrong namespace name: ", namespaces.get(3).getPrefix(),  "MGI");
-		assertEquals("Wrong namespace name: ", namespaces.get(4).getPrefix(),  "MESHD");	
+		assertEquals("Wrong namespace name: ", "PFH",   namespaces.get(0).getPrefix());
+		assertEquals("Wrong namespace name: ", "NCH",   namespaces.get(1).getPrefix());		
+		assertEquals("Wrong namespace name: ", "RGD",   namespaces.get(2).getPrefix());
+		assertEquals("Wrong namespace name: ", "MGI",   namespaces.get(3).getPrefix());
+		assertEquals("Wrong namespace name: ", "MESHD", namespaces.get(4).getPrefix());	
 		
 		
     	// delete network from the test account
@@ -612,14 +619,14 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0009addNamespace()  {
     	// network to be uploaded to the Server
-    	TreeMap<String, String> testNetworkToupload = 
+    	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 		
     	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
-		String absoluteNetworkPath = testNetworkToupload.get("uploadNetworkForNameSpace");
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForNameSpace");
 		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
     	
     	File fileToUpload = new File(absoluteNetworkPath);
@@ -634,17 +641,16 @@ public class testNetworkAService {
 		
 		// retrieve all namespaces and check some 
 		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
-		assertEquals("Wrong namespaces count: ", namespaces.size(), 39);
-		assertEquals("Wrong namespace name: ", namespaces.get(0).getPrefix(),  "bel");
-		assertEquals("Wrong namespace name: ", namespaces.get(1).getPrefix(),  "PFR");		
-		assertEquals("Wrong namespace name: ", namespaces.get(2).getPrefix(),  "NCR");
-		assertEquals("Wrong namespace name: ", namespaces.get(38).getPrefix(), "IntegumentarySystem");	
+		assertEquals("Wrong namespaces count: ", 39, namespaces.size(), 39);
+		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
+		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
+		assertEquals("Wrong namespace name: ", "NCR", namespaces.get(2).getPrefix());
+		assertEquals("Wrong namespace name: ", "IntegumentarySystem", namespaces.get(38).getPrefix());	
 		
 		
 		
 		String prefix = "JunitTestPrefix";
 		String uri    = "http://belframework.org/schema/1.0/xbel";
-		String type   = "Namespace";
 		
 		
 		// create new namespace and add it to the network
@@ -656,14 +662,298 @@ public class testNetworkAService {
 		
 		// now we should have 40 workspaces
 		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
-		assertEquals("Wrong namespaces count: ", namespaces.size(), 40);
-		assertEquals("Wrong namespace prefix: ", namespaces.get(39).getPrefix(), prefix);
-		assertEquals("Wrong namespace URI: ",    namespaces.get(39).getUri(),    uri);
-	//	assertEquals("Wrong namespace type: ",   namespaces.get(39).getType(),   type);		
+		assertEquals("Wrong namespaces count: ", 40,     namespaces.size());
+		assertEquals("Wrong namespace prefix: ", prefix, namespaces.get(39).getPrefix());
+		assertEquals("Wrong namespace URI: ",    uri,    namespaces.get(39).getUri());		
 		
     	// delete network from the test account
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
     }
 
+    /**
+     * Upload network specified in the properties file to the server.
+     * Get membership of this network, try to assign the same membership again.
+     * Create a new user, grant this user membership for the network; now the
+     * network has two memberships. Revoke membership from the newly created account, 
+     * and check that network only has one membership.
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public List<Membership> getNetworkUserMemberships(String networkId, String permissions, int skipBlocks, int blockSize)
+     *              public int updateNetworkMembership(String networkId, Membership membership)
+     *              public int deleteNetworkMembership(String networkId, String  userUUID)
+     *              public void deleteNetwork(String id)
+     * 
+     * @param   void
+     * @return  void
+     */
+    //@Test  
+    public void test0010networkMembership()  {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToUpload = 
+    			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the network; defined in properties file: "uploadNetwork = ..."
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForMembership");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+    	
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+		
+		
+		// retrieve all network memberships
+		List<Membership> memberships = NetworkUtils.getNetworkUserMemberships(ndex, networkUUID, "ALL", 0, 500);
+		Membership m = memberships.get(0);
+		assertEquals("network and resource UUIDs not same : ", networkUUID, m.getResourceUUID().toString());	
+		assertEquals("account name mismatch : ", accountName, m.getMemberAccountName());	
+		assertEquals("membership type is wrong : ", MembershipType.NETWORK, m.getMembershipType());
+		assertEquals("permissions are wrong : ", Permissions.ADMIN, m.getPermissions());
+		
+		// try to set ADMIN permissions again -- should receive 0 (meaning no update was performed)
+		int status = NetworkUtils.setNetworkPermission(ndex, networkUUID, m);
+		assertEquals("managed to set ADMIN permissions : ", 0, status);
+		
+		// try to change account name -- should receive 0 (meaning no update was performed)
+		m.setMemberAccountName(accountName+accountName);
+		status = NetworkUtils.setNetworkPermission(ndex, networkUUID, m);
+		assertEquals("managed to change acoount name  : ", 0, status);		
+		
+		
+		String accountName1 =  accountName+accountName;
+		
+		// create new account on the server
+        NewUser testUser1 = UserUtils.getNewUser(
+				accountName1,
+				accountPassword+accountPassword,
+		        "This account is used for testing Network  APIs",  // description
+		        "network_apis1@xxxxxx.com",                        // email address
+		        "User",                                            // first name -- name of the test
+		        "Network Service APIs",                            // last name -- name of the test		        
+		        "http://imgur.com/gallery/ukfzg2C",                // image
+		        "http://www.ndexbio.org");  
+		
+		User testAccount1 = UserUtils.createUserAccount(ndex, testUser1);
+		
+		// grant membership to the newly created account/user
+		m.setMemberUUID(testAccount1.getExternalId());
+		status = NetworkUtils.setNetworkPermission(ndex, networkUUID, m);
+		assertEquals("unable to grant membershit to new user : ", 1, status);			
+		
+		// now, there should be 2 memberships for this network
+		memberships = NetworkUtils.getNetworkUserMemberships(ndex, networkUUID, "ALL", 0, 500);
+		assertEquals("wrong number of memberships : ", 2, memberships.size());
+		m = memberships.get(0);
+		assertEquals("network and resource UUIDs not same : ", networkUUID, m.getResourceUUID().toString());	
+		assertEquals("account name mismatch : ", accountName, m.getMemberAccountName());	
+		assertEquals("membership type is wrong : ", MembershipType.NETWORK, m.getMembershipType());
+		assertEquals("permissions are wrong : ", Permissions.ADMIN, m.getPermissions());
+
+		m = memberships.get(1);
+		assertEquals("UUIDs should be same : ", testAccount1.getExternalId(), m.getMemberUUID());
+		assertEquals("network and resource UUIDs not same : ", networkUUID, m.getResourceUUID().toString());	
+		assertEquals("account name mismatch : ", accountName1, m.getMemberAccountName());	
+		assertEquals("membership type is wrong : ", MembershipType.NETWORK, m.getMembershipType());
+		assertEquals("permissions are wrong : ", Permissions.ADMIN, m.getPermissions());
+		
+		
+		// now, delete membership we just granted
+		NetworkUtils.deleteNetworkMembership(ndex, networkUUID, testAccount1.getExternalId());
+		
+		// there should only be one membership now
+		memberships = NetworkUtils.getNetworkUserMemberships(ndex, networkUUID, "ALL", 0, 500);
+		assertEquals("wrong number of memberships : ", 1, memberships.size());
+		m = memberships.get(0);
+		assertEquals("network and resource UUIDs not same : ", networkUUID, m.getResourceUUID().toString());	
+		assertEquals("account name mismatch : ", accountName, m.getMemberAccountName());	
+		assertEquals("membership type is wrong : ", MembershipType.NETWORK, m.getMembershipType());
+		assertEquals("permissions are wrong : ", Permissions.ADMIN, m.getPermissions());
+
+
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
+    }
+
+    /**
+     * Upload network specified in the properties file to the server, 
+     * Get baseterms and make sue that the length of list of baseterms is not 0.
+     * Delete this network from the server.
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public List<BaseTerm> getBaseTerms(String networkId, int skipBlocks, int blockSize)
+     *              public void deleteNetwork(String id)
+     * 
+     * ATTENTION: getBaseTerms() seems to be broken since it returns no base terms for large_corpus_unzip.xbel
+     * 
+     * @param   void
+     * @return  void
+     */
+    //@Test  
+    public void test0011getBaseTerms() {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToUpload = 
+    				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the file containing network in JSON format; defined in properties file: "uploadNetworkForBaseTerms = ..."
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForBaseTerms");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+		
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+    	
+
+        // get base terms of the newly created network
+		List<BaseTerm> baseTerms = NetworkUtils.getBaseTerms(ndex, networkUUID, 0, 500);
+		assertNotEquals("no base terms found : ", 0, baseTerms.size());
+
+		
+		// add more test cases here, for example, try to retrieve smaller number of baseTerms,
+		// like baseTerms = NetworkUtils.getBaseTerms(ndex, networkUUID, 0, 3); and check that 
+		// the size of the returned list is 3, etc.
+
+
+        
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());    
+    }
+
+    /**
+     * Upload network specified in the properties file to the server, 
+     * Get baseterms and make sure that the length of list of baseterms is not 0.
+     * Delete this network from the server.
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public Network getEdges(String networkId, int skipBlocks, int blockSize)
+     *              public void deleteNetwork(String id)
+     * 
+     * ATTENTION: getEdges() seems to be broken; returns one extra node if (skipBlock != 0)
+     * 
+     * @param   void
+     * @return  void
+     */
+    //@Test  
+    public void test0012getEdges()  {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToUpload = 
+    				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the file containing network in JSON format; defined in properties file: "uploadNetworkForEdges = ..."
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForEdges");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+		
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+    
+		
+        // get edges of the newly created network
+		Network network = NetworkUtils.getEdges(ndex, networkUUID, 0, 5);
+		assertEquals("retrieved wrong number of edges : ", 5, network.getEdgeCount());
+		
+		// get next portion of edges from the newly created network
+		network = NetworkUtils.getEdges(ndex, networkUUID, 1, 1);
+		assertEquals("retrieved wrong number of edges : ", 1, network.getEdgeCount());		
+		
+		// get next portion of edges from the newly created network
+		network = NetworkUtils.getEdges(ndex, networkUUID, 2, 3);
+		assertEquals("retrieved wrong number of edges : ", 3, network.getEdgeCount());			
+		
+        
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());    
+    }
+    
+    /**
+     * Upload network specified in the properties file to the server, 
+     * start export task on the server, and wait for this task to finish.
+     * Create another export task on the server this time specifyingnetwok type
+     * in lower case -- the task will not be created. 
+     * 
+     * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)
+     *              public String exportNetwork(String networkId, String format)
+     *              public void deleteNetwork(String id)
+     * 
+     * @param   void
+     * @return  void
+     */
+    @Test  
+    public void test0013exportNetwork()  {
+    	// network to be uploaded to the Server
+    	TreeMap<String, String> testNetworkToUpload = 
+    				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the file containing network in JSON format; defined in properties file: "uploadNetworkForEdges = ..."
+		String absoluteNetworkPath = testNetworkToUpload.get("uploadNetworkForExport");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+		
+    	File fileToUpload = new File(absoluteNetworkPath);
+    	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+    	
+    	String networkFileNameExtension = FilenameUtils.getExtension(absoluteNetworkPath);
+    	assertNotNull("network extension is NULL; should be one of the following: SIF, XBEL, XGMML, BIOPAX : ",  networkFileNameExtension);
+  
+        // wait for the network upload task to finish
+    	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount);        	
+        Object networkUUIDobj = task.getAttribute("networkUUID");
+		assertNotNull("network UUID of uploaded network is null", networkUUIDobj);
+		String networkUUID = networkUUIDobj.toString(); 
+    
+		
+		// restart server without removing the database; we need this to make
+		// sure there is only one user task on the server that we can track
+    	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithoutCleaningDatabase");
+    	assertEquals("unable to restart Jetty Server: ",  "done", responseFromServer);
+		
+        // export network; note that the network extension is in UPPER CASE
+    	String taskId = NetworkUtils.exportNetwork(ndex, networkUUID, networkFileNameExtension.toUpperCase());
+    	assertNotNull("unable to create export network task", taskId);
+    	Status status = NetworkUtils.waitForTaskToFinish(ndex, taskId); 
+    	assertEquals("export task didn't complete cleanly", Status.COMPLETED, status);	
+
+
+        // export network again; this time network extension is in LOWER CASE -- this will fail
+    	taskId = NetworkUtils.exportNetwork(ndex, networkUUID, networkFileNameExtension.toLowerCase());
+    	assertNotNull("unable to create export network task", taskId);
+    	status = NetworkUtils.waitForTaskToFinish(ndex, taskId); 
+    	assertEquals("export task didn't complete cleanly", Status.COMPLETED, status);
+    	
+    	
+    	// delete network from the test account
+    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());    
+    }   
+    
+    // still to do:
+
+   /*     
+    *     15) public ProvenanceEntity getProvenance(String networkId)
+    *     
+    *     18) public Network queryNetworkByEdgeFilter(String networkId, EdgeCollectionQuery query)		
+    *     	
+    *     19) public Collection<NetworkSummary> searchNetwork(SimpleNetworkQuery query, int skipBlocks, int blockSize)	
+    *     		
+    *     20) public Collection<NetworkSummary> searchNetworkByPropertyFilter(NetworkPropertyFilter query)	
+    *     		
+    *     23) public int setNetworkProperties(String networkId, List<NdexPropertyValuePair> properties)		
+    *     
+    *     24) public ProvenanceEntity setProvenance(String networkId, ProvenanceEntity provenance) 
+    *       					
+    *     25) public NetworkSummary updateNetwork(Network newNetwork)
+    */
+    
 }
 

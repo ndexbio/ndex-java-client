@@ -30,11 +30,13 @@
  */
 package org.ndexbio.rest.client;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -231,7 +233,52 @@ public class NdexRestClient {
 	/*
 	 * GET
 	 */
+	
+    /**
+     * This method is used to read task ID returned from the server
+     * by public String exportNetwork() API.  This API returns the task ID that
+     * looks like
+     *       7103491a-52bf-11e5-81fe-2ed1b752f9a5
+     * 
+     * By some reason, the values like above cannot be mapped into JsonNode even
+     * though 
+     *      setNetworkFlag(String networkId, String parameter, String value)
+     *      
+     * in NdexRestClientModelAccessLayer.java does a very similar thing to getString()
+     * below. setNetworkFlag(), however, receives String that only contains numbers,
+     * so it maps to JsonNode without any errors.
+     * 
+     * The process ID received by getString() contains letters, and ObjectMapper
+     * throws exception when it tries to map the letters.
+     * 
+     * Hence, we handle the process ID differently.
+     */
+	public String getString(final String route, final String query)
+			throws JsonProcessingException, IOException {
+		HttpURLConnection con = null;
+		InputStreamReader input = null;
+		BufferedReader buff = null;
+		
+		try {
+			con = getReturningConnection(route, query);
+			input = new InputStreamReader((InputStream) con.getContent());
+			buff = new BufferedReader(input);
+			
+			//System.out.println("\n\n\ncon.getContentType()="+con.getContentType()+ "   con.getContentLength()="+con.getContentLength() + "\n");
+			//System.out.println(	"con.getContent()=" + con.getContent() + "\n\n\n");
+			
+			String result = buff.readLine();
+			//System.out.println(result);
 
+			return result;
+			
+		} finally {
+			if ( buff != null ) buff.close();
+			if ( input != null) input.close();
+			if ( con != null) con.disconnect();
+		}
+	}
+	
 	public JsonNode get(final String route, final String query)
 			throws JsonProcessingException, IOException {
 		InputStream input = null;

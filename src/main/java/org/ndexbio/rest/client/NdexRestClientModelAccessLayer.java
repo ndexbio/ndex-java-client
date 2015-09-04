@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
 import org.ndexbio.model.exceptions.NdexException;
@@ -485,12 +486,19 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Network permissions
 	
 	// Assign permissions by posting a membership object
-//	network	POST	/network/{networkUUID}/member	Membership	
-	public Membership setNetworkPermission(
+//	network	POST	/network/{networkUUID}/member	Membership
+	public int setNetworkPermission(
 			String networkId, 
 			Membership membership) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(membership);
-		return (Membership)ndexRestClient.postNdexObject("/network/" + networkId + "/member", postData, Membership.class);
+		Object o = null;
+		try {
+		    o = ndexRestClient.postNdexObject("/network/" + networkId + "/member", postData, int.class);
+		} catch (Exception e){
+			//System.out.println(e.getMessage());
+		}
+		
+		return(null == o) ? -1 : ((Integer)o).intValue();
 	}
 	
 	// Revoke permissions by deleting a membership object 
@@ -505,6 +513,16 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	@SuppressWarnings("unchecked")
 	public List<Membership> getNetworkPermissions(String networkId, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
 		return (List<Membership>) ndexRestClient.getNdexObjectList("/network/"+ networkId + "/membership/" +  skipBlocks  + "/" + blockSize , "", Membership.class);
+	}
+
+	
+	// Get network permissions as list of memberships
+//	network GET /{networkId}/user/{permission}/{skipBlocks}/{blockSize}		List<Membership>
+	@SuppressWarnings("unchecked")
+	public List<Membership> getNetworkUserMemberships(
+			String networkId, String permission, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
+		return (List<Membership>) 
+				ndexRestClient.getNdexObjectList("/network/"+ networkId + "/user/" + permission + "/" +  skipBlocks  + "/" + blockSize , "", Membership.class);
 	}
 	
 	// Network Summary objects
@@ -680,6 +698,20 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return network;
 		*/
 	}
+	
+
+// network	GET	/export/{networkId}/{format} String
+	public String exportNetwork(String networkId, String fileFormat)  {
+		String route = "/network/export/" + networkId + "/" + fileFormat;
+        String value = null;
+        try {
+        	value = ndexRestClient.getString(route, "");
+        } catch (IOException e) {
+        	System.out.println("e.getMessage()=" + e.getMessage());
+        }
+		return value;
+	}	
+	
 
 	// TODO: Get edges linked to citations as a network
 //	network	POST	/network/{networkUUID}/citation/asNetwork/{skipBlocks}/{blockSize}	List<Long>	Network

@@ -33,12 +33,18 @@ package org.ndexbio.rest.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.network.query.EdgeCollectionQuery;
+import org.ndexbio.model.network.query.NetworkPropertyFilter;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexStatus;
@@ -48,6 +54,7 @@ import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.Request;
 import org.ndexbio.model.object.RestResource;
+import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePathQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
@@ -200,6 +207,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (List<Group>)ndexRestClient.postNdexObjectList("/group/search"  + skipBlocks  + "/" + blockSize , postData, Group.class);
 	}
 	
+
+//	group	POST	/network/searchByProperties	 Collection<NetworkSummary>
+	@SuppressWarnings("unchecked")
+	public List<NetworkSummary> searchNetworkByPropertyFilter(NetworkPropertyFilter query) throws JsonProcessingException, IOException{
+		JsonNode postData = objectMapper.valueToTree(query);
+		return (List<NetworkSummary>)ndexRestClient.postNdexObjectList("/network/searchByProperties", postData, NetworkSummary.class);
+	}
 	// Get network permissions of group as list of memberships
 //			group	GET	/group/{groupUUID}/network/{permission}/{skipBlocks}/{blockSize}		Membership[]
 	@SuppressWarnings("unchecked")
@@ -595,6 +609,18 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 
 	
+//	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
+	@SuppressWarnings("unchecked")
+	public ArrayList<NetworkSummary> searchNetwork(
+			SimpleNetworkQuery query,
+			int skipBlocks, 
+			int blockSize) 
+			throws JsonProcessingException, IOException {
+		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
+		JsonNode postData = objectMapper.valueToTree(query);
+		return (ArrayList<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
+	}
+	
 	@SuppressWarnings("unchecked")
 	public List<NetworkSummary> findNetworks(
 			String searchString,
@@ -762,6 +788,16 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/properties";		
 		return (List<NdexPropertyValuePair>) ndexRestClient.getNdexObjectList(route, "", NdexPropertyValuePair.class);
+	}
+	
+
+	//	network	PUT	/network/{networkUUID}/properties		
+	public int setNetworkProperties(String networkId,
+			 List<NdexPropertyValuePair> properties) throws JsonProcessingException, IOException {
+		String route = "/network/" + networkId + "/properties";	
+		JsonNode putData = objectMapper.valueToTree(properties);
+		Object obj = ndexRestClient.putNdexObject(route, putData, int.class); 
+		return (null == obj) ? -1 : ((Integer)obj).intValue();
 	}
 	
 	// Get network provenance object
@@ -1101,6 +1137,17 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
         }
 		
 		return null;
+	}
+
+	//@POST
+	//@Path("/{networkId}/asNetwork/prototypeNetworkQuery")
+	//@Produces("application/json")
+	
+//  network	POST	/network/{networkUUID}/asNetwork/prototypeNetworkQuery
+	public Network queryNetworkByEdgeFilter(String networkUUID, EdgeCollectionQuery query) throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + networkUUID +"/asNetwork/prototypeNetworkQuery";
+		JsonNode postData = objectMapper.valueToTree(query);
+		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
 	}
 	
 	

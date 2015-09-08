@@ -33,6 +33,8 @@ package org.ndexbio.rest.test.utilities;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -49,10 +51,14 @@ import org.ndexbio.common.models.dao.orientdb.TaskDocDAO;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
+import org.ndexbio.model.network.query.EdgeCollectionQuery;
+import org.ndexbio.model.network.query.NetworkPropertyFilter;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
+import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
@@ -77,7 +83,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+
 
 public class NetworkUtils {
 	
@@ -187,7 +195,7 @@ public class NetworkUtils {
             }
             
             if (userTasks.size() > 1) {
-            	fail("More than one task exists for the current user");            	
+            	fail("More than one task exists for the current user; userTasks.size()=" + userTasks.size());            	
             }
 
             status = userTasks.get(0).getStatus();
@@ -207,6 +215,48 @@ public class NetworkUtils {
         
         return userTasks.get(0);
 	}
+	
+	public static ArrayList<String> waitForNetworksUploadToFinish(NdexRestClientModelAccessLayer ndex, User userAccount, int noOfTasks) throws IOException, NdexException {
+		List<Task> userTasks = null;
+		ArrayList<String> uploadedNetworksUUIDs = new ArrayList<String>();
+        	
+        try {
+           userTasks = ndex.getUserTasks(userAccount.getAccountName(), Status.ALL.toString(), 0, 300);
+        } catch (Exception e) {
+            fail("Unable to get list of user tasks: " +  e.getMessage());
+        }
+            
+        assertEquals("wrong number of user tasks exist", noOfTasks, userTasks.size());
+
+        for (int i = 0; i < noOfTasks; i++) {
+        	Task task = (Task)userTasks.get(i);
+        	String taskId = task.getExternalId().toString();
+        	
+        	Status status = waitForTaskToFinish(ndex, taskId);
+        	assertEquals("upload task didn't complete cleanly", Status.COMPLETED, status);
+        	
+        	task = ndex.getTask(taskId);
+        	//Object networkUUID1 = task1.getAttribute("networkUUID");
+        	
+        	Object networkUUID = task.getAttribute("networkUUID");
+        	assertNotNull("unable to retrieve networkUUID attribute", networkUUID);
+        	//System.out.println("networkUUID = " + ((networkUUID== null) ? null : networkUUID.toString()));
+        	//System.out.println("networkUUID1 = " + ((networkUUID1== null) ? null : networkUUID1.toString()));
+        	
+        	//if (networkUUID == null) {
+        	//	System.out.println("networkUUID is NULL; taskId="+taskId);
+        	//	continue;
+        	//} else {
+        	//	System.out.println("networkUUID is NOT NULL; taskId="+taskId);
+        	//}
+
+        	uploadedNetworksUUIDs.add(networkUUID.toString());
+        }
+      
+        return uploadedNetworksUUIDs;
+	}	
+	
+	
 
 	public static Status waitForTaskToFinish(NdexRestClientModelAccessLayer ndex, String taskId) {
 		Status status;
@@ -227,7 +277,7 @@ public class NetworkUtils {
 				case COMPLETED_WITH_WARNINGS:
 				case FAILED:
 					return status;
-				
+							
 				case QUEUED:
 				case STAGED:
 				case PROCESSING:
@@ -244,49 +294,6 @@ public class NetworkUtils {
 			
 		}
 		
-	}
-	
-	public static List<Task> waitForNetworksToUpload(NdexRestClientModelAccessLayer ndex, User userAccount) {
-		List<Task> userTasks = null;
-		boolean allNetworksUploaded = true;
-		Status status;
-		
-		
-        while (true) {
-        	
-            try {
-            	// check if networks have uploaded
-                userTasks = ndex.getUserTasks(userAccount.getAccountName(), Status.ALL.toString(), 0, 300);
-            } catch (Exception e) {
-            	System.out.println("Exception trying to get list of user tasks: " +  e.getMessage());
-                break;
-            }
-            
-            allNetworksUploaded = true;
-            
-            for (Task task : userTasks) {
-            	status = task.getStatus();
-            	
-            	if ((status == Status.PROCESSING) || 
-                    (status == Status.QUEUED) || (status == Status.QUEUED_FOR_DELETION)) {
-            		allNetworksUploaded = false;
-            		break;
-            	}
-            }
-            
-            if (allNetworksUploaded) {
-            	break;
-            }
-
-            // not all networks uploaded yet; sleep and then check again
-            try {
-            	Thread.sleep(10000); 
-            } catch (Exception e) {
-
-            }
-        }   // while (true)	
-        
-        return userTasks;
 	}
 	
 	public static void setReadOnlyFlag(NdexRestClientModelAccessLayer ndex, String networkUUID, boolean readOnly) {
@@ -325,7 +332,7 @@ public class NetworkUtils {
     		
             //  sleep and then check again
             try {
-            	Thread.sleep(10000); 
+            	Thread.sleep(1000); 
             } catch (Exception e) {
 
             }
@@ -372,13 +379,11 @@ public class NetworkUtils {
 		return network;
 	}
 	
-	public static void compareObjectsContents(Network network1, Network network2) {
+	public static void compareObjectsContents(Network network1, Network network2, boolean compareReadOnly) {
 
         assertEquals("supports count doesn't match",  network1.getSupports().size(), network2.getSupports().size());
         assertEquals("function terms count doesn't match",  network1.getFunctionTerms().size(), network2.getFunctionTerms().size());
         assertEquals("reifiedEdgeTerms count doesn't match",  network1.getReifiedEdgeTerms().size(), network2.getReifiedEdgeTerms().size());
-        
-        assertEquals("base terms count doesn't match",  network1.getBaseTerms().size(), network2.getBaseTerms().size());
         
         assertEquals("base terms count doesn't match",  network1.getBaseTerms().size(), network2.getBaseTerms().size());
 
@@ -399,12 +404,14 @@ public class NetworkUtils {
      
         assertEquals("isComplete doesn't match",  network1.getIsComplete(),   network2.getIsComplete());
         assertEquals("isLocked   doesn't match",  network1.getIsLocked(),     network2.getIsLocked());
-        assertEquals("visibility doesn't match",  network1.getVisibility(),   network2.getVisibility());   
-        assertEquals("readOnlyCommitId doesn't match",  network1.getReadOnlyCommitId(), network2.getReadOnlyCommitId());
-        assertEquals("readOnlyCacheId doesn't match",  network1.getReadOnlyCacheId(),   network2.getReadOnlyCacheId());
+        assertEquals("visibility doesn't match",  network1.getVisibility(),   network2.getVisibility());
+        if (compareReadOnly) {
+           assertEquals("readOnlyCommitId doesn't match",  network1.getReadOnlyCommitId(), network2.getReadOnlyCommitId());
+           assertEquals("readOnlyCacheId doesn't match",  network1.getReadOnlyCacheId(),   network2.getReadOnlyCacheId());
+        }
         assertEquals("name doesn't match",    network1.getName(),    network2.getName());        
         assertEquals("owner doesn't match",   network1.getOwner(),   network2.getOwner());               
-        assertEquals("URI doesn't match",     network1.getURI(),     network2.getURI()); 
+        //assertEquals("URI doesn't match",     network1.getURI(),     network2.getURI()); 
         assertEquals("version doesn't match", network1.getVersion(), network2.getVersion());
 
         assertEquals("number of Properties doesn't match", network1.getProperties().size(), network2.getProperties().size());
@@ -599,5 +606,99 @@ public class NetworkUtils {
 		}
 		return taskId;
 	}
-	
+
+	public static Network queryNetworkByEdgeFilter(NdexRestClientModelAccessLayer ndex, String networkUUID,EdgeCollectionQuery query) {
+		Network network = null;
+		
+		try {
+		    network = ndex.queryNetworkByEdgeFilter(networkUUID, query);
+		} catch (Exception e) {
+			fail("unable to query network by edge filter : " + e.getMessage());
+		}
+		
+		return network;
+	}
+
+	public static int setNetworkProperties(NdexRestClientModelAccessLayer ndex,
+			String networkUUID, List<NdexPropertyValuePair> properties) {
+		int propertyCount = -1;
+		
+		try {
+			propertyCount = ndex.setNetworkProperties(networkUUID, properties);
+		} catch (Exception e) {
+			fail("unable to set network properties : " + e.getMessage());
+		}
+		return propertyCount;
+	}
+
+	public static Collection<NetworkSummary> searchNetworkByPropertyFilter(
+			NdexRestClientModelAccessLayer ndex, NetworkPropertyFilter propertyFilter) {
+		Collection<NetworkSummary> networkSummaries = null;
+		
+		try {
+			networkSummaries = ndex.searchNetworkByPropertyFilter(propertyFilter);
+		} catch (IOException e) {
+			fail("unable to search network by property filter : " + e.getMessage());
+		}
+		return networkSummaries;
+	}
+
+	public static void verifyNetworkSummaries(
+			ArrayList<NetworkSummary> networkSummaries, ArrayList<String> networkIds) {
+		
+		ArrayList<String> networkSummaryIds = new ArrayList<String>();		
+		
+		//System.out.println("\n\n\nnetworkIds="+networkIds);
+		
+		for (NetworkSummary networkSummary : networkSummaries) {
+			String networkUUID = networkSummary.getExternalId().toString();			
+			networkSummaryIds.add(networkUUID);		
+			if (!networkIds.contains(networkUUID)) {
+				fail("network Id " + networkUUID + " not found in " + networkIds);
+			}
+		}
+		
+		//System.out.println("networkSummaryIds="+networkSummaryIds);
+		
+		for (String networkId : networkIds) {
+			if (!networkSummaryIds.contains(networkId)) {
+				fail("network Id " + networkId + " not found in " + networkSummaryIds);
+			}
+		}
+	}
+
+	public static ProvenanceEntity getProvenance(NdexRestClientModelAccessLayer ndex, String networkUUID) {
+		ProvenanceEntity provenance = null;	
+		try {
+			provenance = ndex.getNetworkProvenance(networkUUID);
+		} catch (Exception e) {
+			fail("unable to get network provenance : " + e.getMessage());
+		}	
+		return provenance;
+	}
+
+	public static ProvenanceEntity setProvenance(
+			NdexRestClientModelAccessLayer ndex, String networkUUID, ProvenanceEntity newProvenance) {
+		ProvenanceEntity provenance = null;
+		try {
+			provenance = ndex.setNetworkProvenance(networkUUID, newProvenance);
+		} catch (IOException e) {
+			fail("unable to set network provenance : " + e.getMessage());
+		}	
+		return provenance;
+	}
+
+	public static ArrayList<NetworkSummary> searchNetwork(
+			NdexRestClientModelAccessLayer ndex, SimpleNetworkQuery query,
+			int skipBlocks, int blockSize) {		
+		ArrayList<NetworkSummary> networkSummaries = null;		
+		try {
+			networkSummaries = 
+					(ArrayList<NetworkSummary>)ndex.searchNetwork(query, skipBlocks, blockSize);
+		} catch (IOException e) {
+			fail("unable to search network by property filter : " + e.getMessage());
+		}
+		return networkSummaries;
+	}
+
 }

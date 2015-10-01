@@ -36,12 +36,23 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
+import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.network.query.NetworkPropertyFilter;
@@ -1149,6 +1160,43 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
 	}
+	
+    public UUID createCXNetwork (InputStream input) {
+        ResteasyProviderFactory factory = ResteasyProviderFactory.getInstance();
+
+   // this line is only needed if you run this as a java console app.
+   //  in tomcat and jboss initialization should work without this
+   ResteasyProviderFactory.pushContext(javax.ws.rs.ext.Providers.class, factory);
+
+   ResteasyClient client =null;
+   Response r = null;
+          ResteasyClientBuilder resteasyClientBuilder = new
+                      ResteasyClientBuilder().providerFactory(factory);
+
+           client = resteasyClientBuilder.build();
+
+           // insert the url of the webservice here
+        ResteasyWebTarget target = client.target( ndexRestClient.getBaseroute() + "/network/asCX");
+        target.register(new BasicAuthentication(ndexRestClient.getUsername(),ndexRestClient.getPassword()));
+         MultipartFormDataOutput mdo = new MultipartFormDataOutput();
+
+         mdo.addFormData("CXNetworkStream", input, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+         GenericEntity<MultipartFormDataOutput> entity = new GenericEntity<MultipartFormDataOutput>(mdo) {};
+
+         //Upload File
+         r = target.request().post(Entity.entity(entity, MediaType.MULTIPART_FORM_DATA_TYPE));
+
+         // Read File Response
+         String  response =  r.readEntity(String.class);
+
+          if (r != null) r.close();
+          if (client != null) client.close();
+
+          return UUID.fromString(response);
+    }
+
+
 	
 	
 	/*-----------------------------------------

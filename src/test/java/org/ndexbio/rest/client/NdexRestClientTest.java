@@ -30,8 +30,24 @@
  */
 package org.ndexbio.rest.client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.UUID;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
+import org.jboss.resteasy.client.jaxrs.ResteasyClient;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
+import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,23 +61,95 @@ public class NdexRestClientTest {
 	
 	private NdexRestClient client;
 	private NdexRestClientModelAccessLayer ndex;
+    private static String _username = "cj2";
+    private static String _password = "cj2";
 		
 	@Before
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
+		
+        client = new NdexRestClient(_username, _password);
+
 		/*
 		client = new NdexRestClient("cjtest", "guilan"); 
 			
 /*		client = new NdexRestClient("cjtest", "1234", 
 				"http://localhost:8080/ndexbio-rest",
-				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML); 
-		ndex = new NdexRestClientModelAccessLayer(client);*/
+				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML);  */
+		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
 
+    @Test
+    public void testCreateCXNetwork() throws IOException {
+            FileInputStream s = new FileInputStream ( "/Users/chenjing/working/cx/ligand.cx");
+            UUID u = ndex.createCXNetwork(s );
+            System.out.println("network created. New UUID: " + u) ;
+            s.close();
+    }
+
+    
+    public  void testResteasy() throws UnsupportedEncodingException, IOException
+    {
+          ResteasyProviderFactory factory =
+                   ResteasyProviderFactory.getInstance();
+
+          // this line is only needed if you run this as a java console app.
+         //  in tomcat and jboss initialization should work without this
+          ResteasyProviderFactory.pushContext(javax.ws.rs.ext.Providers.class, factory);
+
+
+             ResteasyClient client =null;
+             Response r = null;
+          try {
+
+
+                 ResteasyClientBuilder resteasyClientBuilder = new
+                             ResteasyClientBuilder().providerFactory(factory);
+
+                  client = resteasyClientBuilder.build();
+             //     client.register(new BasicAuthentication(_username,_password));
+
+                  // insert the url of the webservice here
+               ResteasyWebTarget target = client.target("http://localhost:8080/ndexbio-rest/network/asCX");
+               target.register(new BasicAuthentication(_username,_password));
+                MultipartFormDataOutput mdo = new MultipartFormDataOutput();
+
+                mdo.addFormData("file1", new FileInputStream(new File(
+                       //       "/Users/chenjing/Downloads/5a81ae28-679e-11e5-aba2-2e70fd96076e.cx"
+                                "/Users/chenjing/working/cx/ligand.cx"
+                                )),
+                                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+
+                GenericEntity<MultipartFormDataOutput> entity = new GenericEntity<MultipartFormDataOutput>(mdo) {};
+
+                //Upload File
+                r = target.request().post(       Entity.entity(entity, MediaType.MULTIPART_FORM_DATA_TYPE));
+
+                // Read File Response
+                String  input =  r.readEntity(String.class);
+
+
+
+          System.out.println("DONE'" + input);
+
+         } catch (Exception e) {
+
+                e.printStackTrace();
+         }
+          finally
+          {
+                 if (r != null) r.close();
+                 if (client != null) client.close();
+          }
+          
+    }     
+
+
+	
 	@Test
 	public void testAuthentication() throws Exception {
 		

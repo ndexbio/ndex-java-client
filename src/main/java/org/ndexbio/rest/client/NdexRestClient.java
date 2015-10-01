@@ -301,6 +301,68 @@ public class NdexRestClient {
 			if ( con != null) con.disconnect();
 		}
 	}
+	
+	/**
+	 * Users are responsible to close the stream at the end.
+	 * @param route
+	 * @param userName
+	 * @param password
+	 * @param query
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
+	public InputStream getStream(
+			final String route, 
+			final String query)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+
+			con = getReturningConnection(route, query, _username, _password);
+			try {
+
+				if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+					(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||	
+					(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+					input = con.getErrorStream();
+					
+					if (null != input) {
+		                // server sent an Ndex-specific exception (i.e., exception defined in 
+						// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+						// Re-construct and re-throw this exception here on the client side.
+						processNdexSpecificException(input, con.getResponseCode(), new ObjectMapper());
+					}
+						
+					throw new IOException("failed to connect to ndex");
+				}				
+				
+				input = con.getInputStream();
+
+				if (null != input){
+					if ("gzip".equalsIgnoreCase(con.getContentEncoding()))  {
+						input = new GZIPInputStream(input);
+					}
+					return input;
+				}
+				throw new NdexException("failed to connect to ndex server.");
+			} catch (IOException e) {	
+				String s = e.getMessage();
+			    if ( s.startsWith("Server returned HTTP response code: 401")) {
+				    throw new NdexException ("User '" + getUsername() + "' unauthorized to access " + 
+			             getBaseroute() + route + 
+			             "\nServer returned : " + e);
+			    }
+			    throw e;
+			}	
+
+	}
+
+	
 	public Object getNdexObject(
 			final String route, 
 			final String userName,

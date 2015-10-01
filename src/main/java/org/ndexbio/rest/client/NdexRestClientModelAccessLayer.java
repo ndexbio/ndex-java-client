@@ -715,6 +715,11 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return network;
 		*/
 	}
+	
+	public InputStream getNetworkAsCXStream(String id) throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + id + "/asCX";
+		return  ndexRestClient.getStream(route, "");
+	}
 
 	// Get block of edges as network
 //	network	GET	/network/{networkUUID}/edge/asNetwork/{skipBlocks}/{blockSize}		Network

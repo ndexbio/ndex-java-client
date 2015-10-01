@@ -30,9 +30,12 @@
  */
 package org.ndexbio.rest.client;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.UUID;
@@ -52,6 +55,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -84,12 +88,47 @@ public class NdexRestClientTest {
 	}
 
     @Test
-    public void testCreateCXNetwork() throws IOException {
+    public void testCreateCXNetwork() throws IOException, NdexException {
+    	
+    	InputStream in = ndex.getNetworkAsCXStream("d8c941eb-6887-11e5-b4ac-2e70fd96076e");
+    	printInputStream(in);
+    	in.close();
+    	
+    	/*
             FileInputStream s = new FileInputStream ( "/Users/chenjing/working/cx/ligand.cx");
             UUID u = ndex.createCXNetwork(s );
             System.out.println("network created. New UUID: " + u) ;
-            s.close();
+            s.close(); */
     }
+
+    private static String printInputStream(InputStream is) {
+
+		BufferedReader br = null;
+		StringBuilder sb = new StringBuilder();
+
+		String line;
+		try {
+
+			br = new BufferedReader(new InputStreamReader(is));
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return sb.toString();
+
+	}
 
     
     public  void testResteasy() throws UnsupportedEncodingException, IOException

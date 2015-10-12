@@ -90,15 +90,15 @@ public class NdexRestClientTest {
     @Test
     public void testCreateCXNetwork() throws IOException, NdexException {
     	
-    	InputStream in = ndex.getNetworkAsCXStream("d8c941eb-6887-11e5-b4ac-2e70fd96076e");
-    	printInputStream(in);
-    	in.close();
+   	InputStream in = ndex.getNetworkAsCXStream("459e575a-6df8-11e5-a150-b21a72a60333");
+   // 	printInputStream(in);
+   // 	in.close(); 
     	
-    	/*
-            FileInputStream s = new FileInputStream ( "/Users/chenjing/working/cx/ligand.cx");
-            UUID u = ndex.createCXNetwork(s );
+    	
+       //     FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
+            UUID u = ndex.createCXNetwork( in);
             System.out.println("network created. New UUID: " + u) ;
-            s.close(); */
+           // s.close(); 
     }
 
     private static String printInputStream(InputStream is) {

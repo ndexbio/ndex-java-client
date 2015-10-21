@@ -118,18 +118,44 @@
 	        <artifactId>json-simple</artifactId>
 	        <version>1.1</version>
         </dependency>
-        
-         <dependency>
-              <groupId>org.jboss.resteasy</groupId>
-              <artifactId>resteasy-client</artifactId>
-              <version>3.0.12.Final</version>
-        </dependency>
-        <dependency>
-              <groupId>org.jboss.resteasy</groupId>
-              <artifactId>resteasy-multipart-provider</artifactId>
-              <version>3.0.12.Final</version>
-        </dependency>        
-    
+      
+       <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      	<artifactId>resteasy-jaxrs</artifactId>
+      	<version>3.0.13.Final</version>
+   	</dependency>
+   	<dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-client</artifactId>
+      <version>3.0.13.Final</version>
+   </dependency>
+   
+		<dependency>
+			<groupId>org.jboss.resteasy</groupId>
+			<artifactId>resteasy-jackson2-provider</artifactId>
+			<version>3.0.13.Final</version>
+		</dependency>
+
+       <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jaxb-provider</artifactId>
+      <version>3.0.13.Final</version>
+   </dependency>
+   <!-- multipart/form-data and multipart/mixed support -->
+   <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-multipart-provider</artifactId>
+      <version>3.0.13.Final</version>
+   </dependency>
+   
+
+   <!-- Asynchronous HTTP support with Servlet 3.0  -->
+   <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>async-http-servlet-3.0</artifactId>
+      <version>3.0.13.Final</version>
+   </dependency>
+   
   </dependencies>
  
 </project>

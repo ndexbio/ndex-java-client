@@ -72,7 +72,9 @@ public class NdexRestClientTest {
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
 		
-        client = new NdexRestClient(_username, _password);
+  //      client = new NdexRestClient(_username, _password);
+
+        client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
 
 		/*
 		client = new NdexRestClient("cjtest", "guilan"); 
@@ -90,7 +92,7 @@ public class NdexRestClientTest {
     @Test
     public void testCreateCXNetwork() throws IOException, NdexException {
     	
-   	InputStream in = ndex.getNetworkAsCXStream("459e575a-6df8-11e5-a150-b21a72a60333");
+   	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
    // 	printInputStream(in);
    // 	in.close(); 
     	

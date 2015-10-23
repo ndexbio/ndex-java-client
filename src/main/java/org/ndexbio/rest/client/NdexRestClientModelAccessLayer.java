@@ -32,6 +32,8 @@ package org.ndexbio.rest.client;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,6 +49,19 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.auth.AuthenticationException;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -1166,7 +1181,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
 	}
 	
-    public UUID createCXNetwork (InputStream input) {
+    private UUID createCXNetworkRestClient (InputStream input) {
         ResteasyProviderFactory factory = ResteasyProviderFactory.getInstance();
 
    // this line is only needed if you run this as a java console app.
@@ -1202,6 +1217,47 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
     }
 
 
+    public UUID createCXNetwork (InputStream input) throws NdexException, IOException, AuthenticationException {
+    	  CloseableHttpClient client = HttpClients.createDefault();
+    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + "/network/asCX");
+
+    	  try
+          {
+              //Set various attributes
+    		  HttpEntity multiPartEntity = MultipartEntityBuilder.create()
+            		  				.addBinaryBody("CXNetworkStream", input,ContentType.create("application/octet-stream"), "filname").build();
+   
+              //Set to request body
+              httpPost.setEntity(multiPartEntity) ;
+ 
+           	  UsernamePasswordCredentials creds = 
+            	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
+              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+                       
+              //Send request
+      	    CloseableHttpResponse response = client.execute(httpPost);
+               
+              //Verify response if any
+              if (response != null)
+              {
+   //               System.out.println(response.getStatusLine().getStatusCode());
+                  if ( response.getStatusLine().getStatusCode() != 200) {
+                	  throw new NdexException ("Server returned " + response.toString());
+                  }
+                  InputStream in = response.getEntity().getContent();
+                  StringWriter writer = new StringWriter();
+                  IOUtils.copy(in, writer, "UTF-8");
+                  String theString = writer.toString();
+                  System.out.println(theString);
+                  return UUID.fromString(theString);
+              }
+              
+              throw new NdexException ("No response from the server.");
+          }  finally {
+        	    client.close();
+          }
+
+    }
 	
 	
 	/*-----------------------------------------

@@ -45,6 +45,7 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.http.auth.AuthenticationException;
 import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -90,7 +91,7 @@ public class NdexRestClientTest {
 	}
 
     @Test
-    public void testCreateCXNetwork() throws IOException, NdexException {
+    public void testCreateCXNetwork() throws IOException, NdexException, AuthenticationException {
     	
    	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
    // 	printInputStream(in);

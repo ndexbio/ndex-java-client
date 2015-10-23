@@ -72,12 +72,12 @@
 			<version>2.5.2</version>
 		</dependency>
 
-
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>20041127.091804</version>
-		</dependency>
+   
+<dependency>
+	<groupId>commons-codec</groupId>
+	<artifactId>commons-codec</artifactId>
+	<version>1.10</version>
+</dependency>
 
 
 		<dependency>
@@ -148,6 +148,12 @@
       <version>3.0.13.Final</version>
    </dependency>
    
+   <dependency>
+	<groupId>org.apache.httpcomponents</groupId>
+	<artifactId>httpmime</artifactId>
+	<version>4.3.6</version>
+</dependency>
+
 
    <!-- Asynchronous HTTP support with Servlet 3.0  -->
    <dependency>

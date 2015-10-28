@@ -148,7 +148,7 @@ public class testGroupService {
     	group.setAccountName(groupName);
     	group.setDescription("This group is used to test GroupService APIs");
     	group.setImage("http://imgur.com/gallery/ukfzg2C");
-    	group.setOrganizationName("UCSD Cytoscape Consortium | NDEx Project");
+    	group.setGroupName("UCSD Cytoscape Consortium | NDEx Project");
     	group.setWebsite("http://www.ndexbio.org");
     }
     
@@ -255,7 +255,7 @@ public class testGroupService {
     	// initialize other properties
     	newGroup.setDescription(group.getDescription());
     	newGroup.setImage(group.getImage());
-    	newGroup.setOrganizationName(group.getOrganizationName());
+    	newGroup.setGroupName(group.getGroupName());
     	newGroup.setWebsite(group.getWebsite());
     	
     	// expected exception is DuplicateObjectException
@@ -286,7 +286,7 @@ public class testGroupService {
     	// initialize other properties
     	newGroup.setDescription(group.getDescription());
     	newGroup.setImage(group.getImage());
-    	newGroup.setOrganizationName(group.getOrganizationName());
+    	newGroup.setGroupName(group.getGroupName());
     	newGroup.setWebsite(group.getWebsite());
     	
     	// expected exception is DuplicateObjectException
@@ -328,7 +328,7 @@ public class testGroupService {
     	newGroup1.setAccountName(group.getAccountName() + System.currentTimeMillis());
     	newGroup1.setDescription(group.getDescription());
     	newGroup1.setImage(group.getImage());
-    	newGroup1.setOrganizationName(group.getOrganizationName());
+    	newGroup1.setGroupName(group.getGroupName());
     	newGroup1.setWebsite(group.getWebsite());
     	
     	// set user name to a random value

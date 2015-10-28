@@ -38,7 +38,7 @@ public class GroupUtils {
 		
 		assertEquals("descriptions do not match: ",    group.getDescription(),      group.getDescription());
 		assertEquals("image URLs do not match: ",      group.getImage(),            newGroup.getImage());
-		assertEquals("organizations  do not match: ",  group.getOrganizationName(), newGroup.getOrganizationName());
+		assertEquals("organizations  do not match: ",  group.getGroupName(), newGroup.getGroupName());
 		assertEquals("web sites do not match: ",       group.getWebsite(),          newGroup.getWebsite());	        
 	//	assertEquals("types do not match: ",           group.getType(),             newGroup.getType());
 	

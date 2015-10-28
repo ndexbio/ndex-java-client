@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,9 +74,9 @@ public class NdexRestClientTest {
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
 		
-  //      client = new NdexRestClient(_username, _password);
+        client = new NdexRestClient(_username, _password);
 
-        client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
+    //    client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
 
 		/*
 		client = new NdexRestClient("cjtest", "guilan"); 
@@ -91,15 +92,23 @@ public class NdexRestClientTest {
 	}
 
     @Test
-    public void testCreateCXNetwork() throws IOException, NdexException, AuthenticationException {
+    public void testCreateCXNetwork() throws IllegalStateException, Exception {
     	
-   	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
-   // 	printInputStream(in);
-   // 	in.close(); 
+   //	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
+    	List<String > l = new ArrayList<>();
+    	l.add("nodes");
+    	l.add( "edges"); 
+    	InputStream in = ndex.getNetworkAspects("6dffd124-7cd8-11e5-8e3a-96da26a8cd91", l);
+    	printInputStream(in);
+    	in.close(); 
     	
+        in = ndex.getNetworkAspectElements("6dffd124-7cd8-11e5-8e3a-96da26a8cd91", "nodes",10);
+    	printInputStream(in);
+    	in.close(); 
     	
-       //     FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
-            UUID u = ndex.createCXNetwork( in);
+            FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
+   			
+            UUID u = ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"), s);
             System.out.println("network created. New UUID: " + u) ;
            // s.close(); 
     }

@@ -720,6 +720,54 @@ public class NdexRestClient {
 		}
 	}
 	
+
+	public InputStream postNdexObject(
+			final String route, 
+			final JsonNode postData)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+
+		//try {
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			con = postReturningConnection(route, postData);
+			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
+			
+			if (null == con) {
+				return null;
+			}
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    input = con.getErrorStream();
+			 
+				if (null != input) {
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			}
+	
+			input = con.getInputStream();
+			if (null != input) {
+				return input;
+			}
+			throw new IOException("failed to connect to ndex");
+
+		
+	}
+	
+	
+	
 	
 	public int postString(
 			final String route, 

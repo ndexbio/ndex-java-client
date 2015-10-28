@@ -56,6 +56,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -68,7 +69,12 @@ import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
 import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
+import org.ndexbio.model.errorcodes.NDExError;
+import org.ndexbio.model.exceptions.DuplicateObjectException;
+import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.network.query.NetworkPropertyFilter;
 import org.ndexbio.model.object.Group;
@@ -99,7 +105,9 @@ import org.ndexbio.model.object.network.Node;
 import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.model.object.network.Support;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -736,6 +744,20 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return  ndexRestClient.getStream(route, "");
 	}
 
+	public InputStream getNetworkAspects(String id, List<String> aspects) throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + id + "/aspects";
+	//	return  ndexRestClient.getStream(route, "");
+	  	JsonNode postData = objectMapper.valueToTree(aspects);
+    	return  ndexRestClient.postNdexObject(route, postData);
+
+	}
+	
+	public InputStream getNetworkAspectElements(String id, String aspectName, int limit) throws JsonProcessingException, IOException, NdexException {
+
+		String route = "/network/" + id + "/aspect/" + aspectName + "/" + limit;
+		return  ndexRestClient.getStream(route, "");
+	}
+	
 	// Get block of edges as network
 //	network	GET	/network/{networkUUID}/edge/asNetwork/{skipBlocks}/{blockSize}		Network
 	public Network getEdges(String id, int skipBlocks, int edgesPerBlock) throws IOException, NdexException {
@@ -1180,7 +1202,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
 	}
-	
+/*	
     private UUID createCXNetworkRestClient (InputStream input) {
         ResteasyProviderFactory factory = ResteasyProviderFactory.getInstance();
 
@@ -1215,9 +1237,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
           return UUID.fromString(response);
     }
+*/
 
-
-    public UUID createCXNetwork (InputStream input) throws NdexException, IOException, AuthenticationException {
+    public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
     	  CloseableHttpClient client = HttpClients.createDefault();
     	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + "/network/asCX");
 
@@ -1240,9 +1262,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
               //Verify response if any
               if (response != null)
               {
-   //               System.out.println(response.getStatusLine().getStatusCode());
                   if ( response.getStatusLine().getStatusCode() != 200) {
-                	  throw new NdexException ("Server returned " + response.toString());
+                	  
+                	  throw createNdexSpecificException(response);
                   }
                   InputStream in = response.getEntity().getContent();
                   StringWriter writer = new StringWriter();
@@ -1258,6 +1280,78 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
           }
 
     }
+	
+	private  Exception createNdexSpecificException(
+			CloseableHttpResponse response) throws JsonParseException, JsonMappingException, IllegalStateException, IOException {
+
+			ObjectMapper mapper = new ObjectMapper();
+			NDExError ndexError = mapper.readValue(response.getEntity().getContent(), NDExError.class);
+			
+			switch (response.getStatusLine().getStatusCode() ) {
+	            case (HttpURLConnection.HTTP_UNAUTHORIZED):
+	    	        // httpServerResponseCode is HTTP Status-Code 401: Unauthorized.
+	    	        return new UnauthorizedOperationException(ndexError);
+	        
+		        case (HttpURLConnection.HTTP_NOT_FOUND):
+		    	    // httpServerResponseCode is HTTP Status-Code 404: Not Found.
+		    	    return  new ObjectNotFoundException(ndexError);
+		    
+			    case (HttpURLConnection.HTTP_CONFLICT):
+			    	// httpServerResponseCode is HTTP Status-Code 409: Conflict.
+			    	return new DuplicateObjectException(ndexError);
+			    
+			    case (HttpURLConnection.HTTP_FORBIDDEN):
+			    	// httpServerResponseCode is HTTP Status-Code 403: Forbidden.
+			    	return  new ForbiddenOperationException(ndexError);
+			    
+			    default:
+			    	// default case is: HTTP Status-Code 500: Internal Server Error.
+			    	return new NdexException(ndexError);
+			}
+		}
+
+	
+	   public UUID updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+	    	  CloseableHttpClient client = HttpClients.createDefault();
+	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + "/network/asCX/" + networkUUID.toString());
+
+	    	  try
+	          {
+	              //Set various attributes
+	    		  HttpEntity multiPartEntity = MultipartEntityBuilder.create()
+	            		  				.addBinaryBody("CXNetworkStream", input,ContentType.create("application/octet-stream"), "filname").build();
+	   
+	              //Set to request body
+	              httpPost.setEntity(multiPartEntity) ;
+	 
+	           	  UsernamePasswordCredentials creds = 
+	            	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
+	              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+	                       
+	              //Send request
+	      	    CloseableHttpResponse response = client.execute(httpPost);
+	               
+	              //Verify response if any
+	              if (response != null)
+	              {
+	                  if ( response.getStatusLine().getStatusCode() != 200) {
+	                	  
+	                	  throw createNdexSpecificException(response);
+	                  }
+	                  InputStream in = response.getEntity().getContent();
+	                  StringWriter writer = new StringWriter();
+	                  IOUtils.copy(in, writer, "UTF-8");
+	                  String theString = writer.toString();
+	                  System.out.println(theString);
+	                  return UUID.fromString(theString);
+	              }
+	              
+	              throw new NdexException ("No response from the server.");
+	          }  finally {
+	        	    client.close();
+	          }
+
+	    }
 	
 	
 	/*-----------------------------------------

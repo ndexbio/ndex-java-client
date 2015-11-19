@@ -38,7 +38,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import javax.ws.rs.client.Entity;
@@ -47,6 +50,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.auth.AuthenticationException;
+import org.cxio.aspects.datamodels.EdgesElement;
+import org.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.cxio.aspects.datamodels.NodeAttributesElement;
+import org.cxio.aspects.datamodels.NodesElement;
+import org.cxio.metadata.MetaDataCollection;
+import org.cxio.metadata.MetaDataElement;
 import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
 import org.jboss.resteasy.client.jaxrs.ResteasyClient;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -57,7 +66,10 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.ndexbio.common.cx.aspect.CXMetaDataManager;
+import org.ndexbio.common.models.dao.orientdb.CXNetworkExporter;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -76,7 +88,7 @@ public class NdexRestClientTest {
 		
         client = new NdexRestClient(_username, _password);
 
-    //    client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
+  //     client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
 
 		/*
 		client = new NdexRestClient("cjtest", "guilan"); 
@@ -94,11 +106,27 @@ public class NdexRestClientTest {
     @Test
     public void testCreateCXNetwork() throws IllegalStateException, Exception {
     	
+    	CXSimplePathQuery query = new CXSimplePathQuery ();
+    	query.setSearchDepth(1);
+    	query.setSearchString("CALC");
+    	query.setEdgeLimit(10);
+    	Set<String> foo = new TreeSet<>();
+    	
+    	foo.add(NodesElement.ASPECT_NAME);
+    	foo.add(EdgesElement.ASPECT_NAME);
+    	foo.add(NetworkAttributesElement.ASPECT_NAME);
+    	foo.add(NodeAttributesElement.ASPECT_NAME);
+    	query.setAspects(foo);
+    	InputStream in0 = ndex.getNeighborhoodAsCXStream("981a352d-8e20-11e5-89b1-f66787c00b17", query);
+    	printInputStream(in0);
+    	in0.close();
+    	
    //	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
-    	List<String > l = new ArrayList<>();
-    	l.add("nodes");
-    	l.add( "edges"); 
-    	InputStream in = ndex.getNetworkAspects("6dffd124-7cd8-11e5-8e3a-96da26a8cd91", l);
+    	MetaDataCollection md = CXMetaDataManager.getInstance().createCXMataDataTemplate();  
+    	List<String > l = new ArrayList<>(md.size());
+    	for (MetaDataElement e : md)
+    		l.add(e.getName());
+    	InputStream in = ndex.getNetworkAspects("65308e68-8191-11e5-b7f9-0251251672f9", l);
     	printInputStream(in);
     	in.close(); 
     	

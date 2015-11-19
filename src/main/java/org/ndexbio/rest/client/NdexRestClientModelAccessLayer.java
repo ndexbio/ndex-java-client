@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,6 +58,7 @@ import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.network.query.NetworkPropertyFilter;
+import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
@@ -724,12 +726,18 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return  ndexRestClient.getStream(route, "");
 	}
 
-	public InputStream getNetworkAspects(String id, List<String> aspects) throws JsonProcessingException, IOException, NdexException {
+	public InputStream getNetworkAspects(String id, Collection<String> aspects) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id + "/aspects";
 	//	return  ndexRestClient.getStream(route, "");
 	  	JsonNode postData = objectMapper.valueToTree(aspects);
     	return  ndexRestClient.postNdexObject(route, postData);
 
+	}
+	
+	public InputStream getNeighborhoodAsCXStream(String id, CXSimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + id + "/asCX/query";
+		JsonNode postData = objectMapper.valueToTree(query);
+	    return  ndexRestClient.postNdexObject(route, postData);
 	}
 	
 	public InputStream getNetworkAspectElements(String id, String aspectName, int limit) throws JsonProcessingException, IOException, NdexException {

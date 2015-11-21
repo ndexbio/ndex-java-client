@@ -1133,7 +1133,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Neighborhood PathQuery
 //	network	POST	/network/{networkUUID}/asPropertyGraph/query	SimplePathQuery	PropertyGraphNetwork	
-    public PropertyGraphNetwork getNeighborhoodAsPropertyGraph(String networkId, String queryTerm, int depth) throws JsonProcessingException, IOException {
+    public PropertyGraphNetwork getNeighborhoodAsPropertyGraph(String networkId, String queryTerm, int depth, int edgeLimit) throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId +"/asPropertyGraph/query";		
 		
 		InputStream input = null;
@@ -1143,6 +1143,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 			((ObjectNode) postData).put("searchString", queryTerm);
 			((ObjectNode) postData).put("searchDepth", depth);
+			((ObjectNode) postData).put("edgeLimit", edgeLimit);
 
 			con = ndexRestClient.postReturningConnection(route, postData);
 			input = con.getInputStream();

@@ -901,11 +901,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	@SuppressWarnings("unchecked")
 	public List<Namespace> getNetworkNamespaces(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
+			String networkId) 
 			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/namespace/" + skipBlocks + "/" + blockSize;		
+		String route = "/network/" + networkId + "/namespace";		
 		return (List<Namespace>) ndexRestClient.getNdexObjectList(route, "", Namespace.class);
 	}
 	

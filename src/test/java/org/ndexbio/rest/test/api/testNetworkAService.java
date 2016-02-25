@@ -196,7 +196,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0010createNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -226,7 +226,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0020uploadNetwork()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -329,7 +329,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0040getCompleteNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -404,7 +404,7 @@ public class testNetworkAService {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     
-    //@Test  
+    @Test  
     public void test0050getCompleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -453,7 +453,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0060deleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -505,7 +505,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0070updateNetworkSummary()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -559,7 +559,7 @@ public class testNetworkAService {
      * @return  void
      * @throws JSONException 
      */
-    //@Test  
+    @Test  
     public void test0080testNeighborhoodQuery() throws JSONException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -603,7 +603,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0090getNamespaces()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -612,35 +612,13 @@ public class testNetworkAService {
     	// absolute path name of the network; defined in properties file: "uploadNetworkForNameSpace = ..."
     	String networkUUID = uploadNetworkFile(testNetworkToUpload.get("uploadNetworkForNameSpace"));
 
-
 		// retrieve all namespaces and check some 
-		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID);
 		assertEquals("Wrong namespaces count: ", 39, namespaces.size());
 		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
 		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
 		assertEquals("Wrong namespace name: ", "NCR", namespaces.get(2).getPrefix());
 		assertEquals("Wrong namespace name: ", "IntegumentarySystem", namespaces.get(38).getPrefix());	
-		
-		
-		// now, retrieve only 5 namespaces
-		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 5);
-		assertEquals("Wrong namespaces count: ", 5, namespaces.size());
-		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
-		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
-		assertEquals("Wrong namespace name: ", "NCR", namespaces.get(2).getPrefix());
-		assertEquals("Wrong namespace name: ", "PFM", namespaces.get(3).getPrefix());
-		assertEquals("Wrong namespace name: ", "NCM", namespaces.get(4).getPrefix());		
-
-		
-		// retrieve next 5 namespaces
-		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 5, 5);
-		assertEquals("Wrong namespaces count: ", namespaces.size(), 5);
-		assertEquals("Wrong namespace name: ", "PFH",   namespaces.get(0).getPrefix());
-		assertEquals("Wrong namespace name: ", "NCH",   namespaces.get(1).getPrefix());		
-		assertEquals("Wrong namespace name: ", "RGD",   namespaces.get(2).getPrefix());
-		assertEquals("Wrong namespace name: ", "MGI",   namespaces.get(3).getPrefix());
-		assertEquals("Wrong namespace name: ", "MESHD", namespaces.get(4).getPrefix());	
-		
 		
     	// delete network from the test account
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
@@ -660,7 +638,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0100addNamespace()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -668,10 +646,9 @@ public class testNetworkAService {
 		
     	// absolute path name of the network; defined in properties file: "uploadNetworkForNameSpace = ..."
     	String networkUUID = uploadNetworkFile(testNetworkToUpload.get("uploadNetworkForNameSpace"));
-    	
 		
 		// retrieve all namespaces and check some 
-		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		List<Namespace> namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID);
 		assertEquals("Wrong namespaces count: ", 39, namespaces.size(), 39);
 		assertEquals("Wrong namespace name: ", "bel", namespaces.get(0).getPrefix());
 		assertEquals("Wrong namespace name: ", "PFR", namespaces.get(1).getPrefix());		
@@ -692,7 +669,7 @@ public class testNetworkAService {
 		NetworkUtils.addNetworkNamespace(ndex, networkUUID, newNameSpace);
 		
 		// now we should have 40 workspaces
-		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID, 0, 500);
+		namespaces = NetworkUtils.getNetworkNamespaces(ndex, networkUUID);
 		assertEquals("Wrong namespaces count: ", 40,     namespaces.size());
 		assertEquals("Wrong namespace prefix: ", prefix, namespaces.get(39).getPrefix());
 		assertEquals("Wrong namespace URI: ",    uri,    namespaces.get(39).getUri());		
@@ -717,7 +694,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0110networkMembership()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -812,7 +789,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0120getBaseTerms() {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -850,7 +827,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0130getEdges()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -890,8 +867,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
-    public void test0140exportNetwork()  {
+    @Test  
+    public void test0140exportNetwork() {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -924,13 +901,9 @@ public class testNetworkAService {
     	Status status = NetworkUtils.waitForTaskToFinish(ndex, taskId); 
     	assertEquals("export task didn't complete cleanly", Status.COMPLETED, status);	
 
-
         // export network again; this time network extension is in LOWER CASE -- this will fail
     	taskId = NetworkUtils.exportNetwork(ndex, networkUUID, networkFileNameExtension.toLowerCase());
-    	assertNotNull("unable to create export network task", taskId);
-    	status = NetworkUtils.waitForTaskToFinish(ndex, taskId); 
-    	assertEquals("export task didn't complete cleanly", Status.COMPLETED, status);
-    	
+    	assertNull("created task with wrong format argument", taskId);	
     	
     	// delete network from the test account
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());    
@@ -948,7 +921,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test
+    @Test
     public void test0150queryNetworkByEdgeFilter()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -1023,7 +996,7 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    //@Test
+    @Test
     public void test0160networkProperties() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -1203,7 +1176,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test
+    @Test
     public void test0170provenanceAndNetworkUpdate()   {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -1241,6 +1214,7 @@ public class testNetworkAService {
    
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);
+    	assertNotNull("provenance creation event is null :", provenance.getCreationEvent()); 
     	assertEquals("wrong provenance event type :",
     			provenance.getCreationEvent().getEventType(), 
     			NdexProvenanceEventType.SET_NETWORK_PROPERTIES);
@@ -1264,6 +1238,7 @@ public class testNetworkAService {
     	
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);
+    	assertNotNull("provenance creation event is null :", provenance.getCreationEvent()); 
     	assertEquals("wrong provenance event type :",
     			provenance.getCreationEvent().getEventType(), 
     			NdexProvenanceEventType.UPDATE_NETWORK_PROFILE);
@@ -1280,6 +1255,7 @@ public class testNetworkAService {
     	
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);
+    	assertNotNull("provenance creation event is null :", provenance.getCreationEvent());    	
     	assertEquals("wrong provenance event type :",
     			provenance.getCreationEvent().getEventType(), 
     			NdexProvenanceEventType.UPDATE_NETWORK_PROFILE);
@@ -1299,7 +1275,7 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    //@Test
+    @Test
     public void test0180searchNetwork() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);

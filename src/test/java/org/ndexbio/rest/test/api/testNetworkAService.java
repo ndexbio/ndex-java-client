@@ -196,8 +196,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0001createNetwork()  {
+    //@Test  
+    public void test0010createNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -213,7 +213,7 @@ public class testNetworkAService {
         assertNotNull("createNetwork returned null", networkSummary); 	
             
     	// delete network from the test account
-    	NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());        
+    	///NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());        
     }
 
     /**
@@ -226,8 +226,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0002uploadNetwork()  {
+    //@Test  
+    public void test0020uploadNetwork()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -251,7 +251,10 @@ public class testNetworkAService {
 
     /**
      * Upload network specified in the properties file to the server, 
-     * and then delete this network from the server.
+     * make it read-only, download it and make sure that the read-only properties (readOnlyCacheId
+     * and readOnlyCommitId) are set correctly, make the network read-write again and delete it.
+     * 
+     * Loop through these steps 10 times, sleeping 2 seconds after every iteration.
      * 
      * APIs tested: public NetworkSummary createNetwork(Network newNetwork)
      *              public Response getCompleteNetwork(String networkId)
@@ -262,7 +265,72 @@ public class testNetworkAService {
      * @return  void
      */
     @Test  
-    public void test0003getCompleteNetwork()  {
+    public void test0030getCompleteReadOnlyNetwork()  {
+    	// network in JSON format to be created on the Server via API
+    	TreeMap<String, String> testJSONNetworkToCreate = 
+    				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
+		
+    	// absolute path name of the file containing network in JSON format; defined in properties file: "createNetwork = ..."
+		String absoluteNetworkPath = testJSONNetworkToCreate.get("createNetwork");
+		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
+
+    	// construct Network object to be created on the server by createNetwork()
+    	Network network = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
+    
+    	
+        for (int i = 0; i < 10; i++) {
+        	
+            NetworkSummary networkSummary = NetworkUtils.createNetwork(ndex, network);
+            assertNotNull("createNetwork returned null", networkSummary);
+            assertNotNull("network UUID is null", networkSummary.getExternalId());
+            
+            String networkUUID = networkSummary.getExternalId().toString();
+           
+    	    // set network to read-only mode, and download it
+            NetworkUtils.setReadOnlyFlag(ndex, networkUUID, true);
+        	
+            // download the newly created network in read-only mode
+		    network = NetworkUtils.getNetwork(ndex, networkUUID); 
+		    
+		    long readOnlyCacheId  = network.getReadOnlyCacheId();
+		    long readOnlyCommitId = network.getReadOnlyCommitId();
+		    
+			assert  (readOnlyCacheId > 0)  : "readOnlyCacheId = "  + readOnlyCacheId;
+			assert  (readOnlyCommitId > 0) : "readOnlyCommitId = " + readOnlyCommitId;
+			assert  (readOnlyCommitId == network.getReadOnlyCacheId()) : 
+				"readOnlyCommitId = " + readOnlyCommitId + " readOnlyCacheId = "  + readOnlyCacheId;
+			
+			
+		    // set network back to read-write mode before deleting it
+	        NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
+	 
+	    	// delete network from the test account
+	    	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
+			
+			try {
+				Thread.sleep(2000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }    
+    }    
+
+    
+    /**
+     * Upload network specified in the properties file to the server, 
+     * and then delete this network from the server.
+     * 
+     * APIs tested: public NetworkSummary createNetwork(Network newNetwork)
+     *              public Response getCompleteNetwork(String networkId)
+     *              public String setNetworkFlag(String networkId, String parameter, String value)
+     *              public void deleteNetwork(String id)
+     * 
+     * @param   void
+     * @return  void
+     */
+    //@Test  
+    public void test0040getCompleteNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -273,7 +341,7 @@ public class testNetworkAService {
 
     	// construct Network object to be created on the server by createNetwork()
     	Network network1 = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
-    	System.out.println("\n\n\ngetReadOnlyCommitId="+network1.getReadOnlyCommitId() + "  getReadOnlyCacheId=" + network1.getReadOnlyCacheId());
+    	//System.out.println("\n\n\ngetReadOnlyCommitId="+network1.getReadOnlyCommitId() + "  getReadOnlyCacheId=" + network1.getReadOnlyCacheId());
     
         NetworkSummary networkSummary = NetworkUtils.createNetwork(ndex, network1);
         assertNotNull("createNetwork returned null", networkSummary);
@@ -282,26 +350,39 @@ public class testNetworkAService {
         String networkUUID = networkSummary.getExternalId().toString();
         
         // download the newly created network
+		network1 = NetworkUtils.getNetwork(ndex, networkUUID);
 		Network network2 = NetworkUtils.getNetwork(ndex, networkUUID);
 		
+
 	    // set network to read-only mode, and download it again
         NetworkUtils.setReadOnlyFlag(ndex, networkUUID, true);
         
         // download the newly created network in read-only mode
 		Network network3 = NetworkUtils.getNetwork(ndex, networkUUID); 
+		//System.out.println("\n\nreadOnlyCacheId=" + network3.getReadOnlyCacheId() + "  readOnlyCommitId=" + network3.getReadOnlyCommitId());
 		
-        boolean compareReadOnly = true;
+		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
+		//System.out.println("\n\nreadOnlyCacheId=" + networkSummary.getReadOnlyCacheId() + "  readOnlyCommitId=" + networkSummary.getReadOnlyCommitId());
+
+		network3 = NetworkUtils.getNetwork(ndex, networkUUID); 
+		//System.out.println("\n\nreadOnlyCacheId=" + network3.getReadOnlyCacheId() + "  readOnlyCommitId=" + network3.getReadOnlyCommitId());		
+		
+		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
+		//System.out.println("\n\nreadOnlyCacheId=" + networkSummary.getReadOnlyCacheId() + "  readOnlyCommitId=" + networkSummary.getReadOnlyCommitId());
+		
+        boolean compareReadOnly = true;  // should be false when comparing read-only and read-write networks
         NetworkUtils.compareObjectsContents(network1, network2, compareReadOnly);
-        NetworkUtils.compareObjectsContents(network1, network3, compareReadOnly=false);
-        NetworkUtils.compareObjectsContents(network2, network3, compareReadOnly);
+        NetworkUtils.compareObjectsContents(network2, network3, compareReadOnly = false);
+        NetworkUtils.compareObjectsContents(network1, network3, compareReadOnly = false);
+
         
 	    // set network back to read-write mode, and download it again
         NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
 		Network network4 = NetworkUtils.getNetwork(ndex, networkUUID);
 		
-        NetworkUtils.compareObjectsContents(network1, network4, compareReadOnly=true);
-        NetworkUtils.compareObjectsContents(network2, network4, compareReadOnly);
-        NetworkUtils.compareObjectsContents(network3, network4, compareReadOnly=false);
+        NetworkUtils.compareObjectsContents(network1, network4, compareReadOnly = true);
+        NetworkUtils.compareObjectsContents(network2, network4, compareReadOnly = true);
+        NetworkUtils.compareObjectsContents(network3, network4, compareReadOnly = true); 
         
     	// delete network from the test account
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString());
@@ -323,8 +404,8 @@ public class testNetworkAService {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     
-    @Test  
-    public void test0004getCompleteNonExistentNetwork() throws IOException, NdexException  {
+    //@Test  
+    public void test0050getCompleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -344,6 +425,7 @@ public class testNetworkAService {
         String networkUUID = networkSummary.getExternalId().toString();
         
         // download the newly created network
+        network1 = NetworkUtils.getNetwork(ndex, networkUUID);
 		Network network2 = NetworkUtils.getNetwork(ndex, networkUUID);
 		boolean compareReadOnly = true;
         NetworkUtils.compareObjectsContents(network1, network2, compareReadOnly);
@@ -371,8 +453,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0005deleteNonExistentNetwork() throws IOException, NdexException  {
+    //@Test  
+    public void test0060deleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -392,6 +474,7 @@ public class testNetworkAService {
         String networkUUID = networkSummary.getExternalId().toString();
         
         // download the newly created network
+        network1 = NetworkUtils.getNetwork(ndex, networkUUID);
 		Network network2 = NetworkUtils.getNetwork(ndex, networkUUID);
 		boolean compareReadOnly = true;
         NetworkUtils.compareObjectsContents(network1, network2, compareReadOnly);
@@ -422,8 +505,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0006updateNetworkSummary()  {
+    //@Test  
+    public void test0070updateNetworkSummary()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -476,8 +559,8 @@ public class testNetworkAService {
      * @return  void
      * @throws JSONException 
      */
-    @Test  
-    public void test0007testNeighborhoodQuery() throws JSONException  {
+    //@Test  
+    public void test0080testNeighborhoodQuery() throws JSONException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -520,8 +603,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0008getNamespaces()  {
+    //@Test  
+    public void test0090getNamespaces()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -577,8 +660,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0009addNamespace()  {
+    //@Test  
+    public void test0100addNamespace()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -634,8 +717,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0010networkMembership()  {
+    //@Test  
+    public void test0110networkMembership()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -729,8 +812,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0011getBaseTerms() {
+    //@Test  
+    public void test0120getBaseTerms() {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -767,8 +850,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0012getEdges()  {
+    //@Test  
+    public void test0130getEdges()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -807,8 +890,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
-    public void test0013exportNetwork()  {
+    //@Test  
+    public void test0140exportNetwork()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -865,8 +948,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test
-    public void test0014queryNetworkByEdgeFilter()  {
+    //@Test
+    public void test0150queryNetworkByEdgeFilter()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     				PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -940,8 +1023,8 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    @Test
-    public void test0015networkProperties() throws IOException, NdexException  {
+    //@Test
+    public void test0160networkProperties() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 
@@ -1120,8 +1203,8 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test
-    public void test0016provenanceAndNetworkUpdate()   {
+    //@Test
+    public void test0170provenanceAndNetworkUpdate()   {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -1216,8 +1299,8 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    @Test
-    public void test0017searchNetwork() throws IOException, NdexException  {
+    //@Test
+    public void test0180searchNetwork() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
 

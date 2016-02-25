@@ -317,15 +317,19 @@ public class NetworkUtils {
             // check if the flag is set
     		if (readOnly)  {
     			// trying to set readOnly flag to true; make sure that network is cached.
-    			// if netwook is not cached, we want to wait until it is cached.
+    			// if network is not cached, we want to wait until it is cached.
     			if ((networkSummary.getReadOnlyCommitId() > 0) && (networkSummary.getReadOnlyCacheId() > 0)) {
+    				//System.out.println("\n\nnetworkSummary.getReadOnlyCommitId()=" + networkSummary.getReadOnlyCommitId() + 
+    				//		            "   networkSummary.getReadOnlyCacheId()=" + networkSummary.getReadOnlyCacheId());
     				return;
     			}
     			
     		} else {
     			
     			// trying to set readOnly flag to false
-    			if (networkSummary.getReadOnlyCommitId() <= 0) {
+    			if ((networkSummary.getReadOnlyCommitId() < 0) && (networkSummary.getReadOnlyCacheId() < 0)) {
+    				//System.out.println("\n\nnetworkSummary.getReadOnlyCommitId()=" + networkSummary.getReadOnlyCommitId() + 
+				    //        "   networkSummary.getReadOnlyCacheId()=" + networkSummary.getReadOnlyCacheId());
     				return;
     			}
     		}

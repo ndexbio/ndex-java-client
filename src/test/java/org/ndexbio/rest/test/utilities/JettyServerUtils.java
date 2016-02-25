@@ -42,7 +42,10 @@ public class JettyServerUtils {
 		ProcessBuilder builder = new ProcessBuilder(command);
 	    Map< String, String > environment = builder.environment();
 	    
-	    environment.put("CLASSPATH", classpath);    
+	    environment.put("CLASSPATH", classpath); 
+	    
+	    // ndexConfigurationPath is /opt/ndex/conf/ndex.properties;  it is defined in 
+	    // Run->Run Configurations, Environment tab
 	    environment.put("ndexConfigurationPath", System.getenv("ndexConfigurationPath"));
 	    environment.put("logback.configurationFile", "src/test/java/org/ndexbio/rest/test/JettyServer/jetty-logback.xml");	
 	   
@@ -50,7 +53,7 @@ public class JettyServerUtils {
 	    
 		try {
 			jettyServerProcess = builder.start();
-		} catch (IOException e) {	
+		} catch (Exception e) {	
 			fail("Unable to start JettyServer in a separate JVM : " + e.getMessage());
 		}
 

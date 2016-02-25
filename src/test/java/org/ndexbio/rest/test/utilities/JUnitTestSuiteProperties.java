@@ -1,6 +1,6 @@
 package org.ndexbio.rest.test.utilities;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -20,13 +20,13 @@ public class JUnitTestSuiteProperties {
 		}
 		
 		// JUnitTestSuite.properties is defined in Run->Run Configurations->JUnit->JUnitTestSuite, Arguments Tab:
-		// -DJUnitTestSuite.properties=src/main/resources/JUnitTestSuite.properties
-		// the properties file is src/main/resources/JUnitTestSuite.properties
+		// -DJUnitTestSuite.properties=src/test/resources/JUnitTestSuite.properties
+		// the properties file is src/test/resources/JUnitTestSuite.properties
 
 		// open properties file and set/initialize properties
 		String propertiesFile = System.getProperty("JUnitTestSuite.properties");
 
-		assert  (propertiesFile != null) : "JUnitTestSuite.properties is not defined; need this file to get test server URL";
+		assertNotNull(propertiesFile);
 
 		FileInputStream fis = null;
 		try {

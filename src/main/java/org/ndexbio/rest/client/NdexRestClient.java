@@ -646,7 +646,13 @@ public class NdexRestClient {
 		InputStream input, int httpServerResponseCode, ObjectMapper mapper) 
 		throws JsonProcessingException, IOException, NdexException {
 
-		NDExError ndexError = mapper.readValue(input, NDExError.class);
+		NDExError ndexError = null;
+		
+		try {
+			ndexError = mapper.readValue(input, NDExError.class);
+		} catch (Exception e) {
+			throw e;
+		}
 		
 		switch (httpServerResponseCode) {
             case (HttpURLConnection.HTTP_UNAUTHORIZED):
@@ -710,7 +716,12 @@ public class NdexRestClient {
 	
 			input = con.getInputStream();
 			if (null != input) {
-				return mapper.readValue(input, mappedClass);
+				
+				Object val = mapper.readValue(input, mappedClass);
+				
+				return val;
+				
+				//return mapper.readValue(input, mappedClass);
 			}
 			throw new IOException("failed to connect to ndex");
 

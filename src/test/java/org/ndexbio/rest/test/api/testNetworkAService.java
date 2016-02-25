@@ -196,7 +196,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0010createNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -226,7 +226,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0020uploadNetwork()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -264,7 +264,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0030getCompleteReadOnlyNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -329,7 +329,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0040getCompleteNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -404,7 +404,7 @@ public class testNetworkAService {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     
-    @Test  
+    //@Test  
     public void test0050getCompleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -453,7 +453,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0060deleteNonExistentNetwork() throws IOException, NdexException  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -505,7 +505,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0070updateNetworkSummary()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -559,7 +559,7 @@ public class testNetworkAService {
      * @return  void
      * @throws JSONException 
      */
-    @Test  
+    //@Test  
     public void test0080testNeighborhoodQuery() throws JSONException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -603,7 +603,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0090getNamespaces()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -638,7 +638,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0100addNamespace()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -694,7 +694,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0110networkMembership()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -789,7 +789,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0120getBaseTerms() {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -827,7 +827,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0130getEdges()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -867,7 +867,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0140exportNetwork() {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -921,7 +921,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test
+    //@Test
     public void test0150queryNetworkByEdgeFilter()  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
@@ -996,7 +996,7 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    @Test
+    //@Test
     public void test0160networkProperties() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -1176,7 +1176,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test
+    //@Test
     public void test0170provenanceAndNetworkUpdate()   {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 

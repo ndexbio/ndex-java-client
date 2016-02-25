@@ -523,10 +523,10 @@ public class NetworkUtils {
 	}
 
 	public static List<Namespace> getNetworkNamespaces(
-			NdexRestClientModelAccessLayer ndex, String networkUUID, int skipBlocks, int blockSize) {
+			NdexRestClientModelAccessLayer ndex, String networkUUID) {
 		List<Namespace> namespaces = null;
 		try {
-			namespaces = ndex.getNetworkNamespaces(networkUUID, skipBlocks, blockSize);
+			namespaces = ndex.getNetworkNamespaces(networkUUID);
 		} catch (Exception e) {
 			fail("Unable to get network spaces :  " + e.getMessage());
 		} 

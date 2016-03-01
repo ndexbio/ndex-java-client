@@ -226,7 +226,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0010createNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -243,7 +243,7 @@ public class testNetworkAService {
         assertNotNull("createNetwork returned null", networkSummary); 	
             
     	// delete network from the test account
-    	///NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());        
+        NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString());        
     }
 
     /**
@@ -1305,7 +1305,7 @@ public class testNetworkAService {
      * @throws NdexException 
      * @throws IOException 
      */
-    @Test
+    //@Test
     public void test0180searchNetwork() throws IOException, NdexException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);

@@ -156,7 +156,7 @@ public class testNetworkAService {
     	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
     	
 		// start Jetty server in a new instance of JVM
-		jettyServer = JettyServerUtils.startJettyInNewJVM(); 
+	//	jettyServer = JettyServerUtils.startJettyInNewJVM(); 
 		
     	// create user object; the properties describe the current test set-up
         testUser = UserUtils.getNewUser(
@@ -173,6 +173,9 @@ public class testNetworkAService {
         try {
             client = new NdexRestClient(accountName, accountPassword, testServerURL);
             ndex   = new NdexRestClientModelAccessLayer(client);
+            
+    //		testAccount = UserUtils.createUserAccount(ndex, testUser);
+
         } catch (Exception e) {
         	fail("Unable to create ndex client: " + e.getMessage());
         }
@@ -195,7 +198,7 @@ public class testNetworkAService {
     public static void tearDown() throws Exception {
 
     	// stop the Jetty server, remove database; destroy Jetty Server process
-        JettyServerUtils.shutdownServerRemoveDatabase();
+  //      JettyServerUtils.shutdownServerRemoveDatabase();
     }
     
     /**
@@ -205,7 +208,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Before
+    //@Before
     public void restartWithCleanDatabase() {
         // stop Jetty server, remove database from file system, start Jetty server
     	// (i.e., (re)start server with clean database)
@@ -226,7 +229,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    @Test  
+    //@Test  
     public void test0010createNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -294,7 +297,7 @@ public class testNetworkAService {
      * @param   void
      * @return  void
      */
-    //@Test  
+    @Test  
     public void test0030getCompleteReadOnlyNetwork()  {
     	// network in JSON format to be created on the Server via API
     	TreeMap<String, String> testJSONNetworkToCreate = 
@@ -922,8 +925,8 @@ public class testNetworkAService {
 		
 		// restart server without removing the database; we need this to make
 		// sure there is only one user task on the server that we can track
-    	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithoutCleaningDatabase");
-    	assertEquals("unable to restart Jetty Server: ",  "done", responseFromServer);
+    //	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithoutCleaningDatabase");
+    //	assertEquals("unable to restart Jetty Server: ",  "done", responseFromServer);
 		
         // export network; note that the network extension is in UPPER CASE
     	String taskId = NetworkUtils.exportNetwork(ndex, networkUUID, networkFileNameExtension.toUpperCase());

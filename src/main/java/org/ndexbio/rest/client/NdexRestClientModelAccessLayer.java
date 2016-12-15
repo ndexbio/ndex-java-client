@@ -653,7 +653,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
         ((ObjectNode) postData).put("canRead", Boolean.toString(canRead));
         ((ObjectNode) postData).put("includeGroups", Boolean.toString(includeGroups));
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
-		((ObjectNode) postData).put("permission", permissionOnAcc.toString());
+		if ( permissionOnAcc !=null) ((ObjectNode) postData).put("permission", permissionOnAcc.toString());
 		return (List<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
 	}
 	
@@ -1234,7 +1234,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
           {
               //Set various attributes
     		  HttpEntity multiPartEntity = MultipartEntityBuilder.create()
-            		  				.addBinaryBody("CXNetworkStream", input,ContentType.create("application/octet-stream"), "filname").build();
+            		  				.addBinaryBody("CXNetworkStream", input,ContentType.create("application/octet-stream"), "filename").build();
    
               //Set to request body
               httpPost.setEntity(multiPartEntity) ;

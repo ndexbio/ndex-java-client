@@ -342,13 +342,13 @@ public class testUserService
 
         // get the newly created account by name
         try {
-        	newUser2 = ndex.getUser(newUser1.getAccountName());
+        	newUser2 = ndex.getUser(newUser1.getUserName());
         } catch (ObjectNotFoundException e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getMessage());
         }
-        assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
+        assertNotNull("Unable to get user '" + newUser1.getUserName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);
         
 
@@ -356,9 +356,9 @@ public class testUserService
         try {
         	newUser3 = ndex.getUser(newUser1.getExternalId().toString());
         } catch (Exception e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name UUID: " + e.getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name UUID: " + e.getMessage());
         }
-        assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by UUID ", newUser3);
+        assertNotNull("Unable to get user '" + newUser1.getUserName() + "' by UUID ", newUser3);
         UserUtils.compareObjectsContents(newUser2, newUser3);
 
 
@@ -423,13 +423,13 @@ public class testUserService
 
         // get the newly created account by name
         try {
-        	newUser2 = ndex.getUser(newUser1.getAccountName());
+        	newUser2 = ndex.getUser(newUser1.getUserName());
         } catch (ObjectNotFoundException e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getMessage());
         }
-        assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
+        assertNotNull("Unable to get user '" + newUser1.getUserName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);
         
 
@@ -448,13 +448,13 @@ public class testUserService
     	    ndex.setCredentials(account, password);
         	newUser2 = ndex.updateUser(newUser1);
         } catch (ObjectNotFoundException e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getMessage());
         } finally {
         	 ndex.setCredentials(accountName, accountPassword);
         }
-        assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
+        assertNotNull("Unable to get user '" + newUser1.getUserName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);
         
   
@@ -469,13 +469,13 @@ public class testUserService
     	    ndex.setCredentials(account, password);
         	newUser2 = ndex.updateUser(newUser1);
         } catch (ObjectNotFoundException e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getNDExError().getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getNDExError().getMessage());
         } catch (Exception e) {
-        	fail("Unable to get user '" + newUser1.getAccountName() + "' by name: " + e.getMessage());
+        	fail("Unable to get user '" + newUser1.getUserName() + "' by name: " + e.getMessage());
         } finally {
         	 ndex.setCredentials(accountName, accountPassword);
         }
-        assertNotNull("Unable to get user '" + newUser1.getAccountName() + "' by name ", newUser2);
+        assertNotNull("Unable to get user '" + newUser1.getUserName() + "' by name ", newUser2);
         UserUtils.compareObjectsContents(newUser1, newUser2);        
 
 
@@ -561,7 +561,7 @@ public class testUserService
         	ndexLocal.changePassword(newPassword);
         } catch (Exception e) {
         	//ndex.setCredentials(account, password);
-        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
+        	fail("Unable to change password user '" + newUser1.getUserName() + "' : " + e.getMessage());
         }
         
 
@@ -599,7 +599,7 @@ public class testUserService
         try {
         	ndexLocal.changePassword(password); 
         } catch (Exception e) {
-        	fail("Unable to change password user '" + newUser1.getAccountName() + "' : " + e.getMessage());
+        	fail("Unable to change password user '" + newUser1.getUserName() + "' : " + e.getMessage());
         }
 
  

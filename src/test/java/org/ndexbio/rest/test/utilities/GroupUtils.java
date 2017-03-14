@@ -62,9 +62,9 @@ public class GroupUtils {
 	}
 	public static void compareGroupObjectsContents(Group group, Group newGroup) {
 		
-		assertTrue("group names do not match: ", group.getAccountName().equalsIgnoreCase(newGroup.getAccountName()));
+		assertTrue("group names do not match: ", group.getGroupName().equalsIgnoreCase(newGroup.getGroupName()));
 		
-		assertEquals("expect group name not in lower-case : ",   group.getAccountName().toLowerCase(),  newGroup.getAccountName());
+		assertEquals("expect group name not in lower-case : ",   group.getGroupName().toLowerCase(),  newGroup.getGroupName());
 		
 		assertEquals("descriptions do not match: ",    group.getDescription(),      group.getDescription());
 		assertEquals("image URLs do not match: ",      group.getImage(),            newGroup.getImage());

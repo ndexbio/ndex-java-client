@@ -48,7 +48,7 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NewUser;
-import org.ndexbio.model.object.SimpleUserQuery;
+import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.User;
 
 import org.ndexbio.rest.client.NdexRestClient;
@@ -145,7 +145,7 @@ public class testGroupService {
     	
     	group = new Group();
     	
-    	group.setAccountName(groupName);
+    	group.setGroupName(groupName);
     	group.setDescription("This group is used to test GroupService APIs");
     	group.setImage("http://imgur.com/gallery/ukfzg2C");
     	group.setGroupName("UCSD Cytoscape Consortium | NDEx Project");
@@ -250,7 +250,7 @@ public class testGroupService {
     	newGroup = new Group();
 
     	// set the group name to be user/account name
-    	newGroup.setAccountName(accountName);
+    	newGroup.setGroupName(accountName);
     	
     	// initialize other properties
     	newGroup.setDescription(group.getDescription());
@@ -281,7 +281,7 @@ public class testGroupService {
     	newGroup = new Group();
     	
     	// set the group name to be user/account name
-    	newGroup.setAccountName("$!BadName!");
+    	newGroup.setGroupName("$!BadName!");
     	
     	// initialize other properties
     	newGroup.setDescription(group.getDescription());
@@ -325,7 +325,7 @@ public class testGroupService {
         Group newGroup2 = null;
 
     	// initialize properties
-    	newGroup1.setAccountName(group.getAccountName() + System.currentTimeMillis());
+    	newGroup1.setGroupName(group.getGroupName() + System.currentTimeMillis());
     	newGroup1.setDescription(group.getDescription());
     	newGroup1.setImage(group.getImage());
     	newGroup1.setGroupName(group.getGroupName());
@@ -365,7 +365,7 @@ public class testGroupService {
     public void test0006FindGroups() {
     	
     	//SimpleQuery simpleQuery = new SimpleQuery();
-    	SimpleUserQuery simpleUserQuery = new SimpleUserQuery();
+    	SimpleQuery simpleUserQuery = new SimpleQuery();
     	
     	//List<Group> listGroups = ndex.findGroups();
     	

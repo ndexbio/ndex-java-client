@@ -189,7 +189,7 @@ public class NetworkUtils {
         	
             try {
             	// check if networks have uploaded
-                userTasks = ndex.getUserTasks(userAccount.getAccountName(), Status.ALL.toString(), 0, 300);
+                userTasks = ndex.getUserTasks(userAccount.getUserName(), Status.ALL.toString(), 0, 300);
             } catch (Exception e) {
             	fail("Unable to get list of user tasks: " +  e.getMessage());
             }
@@ -201,7 +201,7 @@ public class NetworkUtils {
             status = userTasks.get(0).getStatus();
             	
             if ((status == Status.PROCESSING) || 
-                (status == Status.QUEUED) || (status == Status.QUEUED_FOR_DELETION)) {
+                (status == Status.QUEUED) ) {
                 // network not uploaded yet, sleep and then check again
                 try {
                 	Thread.sleep(10000); 
@@ -221,7 +221,7 @@ public class NetworkUtils {
 		ArrayList<String> uploadedNetworksUUIDs = new ArrayList<String>();
         	
         try {
-           userTasks = ndex.getUserTasks(userAccount.getAccountName(), Status.ALL.toString(), 0, 300);
+           userTasks = ndex.getUserTasks(userAccount.getUserName(), Status.ALL.toString(), 0, 300);
         } catch (Exception e) {
             fail("Unable to get list of user tasks: " +  e.getMessage());
         }
@@ -273,13 +273,11 @@ public class NetworkUtils {
 				
 			switch (status) {
 				case COMPLETED:
-				case COMPLETED_WITH_ERRORS:
-				case COMPLETED_WITH_WARNINGS:
+
 				case FAILED:
 					return status;
 							
 				case QUEUED:
-				case STAGED:
 				case PROCESSING:
 					break;
 				
@@ -314,25 +312,7 @@ public class NetworkUtils {
     		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
 
         
-            // check if the flag is set
-    		if (readOnly)  {
-    			// trying to set readOnly flag to true; make sure that network is cached.
-    			// if network is not cached, we want to wait until it is cached.
-    			if ((networkSummary.getReadOnlyCommitId() > 0) && (networkSummary.getReadOnlyCacheId() > 0)) {
-    				//System.out.println("\n\nnetworkSummary.getReadOnlyCommitId()=" + networkSummary.getReadOnlyCommitId() + 
-    				//		            "   networkSummary.getReadOnlyCacheId()=" + networkSummary.getReadOnlyCacheId());
-    				return;
-    			}
-    			
-    		} else {
-    			
-    			// trying to set readOnly flag to false
-    			if ((networkSummary.getReadOnlyCommitId() < 0) && (networkSummary.getReadOnlyCacheId() < 0)) {
-    				//System.out.println("\n\nnetworkSummary.getReadOnlyCommitId()=" + networkSummary.getReadOnlyCommitId() + 
-				    //        "   networkSummary.getReadOnlyCacheId()=" + networkSummary.getReadOnlyCacheId());
-    				return;
-    			}
-    		}
+  
     		
             //  sleep and then check again
             try {
@@ -406,13 +386,7 @@ public class NetworkUtils {
         assertEquals("node count doesn't match",  network1.getNodeCount(),    network1.getNodes().size());
         assertEquals("node count doesn't match",  network2.getNodeCount(),    network2.getNodes().size());       
      
-        assertEquals("isComplete doesn't match",  network1.getIsComplete(),   network2.getIsComplete());
-        assertEquals("isLocked   doesn't match",  network1.getIsLocked(),     network2.getIsLocked());
-        assertEquals("visibility doesn't match",  network1.getVisibility(),   network2.getVisibility());
-        if (compareReadOnly) {
-           assertEquals("readOnlyCommitId doesn't match",  network1.getReadOnlyCommitId(), network2.getReadOnlyCommitId());
-           assertEquals("readOnlyCacheId doesn't match",  network1.getReadOnlyCacheId(),   network2.getReadOnlyCacheId());
-        }
+         assertEquals("visibility doesn't match",  network1.getVisibility(),   network2.getVisibility());
         assertEquals("name doesn't match",    network1.getName(),    network2.getName());        
         assertEquals("owner doesn't match",   network1.getOwner(),   network2.getOwner());               
         //assertEquals("URI doesn't match",     network1.getURI(),     network2.getURI()); 
@@ -487,11 +461,7 @@ public class NetworkUtils {
         assertEquals("node count doesn't match",  network.getNodeCount(),    networkSummary.getNodeCount());
         assertEquals("node count doesn't match",  network.getNodes().size(), networkSummary.getNodeCount());
      
-        assertEquals("isComplete doesn't match",  network.getIsComplete(),   networkSummary.getIsComplete());
-        assertEquals("isLocked   doesn't match",  network.getIsLocked(),     networkSummary.getIsLocked());
         assertEquals("visibility doesn't match",  network.getVisibility(),   networkSummary.getVisibility());   
-        assertEquals("readOnlyCommitId doesn't match",  network.getReadOnlyCommitId(), networkSummary.getReadOnlyCommitId());
-        assertEquals("readOnlyCacheId doesn't match",  network.getReadOnlyCacheId(),   networkSummary.getReadOnlyCacheId());
         assertEquals("name doesn't match",    network.getName(),    networkSummary.getName());        
         assertEquals("owner doesn't match",   network.getOwner(),   networkSummary.getOwner());               
         assertEquals("URI doesn't match",     network.getURI(),     networkSummary.getURI()); 

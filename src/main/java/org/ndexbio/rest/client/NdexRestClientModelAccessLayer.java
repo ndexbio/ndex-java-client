@@ -72,7 +72,6 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePathQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
-import org.ndexbio.model.object.SimpleUserQuery;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -84,7 +83,6 @@ import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.Node;
-import org.ndexbio.model.object.network.PropertyGraphNetwork;
 import org.ndexbio.model.object.network.Support;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -129,7 +127,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return status;	
     }
     
-    public void shutDownJettyServer() throws IOException  {
+  /*  public void shutDownJettyServer() throws IOException  {
     	String route = "/admin/shutdown";
 
     	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
@@ -145,7 +143,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
 		return;
     }
-    
+*/    
     
 	/*-----------------------------------------
 	 * 
@@ -443,7 +441,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Search for users
 //			user	POST	/user/search/{skipBlocks}/{blockSize}	SimpleUserQuery	User[]
 	@SuppressWarnings("unchecked")
-	public List<User> findUsers(SimpleUserQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
+	public List<User> findUsers(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (List<User>)ndexRestClient.postNdexObjectList("/user/search"  + skipBlocks  + "/" + blockSize , postData, User.class);
 	}
@@ -1016,152 +1014,6 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Networks as Property Graphs 
     //-----------------------------------
     
-    // Utility to strip UUID before writing, ensure that we create new network
-    private void removeUUIDFromNetwork(PropertyGraphNetwork network) {
-	    int counter=0;
-	  	for ( NdexPropertyValuePair p : network.getProperties()) {
-				  if ( p.getPredicateString().equals(PropertyGraphNetwork.uuid)) {
-					  network.getProperties().remove(counter);
-					  return ;
-				  }
-				  counter++;
-		}
-   }
-
-//	network	GET	/network/{networkUUID}/edge/asPropertyGraph/{skipBlocks}/{blockSize}		PropertyGraphNetwork
-	public PropertyGraphNetwork getPropertyGraphNetwork(String networkId, int skipBlocks, int blockSize) throws JsonProcessingException, IOException {
-/*		String route = "/network/"+networkUUID + "/asPropertyGraph/query/" + skipBlocks +"/" +blockSize ;		
-		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
-		((ObjectNode) postData).put("searchString", "");
-		((ObjectNode) postData).put("top", blockSize);
-		((ObjectNode) postData).put("skip", skipBlocks);
-
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-*/
-		String route = "/network/"+ networkId + "/edge/asPropertyGraph/" + skipBlocks +"/" +blockSize ;		
-		InputStream input = null;
-		HttpURLConnection con = null;
-		try {
-			con = ndexRestClient.getReturningConnection(route, "");
-			input = con.getInputStream();
-			// TODO 401 error handling
-			return objectMapper.readValue(input, PropertyGraphNetwork.class);
-
-		} finally {
-			if ( input != null ) input.close();
-			if ( con != null )con.disconnect();
-		}
-		/*
-    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
-		InputStream inputStream = con.getInputStream();
-		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
-		inputStream.close();
-		con.disconnect();
-
-		return network;
-		*/
-
-	}
-
-//	network	GET	/network/{networkUUID}/asPropertyGraph		PropertyGraphNetwork
-	public PropertyGraphNetwork getPropertyGraphNetwork(String networkId) throws JsonProcessingException, IOException {
-		String route = "/network/"+ networkId + "/asPropertyGraph";
-		
-		InputStream input = null;
-		HttpURLConnection con = null;
-		try {
-			con = ndexRestClient.getReturningConnection(route, "");
-			input = con.getInputStream();
-			// TODO 401 error handling
-			return objectMapper.readValue(input, PropertyGraphNetwork.class);
-
-		} finally {
-			if ( input != null) input.close();
-			if  (con!=null) con.disconnect();
-		}
-		/*
-    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
-		InputStream inputStream = con.getInputStream();
-		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
-		inputStream.close();
-		con.disconnect();
-
-		return network;
-		*/
-	}
-
-//	network	POST	/network/asPropertyGraph	PropertyGraphNetwork	NetworkSummary
-	public NetworkSummary insertPropertyGraphNetwork(PropertyGraphNetwork network) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/asPropertyGraph";
-		removeUUIDFromNetwork(network);
-		JsonNode postData = objectMapper.valueToTree(network);
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-
-		/*
-		JsonNode node = objectMapper.valueToTree(network);
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, node);
-		InputStream inputStream = con.getInputStream();
-		NetworkSummary summary = objectMapper.readValue(inputStream, NetworkSummary.class);
-		inputStream.close();
-		con.disconnect();
-		return summary;
-		*/
-	}
-
-//	network	POST	/network/asPropertyGraph/group/{group UUID}	PropertyGraphNetwork	NetworkSummary
-	public NetworkSummary createNetworkForGroupFromPropertyGraphNetwork(
-			PropertyGraphNetwork network, 
-			String groupId) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/asPropertyGraph/group/" + groupId;
-		removeUUIDFromNetwork(network);
-		JsonNode postData = objectMapper.valueToTree(network);
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-
-		/*
-		
-		JsonNode node = objectMapper.valueToTree(network);
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, node);
-		InputStream inputStream = con.getInputStream();
-		NetworkSummary summary = objectMapper.readValue(inputStream, NetworkSummary.class);
-		inputStream.close();
-		con.disconnect();
-		return summary;
-		*/
-	}	
-	
-	// Neighborhood PathQuery
-//	network	POST	/network/{networkUUID}/asPropertyGraph/query	SimplePathQuery	PropertyGraphNetwork	
-    public PropertyGraphNetwork getNeighborhoodAsPropertyGraph(String networkId, String queryTerm, int depth, int edgeLimit) throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId +"/asPropertyGraph/query";		
-		
-		InputStream input = null;
-		HttpURLConnection con = null;
-		try {
-			
-			JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
-			((ObjectNode) postData).put("searchString", queryTerm);
-			((ObjectNode) postData).put("searchDepth", depth);
-			((ObjectNode) postData).put("edgeLimit", edgeLimit);
-
-			con = ndexRestClient.postReturningConnection(route, postData);
-			input = con.getInputStream();
-			// TODO 401 error handling
-			return objectMapper.readValue(input, PropertyGraphNetwork.class);
-
-		} finally {
-			if ( input !=null ) input.close();
-			if ( con != null ) con.disconnect();
-		}
-/*
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-		InputStream inputStream = con.getInputStream();
-		PropertyGraphNetwork network = objectMapper.readValue(inputStream, PropertyGraphNetwork.class);
-		inputStream.close();
-		con.disconnect();
-
-		return network;
-		*/
-    }
 
     //	network	GET	/network/{networkId}/setFlag/{parameter}={value}	
     //  current supported parameters are   "readOnly={true|false}"
@@ -1169,7 +1021,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		String route = "/network/" + networkId +"/setFlag/" + parameter + "=" + value;
 
         try {
-            JsonNode node = ndexRestClient.get(route, "");     // set network flag 
+            JsonNode node = ndexRestClient.put(route, null);     // set network flag 
             return (null == node) ? null : node.asText();      // return old value of the flag received from server
             
         } catch (IOException e) {

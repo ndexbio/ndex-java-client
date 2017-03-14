@@ -83,7 +83,7 @@ public class UserUtils {
 	
 	public static void compareObjectsContents(User user1, NewUser user2) {
 		
-        assertEquals("account names do not match: ",   user1.getAccountName(),  user2.getAccountName());
+        assertEquals("account names do not match: ",   user1.getUserName(),  user2.getAccountName());
         assertEquals("descriptions do not match: ",    user1.getDescription(),  user2.getDescription());
         assertEquals("email addresses do not match: ", user1.getEmailAddress(), user2.getEmailAddress());
         assertEquals("first names do not match: ",     user1.getFirstName(),    user2.getFirstName());
@@ -96,7 +96,7 @@ public class UserUtils {
 	
 	public static void compareObjectsContents(User user1, User user2) {
 		
-        assertEquals("account names do not match: ",   user1.getAccountName(),  user2.getAccountName());
+        assertEquals("account names do not match: ",   user1.getUserName(),  user2.getUserName());
         assertEquals("descriptions do not match: ",    user1.getDescription(),  user2.getDescription());
         assertEquals("disk quotas do not match: ",     user1.getDiskQuota(),    user2.getDiskQuota());
         assertEquals("disk used do not match: ",       user1.getDiskUsed(),     user2.getDiskUsed());

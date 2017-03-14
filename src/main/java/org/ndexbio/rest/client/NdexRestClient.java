@@ -551,6 +551,9 @@ public class NdexRestClient {
 			ObjectMapper mapper = new ObjectMapper();
 
 			con = putReturningConnection(route, putData);
+			if ( con.getResponseCode() == 204) 
+				return null;
+			
 			input = con.getInputStream();
 			// TODO 401 error handling
 			return mapper.readTree(input);
@@ -601,7 +604,7 @@ public class NdexRestClient {
 		con.setRequestProperty("Content-Type", "application/json");
 		con.setRequestProperty("Accept", "application/json");
 		OutputStreamWriter out = new OutputStreamWriter(con.getOutputStream());
-		String putDataString = objectMapper.writeValueAsString(putData);
+		String putDataString = putData == null? "" : objectMapper.writeValueAsString(putData);
 		out.write(putDataString);
 		out.flush();
 		out.close();

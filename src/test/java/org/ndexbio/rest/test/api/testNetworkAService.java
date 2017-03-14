@@ -325,15 +325,7 @@ public class testNetworkAService {
             // download the newly created network in read-only mode
 		    network = NetworkUtils.getNetwork(ndex, networkUUID); 
 		    
-		    long readOnlyCacheId  = network.getReadOnlyCacheId();
-		    long readOnlyCommitId = network.getReadOnlyCommitId();
-		    
-			assert  (readOnlyCacheId > 0)  : "readOnlyCacheId = "  + readOnlyCacheId;
-			assert  (readOnlyCommitId > 0) : "readOnlyCommitId = " + readOnlyCommitId;
-			assert  (readOnlyCommitId == network.getReadOnlyCacheId()) : 
-				"readOnlyCommitId = " + readOnlyCommitId + " readOnlyCacheId = "  + readOnlyCacheId;
-			
-			
+		
 		    // set network back to read-write mode before deleting it
 	        NetworkUtils.setReadOnlyFlag(ndex, networkUUID, false);
 	 

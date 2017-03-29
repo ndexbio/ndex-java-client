@@ -54,9 +54,11 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
@@ -96,7 +98,7 @@ public class NdexRestClient {
 
 	@Deprecated
 	// Default to localhost, standard location for testing
-	public NdexRestClient(String username, String password) {
+/*	public NdexRestClient(String username, String password) {
 		this(username,password, "http://localhost:8080/ndexbio-rest");
 	}
 
@@ -108,7 +110,7 @@ public class NdexRestClient {
 		this.authnType = authenType;
 		if ( authnType == AuthenticationType.SAML)
 			getSAMLResponse();
-	}
+	} */
 
 	private void getSAMLResponse() throws Exception {
 		String requestStr = NdexRestClientUtilities.encodeMessage(createSAMLRequest());
@@ -623,26 +625,19 @@ public class NdexRestClient {
 		}
 	}
 	
-	public Object putNdexObject(
+	public void putNdexObject(
 			final String route, 
-			final JsonNode putData,
-			final Class<? extends Object>  mappedClass)
-			throws JsonProcessingException, IOException {
-		InputStream input = null;
+			final JsonNode putData)
+			throws IllegalStateException, Exception {
 		HttpURLConnection con = null;
 		try {
 
-			ObjectMapper mapper = new ObjectMapper();
-
 			con = putReturningConnection(route, putData);
-			input = con.getInputStream();
-			if (null != input){
-				return mapper.readValue(input, mappedClass);
+			if ( con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT) {
+          	  	throw createNdexSpecificException(con);
 			}
-			throw new IOException("failed to connect to ndex");
 
 		} finally {
-			if (null != input) input.close();
 			if ( con != null) con.disconnect();
 		}
 	}
@@ -1182,4 +1177,33 @@ public class NdexRestClient {
 		this._userUid = _userUid;
 	}
 
+	
+	private  Exception createNdexSpecificException(
+			HttpURLConnection conn) throws JsonParseException, JsonMappingException, IllegalStateException, IOException {
+
+			ObjectMapper mapper = new ObjectMapper();
+			NDExError ndexError = mapper.readValue(conn.getInputStream(), NDExError.class);
+			
+			switch (conn.getResponseCode() ) {
+	            case (HttpURLConnection.HTTP_UNAUTHORIZED):
+	    	        // httpServerResponseCode is HTTP Status-Code 401: Unauthorized.
+	    	        return new UnauthorizedOperationException(ndexError);
+	        
+		        case (HttpURLConnection.HTTP_NOT_FOUND):
+		    	    // httpServerResponseCode is HTTP Status-Code 404: Not Found.
+		    	    return  new ObjectNotFoundException(ndexError);
+		    
+			    case (HttpURLConnection.HTTP_CONFLICT):
+			    	// httpServerResponseCode is HTTP Status-Code 409: Conflict.
+			    	return new DuplicateObjectException(ndexError);
+			    
+			    case (HttpURLConnection.HTTP_FORBIDDEN):
+			    	// httpServerResponseCode is HTTP Status-Code 403: Forbidden.
+			    	return  new ForbiddenOperationException(ndexError);
+			    
+			    default:
+			    	// default case is: HTTP Status-Code 500: Internal Server Error.
+			    	return new NdexException(ndexError);
+			}
+		}
 }

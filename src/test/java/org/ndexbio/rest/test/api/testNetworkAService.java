@@ -1074,7 +1074,7 @@ public class testNetworkAService {
 		
 		
 		// network networkUUID1 will have all 6 properties assigned
-		int propertyCount = NetworkUtils.setNetworkProperties(ndex, networkUUID1, properties);
+	/*	int propertyCount = NetworkUtils.setNetworkProperties(ndex, networkUUID1, properties);
 		assertEquals(6, propertyCount);
 		
 		// network networkUUID2 will have properties 1, 2, 3, 4, 5 assigned
@@ -1100,7 +1100,7 @@ public class testNetworkAService {
 		// network networkUUID6 will only have property 1 assigned to it
 		properties.remove(1);
 		propertyCount = NetworkUtils.setNetworkProperties(ndex, networkUUID6, properties);
-		assertEquals(1, propertyCount);
+		assertEquals(1, propertyCount);*/
 		
 		
 		// create property filter for querying the database for networks with specific properties
@@ -1234,8 +1234,8 @@ public class testNetworkAService {
 		
 
 		// assign these 6 properties to the network 
-		int propertyCount = NetworkUtils.setNetworkProperties(ndex, networkUUID, properties);
-		assertEquals("wrong number of properties : ", 6, propertyCount);
+		//int propertyCount = NetworkUtils.setNetworkProperties(ndex, networkUUID, properties);
+		//assertEquals("wrong number of properties : ", 6, propertyCount);
    
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);
@@ -1246,8 +1246,8 @@ public class testNetworkAService {
 		
     	// clear the network provenance 
     	ProvenanceEntity newProvenance = new ProvenanceEntity();
-    	ProvenanceEntity setProvenance = NetworkUtils.setProvenance(ndex, networkUUID, newProvenance);
-    	assertNotNull("failed to set provenance : ", setProvenance);
+    	NetworkUtils.setProvenance(ndex, networkUUID, newProvenance);
+    	//assertNotNull("failed to set provenance : ", setProvenance);
     	
 		
     	Network network = NetworkUtils.getNetwork(ndex, networkUUID);
@@ -1258,8 +1258,8 @@ public class testNetworkAService {
 		properties.remove(3);	
 		network.setProperties(properties);
 		
-		NetworkSummary updatedNetwork = NetworkUtils.updateNetwork(ndex, network);
-		assertNotNull("failed to update network : ", updatedNetwork);
+		NetworkUtils.updateNetwork(ndex, network);
+		//assertNotNull("failed to update network : ", updatedNetwork);
     	
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);
@@ -1275,8 +1275,8 @@ public class testNetworkAService {
 		properties.add(property6);
 		network.setProperties(properties);
 		
-		updatedNetwork = NetworkUtils.updateNetwork(ndex, network);
-		assertNotNull("failed to update network : ", updatedNetwork);
+		NetworkUtils.updateNetwork(ndex, network);
+		//assertNotNull("failed to update network : ", updatedNetwork);
     	
 		provenance = NetworkUtils.getProvenance(ndex, networkUUID);
     	assertNotNull("provenace is null", provenance);

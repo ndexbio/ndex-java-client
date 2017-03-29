@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -75,7 +74,6 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePathQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
-import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -803,10 +801,10 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Update network
 //	network	PUT	/network/asNetwork	Network	NetworkSummary
-	public NetworkSummary updateNetwork(Network network) throws Exception {
+	public void updateNetwork(Network network) throws Exception {
 		String route = "/network/asNetwork";
 		JsonNode postData = objectMapper.valueToTree(network);
-		return (NetworkSummary) ndexRestClient.putNdexObject(route, postData, NetworkSummary.class);
+		ndexRestClient.putNdexObject(route, postData);
 	}
 	
 	// Update network profile
@@ -848,12 +846,11 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 
 	//	network	PUT	/network/{networkUUID}/properties		
-	public int setNetworkProperties(String networkId,
-			 List<NdexPropertyValuePair> properties) throws JsonProcessingException, IOException {
+	public void setNetworkProperties(String networkId,
+			 List<NdexPropertyValuePair> properties) throws IllegalStateException, Exception {
 		String route = "/network/" + networkId + "/properties";	
 		JsonNode putData = objectMapper.valueToTree(properties);
-		Object obj = ndexRestClient.putNdexObject(route, putData, int.class); 
-		return (null == obj) ? -1 : ((Integer)obj).intValue();
+		ndexRestClient.putNdexObject(route, putData); 
 	}
 	
 	// Get network provenance object
@@ -867,13 +864,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 	// Update network provenance object
 //	network	PUT	/network/{networkUUID}/provenance	Provenance	
-	public ProvenanceEntity setNetworkProvenance(
+	public void setNetworkProvenance(
 			String networkId,
 			ProvenanceEntity provenance) 
-			throws JsonProcessingException, IOException {
+			throws IllegalStateException, Exception {
 		String route = "/network/" + networkId + "/provenance";	
 		JsonNode putData = objectMapper.valueToTree(provenance);
-		return (ProvenanceEntity) ndexRestClient.putNdexObject(route, putData, ProvenanceEntity.class);
+	    ndexRestClient.putNdexObject(route, putData);
 	}
 	
     //-----------------------------------
@@ -1097,7 +1094,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
     	  CloseableHttpClient client = HttpClients.createDefault();
-    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + "/network/asCX");
+    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + "/network");
 
     	  try
           {
@@ -1118,7 +1115,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
               //Verify response if any
               if (response != null)
               {
-                  if ( response.getStatusLine().getStatusCode() != 200) {
+                  if ( response.getStatusLine().getStatusCode() != 201) {
                 	  
                 	  throw createNdexSpecificException(response);
                   }
@@ -1126,8 +1123,10 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
                   StringWriter writer = new StringWriter();
                   IOUtils.copy(in, writer, "UTF-8");
                   String theString = writer.toString();
-                  System.out.println(theString);
-                  return UUID.fromString(theString);
+                  int pos = theString.lastIndexOf("/");
+                  String uuidStr = theString.substring(pos+1);
+             //     System.out.println(uuidStr);
+                  return UUID.fromString(uuidStr);
               }
               
               throw new NdexException ("No response from the server.");
@@ -1165,6 +1164,8 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 			    	return new NdexException(ndexError);
 			}
 		}
+
+
 
 	
 	   public UUID updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {

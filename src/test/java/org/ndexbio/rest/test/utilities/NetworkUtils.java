@@ -421,14 +421,12 @@ public class NetworkUtils {
 		return networkSummary;
 	}
 
-	public static NetworkSummary updateNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
-		NetworkSummary networkSummary = null;
+	public static void updateNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
     	try {
-			networkSummary = ndex.updateNetwork(network);
+			ndex.updateNetwork(network);
 		} catch (Exception  e) {
 			fail("Unable to update network " + network.getExternalId() + " : " + e.getMessage());
 		}
-		return networkSummary;
 	}
 
 	public static void compareObjectsContents(Network network, NetworkSummary networkSummary) {
@@ -573,16 +571,14 @@ public class NetworkUtils {
 		return network;
 	}
 
-	public static int setNetworkProperties(NdexRestClientModelAccessLayer ndex,
+	public static void setNetworkProperties(NdexRestClientModelAccessLayer ndex,
 			String networkUUID, List<NdexPropertyValuePair> properties) {
-		int propertyCount = -1;
 		
 		try {
-			propertyCount = ndex.setNetworkProperties(networkUUID, properties);
+			ndex.setNetworkProperties(networkUUID, properties);
 		} catch (Exception e) {
 			fail("unable to set network properties : " + e.getMessage());
 		}
-		return propertyCount;
 	}
 
 	public static Collection<NetworkSummary> searchNetworkByPropertyFilter(
@@ -631,15 +627,13 @@ public class NetworkUtils {
 		return provenance;
 	}
 
-	public static ProvenanceEntity setProvenance(
+	public static void setProvenance(
 			NdexRestClientModelAccessLayer ndex, String networkUUID, ProvenanceEntity newProvenance) {
-		ProvenanceEntity provenance = null;
 		try {
-			provenance = ndex.setNetworkProvenance(networkUUID, newProvenance);
-		} catch (IOException e) {
+			ndex.setNetworkProvenance(networkUUID, newProvenance);
+		} catch (Exception e) {
 			fail("unable to set network provenance : " + e.getMessage());
 		}	
-		return provenance;
 	}
 
 	public static ArrayList<NetworkSummary> searchNetwork(

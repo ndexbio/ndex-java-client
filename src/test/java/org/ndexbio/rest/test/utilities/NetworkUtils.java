@@ -30,6 +30,10 @@
  */
 package org.ndexbio.rest.test.utilities;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -41,66 +45,42 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-
-import org.ndexbio.common.access.NdexDatabase;
-import org.ndexbio.common.models.dao.orientdb.TaskDocDAO;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.exceptions.ObjectNotFoundException;
-import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.network.query.NetworkPropertyFilter;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
-import org.ndexbio.model.object.NewUser;
+import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimpleNetworkQuery;
-import org.ndexbio.model.object.SimplePropertyValuePair;
+import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Citation;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.FunctionTerm;
 import org.ndexbio.model.object.network.Namespace;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.model.object.network.Node;
-import org.ndexbio.model.object.network.ReifiedEdgeTerm;
-import org.ndexbio.model.object.network.Support;
-import org.ndexbio.model.object.network.VisibilityType;
-import org.ndexbio.rest.annotations.ApiDoc;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 
 public class NetworkUtils {
 	
     public static void deleteNetworks(
     		NdexRestClientModelAccessLayer ndex, String accountName, 
-    		Map<String, String> networks) {
+    		Map<String, String> networks) throws NdexException {
     	
     	// list of all networks from the test account 
-    	List<NetworkSummary> allNetworks = null;
+    	NetworkSearchResult allNetworks = null;
     	
     	int count = (networks != null) ? networks.size() : 0;
     	
 		try {
 			allNetworks =
-			    ndex.findNetworks("*", true,  accountName, Permissions.ADMIN, false, 0, count);
+			    ndex.findNetworks("*",   accountName, Permissions.ADMIN, false, 0, count);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -109,7 +89,7 @@ public class NetworkUtils {
 			return;
 		}
 		
-        for (NetworkSummary network : allNetworks) {
+        for (NetworkSummary network : allNetworks.getNetworks()) {
             String networkUUIDToDelete = network.getExternalId().toString();	  
             try {
                 ndex.deleteNetwork(networkUUIDToDelete);

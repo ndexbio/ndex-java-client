@@ -71,6 +71,8 @@ import org.ndexbio.common.models.dao.orientdb.CXNetworkExporter;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.NdexStatus;
+import org.ndexbio.model.object.NetworkSearchResult;
+import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 
@@ -79,14 +81,15 @@ public class NdexRestClientTest {
 	
 	private NdexRestClient client;
 	private NdexRestClientModelAccessLayer ndex;
-    private static String _username = "cj2";
-    private static String _password = "cj2";
+    private static String _username = "cj1";
+    private static String _password = "aaa";
+    private static String _route = "http://dev.ndexbio.org/v2";
 		
 	@Before
 	public void setUp() throws Exception {
 //		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
 		
-        client = new NdexRestClient(_username, _password);
+        client = new NdexRestClient(_username, _password, _route);
 
   //     client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
 
@@ -106,6 +109,9 @@ public class NdexRestClientTest {
     @Test
     public void testCreateCXNetwork() throws IllegalStateException, Exception {
     	
+    	NetworkSearchResult r = 
+    			ndex.findNetworks("", null, 0, 1000);
+    	System.out.println(r);
     	CXSimplePathQuery query = new CXSimplePathQuery ();
     	query.setSearchDepth(1);
     	query.setSearchString("CALC");

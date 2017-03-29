@@ -37,6 +37,8 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 
 import org.apache.commons.io.IOUtils;
@@ -63,6 +65,7 @@ import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
+import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
@@ -72,6 +75,7 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePathQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
+import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -87,6 +91,7 @@ import org.ndexbio.model.object.network.Support;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -378,7 +383,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Authenticate user 
 //			user	GET	/user/authenticate	
 	public User authenticateUser(String userName, String password) throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/authenticate", userName,  password, "", User.class);
+		return (User) ndexRestClient.getNdexObject("/user?valid=true", userName,  password, "", User.class);
 	}
 	
 	
@@ -386,8 +391,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Get group permissions of user as list of memberships
 //			user	GET	/user/{userUUID}/group/{permission}/{skipBlocks}/{blockSize}		Membership[]
 	@SuppressWarnings("unchecked")
-	public List<Membership> getUserGroupPermissions(String userId, String permission, int skipBlocks, int blockSize) throws IOException {
-		return (List<Membership>) ndexRestClient.getNdexObjectList("/user/"+ userId + "/group/" + permission  + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
+	public Map<UUID,Permissions> getUserGroupPermissions(String userId, String permission, int skipBlocks, int blockSize) throws IOException, NdexException {
+		return (Map<UUID,Permissions>) ndexRestClient.getNdexObjectWithTypeReference("/user/"+ userId + "/membership?type=" + permission  + 
+				"&start=" + skipBlocks  + "&size=" + blockSize , "", (new TypeReference<Map<UUID,Permissions>>() {}));
 	}
 	
 	// Get network permissions of user as list of memberships
@@ -595,22 +601,23 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * @return
 	 * @throws JsonProcessingException
 	 * @throws IOException
+	 * @throws NdexException 
 	 */
 //	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
 	@SuppressWarnings("unchecked")
-	public List<NetworkSummary> findNetworks(
+	public NetworkSearchResult findNetworks(
 			String searchString,
-            boolean canRead,
 			String accountName,
 			int skipBlocks, 
 			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
+			throws JsonProcessingException, IOException, NdexException {
+		String route = "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
-        ((ObjectNode) postData).put("canRead", Boolean.toString(canRead));
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
-		return (List<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
+	//	return (SolrSearchResult<NetworkSummary> )ndexRestClient.postNdexObject(route, postData, SolrSearchResult.class);
+		return (NetworkSearchResult)ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
+		
 /*
 		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
 		InputStream inputStream = con.getInputStream();
@@ -622,6 +629,15 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		*/
 	}
 
+	public List<NetworkSummary> getMyNetworks(UUID userId) 
+			throws JsonProcessingException, IOException {
+		
+		String route = "/user/"+ userId.toString() + "/summary";		
+		return (List<NetworkSummary>) ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
+
+	}
+
+	
 	
 //	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
 	@SuppressWarnings("unchecked")
@@ -636,23 +652,24 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<NetworkSummary> findNetworks(
+	public NetworkSearchResult findNetworks(
 			String searchString,
-            boolean canRead,
 			String accountName,
 			Permissions permissionOnAcc,
 			boolean includeGroups,
 			int skipBlocks, 
 			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
+			throws JsonProcessingException, IOException, NdexException {
+		String route = "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
-        ((ObjectNode) postData).put("canRead", Boolean.toString(canRead));
         ((ObjectNode) postData).put("includeGroups", Boolean.toString(includeGroups));
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
 		if ( permissionOnAcc !=null) ((ObjectNode) postData).put("permission", permissionOnAcc.toString());
-		return (List<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
+		return (NetworkSearchResult )ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
+
+//		return (SolrSearchResult<NetworkSummary> )ndexRestClient.postNdexObject(route, postData, SolrSearchResult.class);
+		
 	}
 	
 	// Networks in standard NDEx object model
@@ -720,7 +737,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	
 	public InputStream getNetworkAsCXStream(String id) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + id + "/asCX";
+		String route = "/network/" + id ;
 		return  ndexRestClient.getStream(route, "");
 	}
 

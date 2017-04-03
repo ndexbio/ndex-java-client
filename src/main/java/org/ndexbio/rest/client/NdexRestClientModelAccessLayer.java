@@ -601,9 +601,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * @throws IOException
 	 * @throws NdexException 
 	 */
-//	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
-	@SuppressWarnings("unchecked")
-	public NetworkSearchResult findNetworks(
+public NetworkSearchResult findNetworks(
 			String searchString,
 			String accountName,
 			int skipBlocks, 
@@ -630,7 +628,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public List<NetworkSummary> getMyNetworks(UUID userId) 
 			throws JsonProcessingException, IOException {
 		
-		String route = "/user/"+ userId.toString() + "/summary";		
+		String route = "/user/"+ userId.toString() + "/networksummary";		
 		return (List<NetworkSummary>) ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
 
 	}
@@ -649,7 +647,6 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (ArrayList<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public NetworkSearchResult findNetworks(
 			String searchString,
 			String accountName,

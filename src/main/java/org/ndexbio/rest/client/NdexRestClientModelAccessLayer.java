@@ -400,6 +400,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public List<Membership> getUserNetworkPermissions(String userId, String permission, int skipBlocks, int blockSize) throws IOException {
 		return (List<Membership>) ndexRestClient.getNdexObjectList("/user/"+ userId + "/network/" + permission  + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
 	}	
+
+	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException {
+		
+		return (Map<String,Permissions>) ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
+				  "", String.class, Permissions.class);
+	}	
+
 	
 	// Get tasks owned by user, filtered by status
 //			user	GET	/user/{userUUID}/task/{status}/{skipBlocks}/{blockSize}		Task[]

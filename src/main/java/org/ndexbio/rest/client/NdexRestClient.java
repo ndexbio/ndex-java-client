@@ -42,7 +42,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
@@ -562,6 +564,33 @@ public class NdexRestClient {
 		}
 	}
 
+	protected Map<? extends Object, ? extends Object> getHashMap(
+			final String route, 
+			final String query,
+			final Class<? extends Object> keyClass,
+			final Class<? extends Object> valueClass)
+			throws JsonProcessingException, IOException {
+		InputStream input = null;
+		HttpURLConnection con = null;
+		try {
+			
+			ObjectMapper mapper = new ObjectMapper();
+			JavaType type = mapper.getTypeFactory().constructMapType(HashMap.class, keyClass, valueClass);
+
+			con = getReturningConnection(route, query);
+			input = con.getInputStream();
+			if (null != input){
+				return mapper.readValue(input, type);
+			}
+			throw new IOException("failed to connect to ndex");
+
+		} finally {
+			if (null != input) input.close();
+			if ( con != null) con.disconnect();
+		}
+	}
+
+	
 	public HttpURLConnection getReturningConnection(final String route,
 			final String query) throws IOException {
 		

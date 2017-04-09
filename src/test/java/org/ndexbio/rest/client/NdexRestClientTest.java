@@ -142,8 +142,8 @@ public class NdexRestClientTest {
     	
             FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
    			
-            UUID u = ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"), s);
-            System.out.println("network created. New UUID: " + u) ;
+            ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"), s);
+            System.out.println("network updated." ) ;
            // s.close(); 
     }
 

@@ -568,7 +568,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
 	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException, NdexException {
-		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId, "", NetworkSummary.class);
+		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
 		//String route = "/network/"+networkId;			
     	//HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
 		//InputStream inputStream = con.getInputStream();
@@ -904,7 +904,6 @@ public NetworkSearchResult findNetworks(
 		return (List<FunctionTerm>) ndexRestClient.getNdexObjectList(route, "", FunctionTerm.class);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void addNetworkNamespace(
 			String networkId,
 			Namespace nameSpace) 
@@ -1114,26 +1113,31 @@ public NetworkSearchResult findNetworks(
               httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
                        
               //Send request
-      	    CloseableHttpResponse response = client.execute(httpPost);
+      	    try (CloseableHttpResponse response = client.execute(httpPost) ) {
                
               //Verify response if any
               if (response != null)
               {
                   if ( response.getStatusLine().getStatusCode() != 201) {
                 	  
-                	  throw createNdexSpecificException(response);
+                	  Exception e = createNdexSpecificException(response);
+                	  throw e;
                   }
-                  InputStream in = response.getEntity().getContent();
-                  StringWriter writer = new StringWriter();
-                  IOUtils.copy(in, writer, "UTF-8");
-                  String theString = writer.toString();
-                  int pos = theString.lastIndexOf("/");
-                  String uuidStr = theString.substring(pos+1);
+                  try (InputStream in = response.getEntity().getContent()) {
+                	  StringWriter writer = new StringWriter();
+                	  IOUtils.copy(in, writer, "UTF-8");
+                	  String theString = writer.toString();
+                	  int pos = theString.lastIndexOf("/");
+                	  String uuidStr = theString.substring(pos+1);
              //     System.out.println(uuidStr);
-                  return UUID.fromString(uuidStr);
+                  
+                	  UUID networkId = UUID.fromString(uuidStr);
+                  	return networkId;
+                  }
               }
               
               throw new NdexException ("No response from the server.");
+      	    }
           }  finally {
         	    client.close();
           }
@@ -1172,9 +1176,9 @@ public NetworkSearchResult findNetworks(
 
 
 	
-	   public UUID updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+	   public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
 	    	  CloseableHttpClient client = HttpClients.createDefault();
-	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + "/network/asCX/" + networkUUID.toString());
+	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + "/network/" + networkUUID.toString());
 
 	    	  try
 	          {
@@ -1190,24 +1194,18 @@ public NetworkSearchResult findNetworks(
 	              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
 	                       
 	              //Send request
-	      	    CloseableHttpResponse response = client.execute(httpPost);
+	      	      try (CloseableHttpResponse response = client.execute(httpPost)) {
 	               
-	              //Verify response if any
-	              if (response != null)
-	              {
-	                  if ( response.getStatusLine().getStatusCode() != 200) {
-	                	  
-	                	  throw createNdexSpecificException(response);
-	                  }
-	                  InputStream in = response.getEntity().getContent();
-	                  StringWriter writer = new StringWriter();
-	                  IOUtils.copy(in, writer, "UTF-8");
-	                  String theString = writer.toString();
-	                  System.out.println(theString);
-	                  return UUID.fromString(theString);
-	              }
-	              
-	              throw new NdexException ("No response from the server.");
+	      	    	  //Verify response code
+	      	    	  if (response != null)
+	      	    	  {
+	      	    		  if ( response.getStatusLine().getStatusCode() != 204) {
+	      	    			  throw createNdexSpecificException(response);
+	      	    		  }
+	      	    		  return;
+	      	    	  }
+	      	    	  throw new NdexException ("No response from the server.");
+	      	      }
 	          }  finally {
 	        	    client.close();
 	          }

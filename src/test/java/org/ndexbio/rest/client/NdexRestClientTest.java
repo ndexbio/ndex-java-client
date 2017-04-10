@@ -66,8 +66,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.ndexbio.common.cx.aspect.CXMetaDataManager;
-import org.ndexbio.common.models.dao.orientdb.CXNetworkExporter;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.NdexStatus;
@@ -128,18 +126,18 @@ public class NdexRestClientTest {
     	in0.close();
     	
    //	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
-    	MetaDataCollection md = CXMetaDataManager.getInstance().createCXMataDataTemplate();  
+ /*   	MetaDataCollection md = CXMetaDataManager.getInstance().createCXMataDataTemplate();  
     	List<String > l = new ArrayList<>(md.size());
     	for (MetaDataElement e : md)
     		l.add(e.getName());
     	InputStream in = ndex.getNetworkAspects("65308e68-8191-11e5-b7f9-0251251672f9", l);
     	printInputStream(in);
-    	in.close(); 
+    	in.close();  
     	
         in = ndex.getNetworkAspectElements("6dffd124-7cd8-11e5-8e3a-96da26a8cd91", "nodes",10);
     	printInputStream(in);
     	in.close(); 
-    	
+    	*/
             FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
    			
             ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"), s);

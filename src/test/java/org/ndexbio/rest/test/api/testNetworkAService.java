@@ -42,8 +42,7 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -585,7 +584,7 @@ public class testNetworkAService {
      * @throws JSONException 
      */
     //@Test  
-    public void test0080testNeighborhoodQuery() throws JSONException  {
+ /*   public void test0080testNeighborhoodQuery() throws JSONException  {
     	// network to be uploaded to the Server
     	TreeMap<String, String> testNetworkToUpload = 
     			PropertyFileUtils.parsePropertyFile(networksAServicePropertyFile);
@@ -615,7 +614,7 @@ public class testNetworkAService {
     	
     	// delete network from the server
     	NetworkUtils.deleteNetwork(ndex, networkUUID); 
-    }
+    } */
     
     /**
      * Upload network specified in the properties file to the server, 

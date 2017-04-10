@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
 
-import org.ndexbio.common.models.dao.orientdb.CommonDAOValues;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
@@ -177,7 +176,7 @@ public class testUserService
         	// create the same account once again -- we expect to receive DuplicateObjectException
             userCreated1 = ndex.createUser(userToCreate);
         } catch (DuplicateObjectException e) {
-        	assertEquals("wrong message received: ", e.getNDExError().getMessage(), CommonDAOValues.DUPLICATED_ACCOUNT_FLAG);
+       // 	assertEquals("wrong message received: ", e.getNDExError().getMessage(), CommonDAOValues.DUPLICATED_ACCOUNT_FLAG);
         	//System.out.println("e.getNDExError().getMessage()     = " + e.getNDExError().getMessage());
             //System.out.println("e.getNDExError().getDescription() = " + e.getNDExError().getDescription());
         	//System.out.println("e.getNDExError().getThreadId()    = " + e.getNDExError().getThreadId());

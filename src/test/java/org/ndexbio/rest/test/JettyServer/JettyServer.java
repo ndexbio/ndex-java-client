@@ -48,8 +48,8 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.ndexbio.common.access.NdexDatabase;
+import org.ndexbio.rest.Configuration;
 import org.ndexbio.rest.NdexHttpServletDispatcher;
-import org.ndexbio.task.Configuration;
 
 
 public class JettyServer {

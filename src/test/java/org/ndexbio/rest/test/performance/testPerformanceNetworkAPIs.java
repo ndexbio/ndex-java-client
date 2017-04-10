@@ -48,8 +48,7 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FilenameUtils;
-import org.codehaus.jettison.json.JSONException;
-import org.codehaus.jettison.json.JSONObject;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -581,8 +580,8 @@ public class testPerformanceNetworkAPIs {
      * @param   void
      * @return  void
      */
-	@Test  
-    public void test0004BenchmarkNeighborhoodQuery() throws JSONException {
+//	@Test  
+ /*   public void test0004BenchmarkNeighborhoodQuery() throws JSONException {
 		Map<String, Map<String, String>> memoryBefore  = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> memoryAfter   = new HashMap<String, Map<String, String>>();
 		Map<String, Map<String, String>> benchmarkData = new HashMap<String, Map<String, String>>();
@@ -612,7 +611,7 @@ public class testPerformanceNetworkAPIs {
             String absoluteNetworkPath = jsonObj.getString("path");
             String query = jsonObj.getString("query");
             int depth = jsonObj.getInt("depth");
-            
+           
             uploadNetwork = absoluteNetworkPath.equals(previousPath) ? false : true;
             
             
@@ -764,7 +763,7 @@ public class testPerformanceNetworkAPIs {
          		clientDataForStatisticsReport.put("NetworkAService.uploadNetwork", h);	
         	}
         }
-    }
+    } */
    
 	/**
 	 * This test just calls the script that parses ndex.log and generates 

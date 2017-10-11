@@ -58,7 +58,6 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.network.query.EdgeCollectionQuery;
-import org.ndexbio.model.network.query.NetworkPropertyFilter;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.Membership;
@@ -74,6 +73,7 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.SimplePathQuery;
 import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
+import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -95,7 +95,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class NdexRestClientModelAccessLayer // implements NdexDataModelService 
+public class NdexRestClientModelAccessLayer 
 {
 	NdexRestClient ndexRestClient = null;
 	ObjectMapper objectMapper = null;
@@ -107,9 +107,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		objectMapper = new ObjectMapper();
 	}
 	
-	public String getBaseRoute(){
+/*	public String getBaseRoute(){
 		return ndexRestClient.getBaseroute();
-	}
+	} */
 
 	/*-----------------------------------------
 	 * 
@@ -118,35 +118,19 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 	
-    public NdexStatus getServerStatus() throws IOException {
-    	String route = "/admin/status" ;
+	
+    public NdexStatus getServerStatus() throws IOException, NdexException {
+		return getServerStatus(false);	
+    }
 
-    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
-		InputStream inputStream = con.getInputStream();
-		NdexStatus status = this.objectMapper.readValue(inputStream, NdexStatus.class);
-		inputStream.close();
-		con.disconnect();
+    public NdexStatus getServerStatus(boolean fullFormat) throws IOException, NdexException {
+    	String route = "/admin/status?format=" + (fullFormat? "full": "standard") ;
 
+    	NdexStatus status = this.ndexRestClient.getNdexObject(route, "", NdexStatus.class);
+    	
 		return status;	
     }
-    
-  /*  public void shutDownJettyServer() throws IOException  {
-    	String route = "/admin/shutdown";
-
-    	HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
-   
-		InputStream inputStream = null;
-		try {
-			inputStream = con.getInputStream();
-		} catch (IOException e) {
-			// we expect this exception since server is shut down
-			System.out.println("e.getMessage()=" + e.getMessage());
-		}
-		con.disconnect();
-
-		return;
-    }
-*/    
+  
     
 	/*-----------------------------------------
 	 * 
@@ -155,10 +139,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 	
-	public void setCredentials(String username, String password) {
-		ndexRestClient.setCredentials(username, password);	
-	}
-	public void setPassword(String newPassword) {
+/*	public void setPassword(String newPassword) {
 		ndexRestClient.setPassword(newPassword);
 	}
 	public String getUserName() {
@@ -166,9 +147,9 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	}
 	public String getPassword() {
 		return ndexRestClient.getPassword();
-	}
+	} */
 	
-	public boolean checkCredential() throws NdexException{
+/*	public boolean checkCredential() throws NdexException{
 		try {
 			if (null == ndexRestClient.getUsername() || null == ndexRestClient.getPassword()) return false;
 			User currentUser = authenticateUser(ndexRestClient.getUsername(), ndexRestClient.getPassword());
@@ -187,7 +168,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		}
 		return false;
 		
-	}
+	} */
 
 	/*-----------------------------------------
 	 * 
@@ -195,78 +176,73 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 *          
 	 * -----------------------------------------
 	 */
-
-	// Get API Documentation for group service
-//			group	GET	/group/api		RestResource[]
-	@SuppressWarnings("unchecked")
-	public List<RestResource> getGroupApi() throws IOException {
-		return (List<RestResource>) ndexRestClient.getNdexObjectList("/group/api", "", RestResource.class);
-	}
 	
 	// Get group by id
 //			group	GET	/group/{groupUUID}		Group
-	public Group getGroup(String groupId) throws IOException, NdexException {
-		return (Group) ndexRestClient.getNdexObject("/group/"+groupId, "", Group.class);
+	public Group getGroup(UUID groupId) throws IOException, NdexException {
+		return ndexRestClient.getNdexObject("/group/"+groupId, "", Group.class);
 	}
 	
 	// Update a group
 //			group	POST	/group/{groupUUID}	Group	Group
-	public Group updateGroup(Group group) throws JsonProcessingException, IOException, NdexException{
+	public void updateGroup(Group group) throws IllegalStateException, Exception{
 		JsonNode postData = objectMapper.valueToTree(group);
-		return (Group)ndexRestClient.postNdexObject("/group/" + group.getExternalId() , postData, Group.class);
+		ndexRestClient.putNdexObject("/group/" + group.getExternalId() , postData);
 	}
 	
-	// Search for groups
-//			group	POST	/group/search/{skipBlocks}/{blockSize}	GroupQuery	Group[]
-	@SuppressWarnings("unchecked")
-	public List<Group> findGroups(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
+
+	public SolrSearchResult<Group> findGroups(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return (List<Group>)ndexRestClient.postNdexObjectList("/group/search"  + skipBlocks  + "/" + blockSize , postData, Group.class);
+		return (SolrSearchResult<Group>)ndexRestClient.postNdexObject("/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, SolrSearchResult.class);
 	}
 	
 
 //	group	POST	/network/searchByProperties	 Collection<NetworkSummary>
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public List<NetworkSummary> searchNetworkByPropertyFilter(NetworkPropertyFilter query) throws JsonProcessingException, IOException{
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (List<NetworkSummary>)ndexRestClient.postNdexObjectList("/network/searchByProperties", postData, NetworkSummary.class);
-	}
+	} */
 	// Get network permissions of group as list of memberships
 //			group	GET	/group/{groupUUID}/network/{permission}/{skipBlocks}/{blockSize}		Membership[]
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public List<Membership> findGroupNetworks(String groupId, Permissions permission, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
 		return (List<Membership>)ndexRestClient.getNdexObjectList("/group/" + groupId + "/network/" + permission + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
-	}
+	} */
 	
 	// Create a group
 //			group	POST	/group	
-	public Group createGroup(Group group) throws JsonProcessingException, IOException, NdexException{
+	public UUID createGroup(Group group) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(group);
-		return (Group)ndexRestClient.postNdexObject("/group", postData, Group.class);
+		return ndexRestClient.createNdexObjectByPost("/group", postData);
 	}
 	
 	// Delete a group
 //			group	DELETE	/group/{groupUUID}	
-	public void deleteGroup(String id) throws JsonProcessingException, IOException{
-		ndexRestClient.delete("/group/" + id);
+	public void deleteGroup(UUID groupId) throws JsonProcessingException, IOException, NdexException{
+		ndexRestClient.delete("/group/" + groupId.toString());
 	}	
 	
 	// Add or modify account permission for a group by posting a membership
 //			group	POST	/group/{groupUUID}/member	Membership	
-	public Membership setGroupPermission(
+/*	public Membership setGroupPermission(
 			String groupId, 
 			Membership membership) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(membership);
 		return (Membership)ndexRestClient.postNdexObject("/group/" + groupId + "/member", postData, Membership.class);
-	}
+	}  */
 	
-	// Revoke account permission for a group by deleting a membership
-	// note: *not* implemented with membership records on server. 
-	// membership objects are a construct for the API only.
-//			group	DELETE	/group/{groupUUID}/member/{userUUID}		
-	public void revokeGroupPermission(String groupId, String userId) throws JsonProcessingException, IOException{
-		ndexRestClient.delete("/group/" + groupId + "/member/" + userId);
-	}
+	/**
+	 * Removes the member specified by userId from the group specified by groupId. 
+	 * @param groupId Group id of 
+	 * @param userId
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException 
+	 */
+/*	public void removeGroupMember(UUID groupId, UUID userId) throws JsonProcessingException, IOException, NdexException{
+		ndexRestClient.delete("/group/" + groupId + "/membership?userid=" + userId);
+	} */
 	
 	/*-----------------------------------------
 	 * 
@@ -275,39 +251,6 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 	
-	// Get the API documentation for the request service
-//			request	GET	/request/api		RestResource[]
-	@SuppressWarnings("unchecked")
-	public List<RestResource> getRequestApi() throws IOException {
-		return (List<RestResource>) ndexRestClient.getNdexObjectList("/request/api", "", RestResource.class);
-	}
-	
-	// Create a request
-//			request	POST	/request	
-	public Request createRequest(Request request) throws JsonProcessingException, IOException, NdexException{
-		JsonNode postData = objectMapper.valueToTree(request);
-		return (Request)ndexRestClient.postNdexObject("/request", postData, Request.class);
-	}
-	
-	// Delete a request
-//			request	DELETE	/request/{requestUUID}	
-	public void deleteRequest(String id) throws JsonProcessingException, IOException{
-		ndexRestClient.delete("/request/" + id);
-	}	
-	
-	// Get a request
-//			request	GET	/request/{requestUUID}	
-	public Request getRequest(String requestId) throws IOException, NdexException {
-		return (Request) ndexRestClient.getNdexObject("/request/"+ requestId, "", Request.class);
-	}
-	
-	// Update a request
-//			request	POST	/request/{requestUUID}	
-	public Request updateRequest(Request request) throws JsonProcessingException, IOException, NdexException{
-		JsonNode postData = objectMapper.valueToTree(request);
-		return (Request)ndexRestClient.postNdexObject("/request/" + request.getExternalId() , postData, Request.class);
-	}	
-
 	/*-----------------------------------------
 	 * 
 	 *          Task
@@ -315,48 +258,45 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 
-	// Get the API documentation for the task service
-//			task	GET	/task/api		RestResource[]
-	@SuppressWarnings("unchecked")
-	public List<RestResource> getTaskApi() throws IOException {
-		return (List<RestResource>) ndexRestClient.getNdexObjectList("/task/api", "", RestResource.class);
-	}
-	
+
 	// Get a task by id
 //			task	GET	/task/{taskUUID}		Task
-	public Task getTask(String taskId) throws IOException, NdexException {
+	public Task getTask(UUID taskId) throws IOException, NdexException {
 		return (Task) ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
 	}
 	
 	// Update a task
 //			task	POST	/task/{taskUUID}	Task	
-	public Task updateTask(Task task) throws JsonProcessingException, IOException, NdexException{
+/*	public Task updateTask(Task task) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task/" + task.getExternalId() , postData, Task.class);
-	}
+	} */
 	
 	// Create a task
 //			task	POST	/task	Task	UUID
-	public Task createTask(Task task) throws JsonProcessingException, IOException, NdexException{
+/*	public Task createTask(Task task) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task", postData, Task.class);
-	}
+	} */
 	
-	// Delete a task
-	// HOWEVER: in most cases, the idea is that a background process will delete task with status QUEUED_FOR_DELETION
-	// This API function is appropriate for situations where you are implementing a custom task processor
-//			task	DELETE	/task/{taskUUID}
-	public void deleteTask(String id) throws JsonProcessingException, IOException{
-		ndexRestClient.delete("/task/" + id);
+   /**
+    * Delete the task specified by taskId.
+    * @param taskId
+    * @throws JsonProcessingException
+    * @throws IOException
+    * @throws NdexException
+    */
+	public void deleteTask(UUID taskId) throws JsonProcessingException, IOException, NdexException{
+		ndexRestClient.delete("/task/" + taskId);
 	}	
 	
 	// Update the status of the task
 	// Much more common case than the general update task
 //			task	PUT	/task/{taskUUID}/status/{status}	Task	
-	public Task updateTaskStatus(Task task, Status status) throws JsonProcessingException, IOException, NdexException{
+/*	public Task updateTaskStatus(Task task, Status status) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(task);
 		return (Task)ndexRestClient.postNdexObject("/task/" + task.getExternalId() + "/status/" + status, postData, Task.class);
-	}
+	} */
 	
 	/*-----------------------------------------
 	 * 
@@ -365,30 +305,24 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 	
-	// Get the API documentation for the user service
-//			user	GET	/user/api		RestResource[]
-	@SuppressWarnings("unchecked")
-	public List<RestResource> getUserApi() throws IOException {
-		return (List<RestResource>) ndexRestClient.getNdexObjectList("/user/api", "", RestResource.class);
-	}
-	
+
 	// Get user by username OR id
 //			user	GET	/user/{userIdentifier}		User
-	public User getUser(String userId) throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user/"+userId, "", User.class);
+	public User getUser(UUID userCreated) throws IOException, NdexException {
+		return ndexRestClient.getNdexObject("/user/"+userCreated, "", User.class);
 	}
 	
 	// Authenticate user 
 //			user	GET	/user/authenticate	
 	public User authenticateUser(String userName, String password) throws IOException, NdexException {
-		return (User) ndexRestClient.getNdexObject("/user?valid=true", userName,  password, "", User.class);
-	}
+		return ndexRestClient.getNdexObject("/user?valid=true", userName,  password, "", User.class);
+	} 
 	
 	
 	
 	// Get group permissions of user as list of memberships
 //			user	GET	/user/{userUUID}/group/{permission}/{skipBlocks}/{blockSize}		Membership[]
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public Map<UUID,Permissions> getUserGroupPermissions(String userId, String permission, int skipBlocks, int blockSize) throws IOException, NdexException {
 		return (Map<UUID,Permissions>) ndexRestClient.getNdexObjectWithTypeReference("/user/"+ userId + "/membership?type=" + permission  + 
 				"&start=" + skipBlocks  + "&size=" + blockSize , "", (new TypeReference<Map<UUID,Permissions>>() {}));
@@ -406,15 +340,16 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (Map<String,Permissions>) ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
 				  "", String.class, Permissions.class);
 	}	
-
+*/
 	
 	// Get tasks owned by user, filtered by status
 //			user	GET	/user/{userUUID}/task/{status}/{skipBlocks}/{blockSize}		Task[]
 	@SuppressWarnings("unchecked")
-	public List<Task> getUserTasks(String userId, String status, int skipBlocks, int blockSize) throws IOException {
-		return (List<Task>) ndexRestClient.getNdexObjectList("/user/"+ userId + "/task/" + status  + "/" + skipBlocks  + "/" + blockSize , "", Task.class);
+	public List<Task> getUserTasks( String status, int skipBlocks, int blockSize) throws IOException {
+		return (List<Task>) ndexRestClient.getNdexObjectList("/task?status=" + status  + "&start=" + skipBlocks  + "&size=" + blockSize , "", Task.class);
 	}	
 	
+/*	
 	// Get requests related to user that are pending
 //			user	GET	/user/{userUUID}/request/pending/{skipBlocks}/{blockSize}		Request[]
 	@SuppressWarnings("unchecked")
@@ -434,34 +369,34 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	public Membership getResourcePermission(String userId, String resourceId) throws IOException, NdexException {
 		return (Membership) ndexRestClient.getNdexObject("/user/"+ userId + "/membership/" + resourceId, "", Membership.class);
 	}
-	
+*/	
 	// Create a user
 //			user	POST	/user	NewUser	User
-	public User createUser(NewUser user) throws JsonProcessingException, IOException, NdexException{
+/*	public UUID createUser(User user) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(user);
-		return (User)ndexRestClient.postNdexObject("/user", postData, User.class);
-	}
+		return ndexRestClient.createNdexObjectByPost("/user", postData);
+	} */
 	
 	// Update a user
 //			user	POST	/user/{UUID}	User	User
-	public User updateUser(User user) throws JsonProcessingException, IOException, NdexException{
+/*	public User updateUser(User user) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(user);
 		return (User)ndexRestClient.postNdexObject("/user/" + user.getExternalId() , postData, User.class);
-	}
+	}  */
 	
 	// Search for users
 //			user	POST	/user/search/{skipBlocks}/{blockSize}	SimpleUserQuery	User[]
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public List<User> findUsers(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return (List<User>)ndexRestClient.postNdexObjectList("/user/search"  + skipBlocks  + "/" + blockSize , postData, User.class);
+		return (List<User>)ndexRestClient.postNdexObjectList("/search/user?start="  + skipBlocks  + "&size=" + blockSize , postData, User.class);
 	}
-	
+*/	
 	// Generate forgotten password email to user
 //			user	GET	/user/{UUID}/forgotPassword	
-	public User generateForgottenPasswordEmail(String userId) throws IOException, NdexException {
+/*	public User generateForgottenPasswordEmail(String userId) throws IOException, NdexException {
 		return (User) ndexRestClient.getNdexObject("/user/"+ userId + "/forgotPassword", "", User.class);
-	}
+	}  */
 	
 	// Update user email address, alerting user via old email
 	// TODO
@@ -480,7 +415,7 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// ATTENTION: in case password has been successfully changed on the server, it will be changed on the 
 	//            client side as well.
 	//
-	public boolean changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
+/*	public boolean changePassword(String newPassword) throws JsonProcessingException, IOException, NdexException {
 		
 		boolean success = false;
 		
@@ -488,23 +423,26 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		
 		if (HttpURLConnection.HTTP_NO_CONTENT == returnCode) {
 			success = true;
-			this.setPassword(newPassword);
+			this.ndexRestClient.setCredentials( this.ndexRestClient.getUsername(), newPassword);
 		}
 		return success;
-	}
+	} */
 
 	
 	// Delete user (actually implemented as deprecate)
 	// Fails unless the authenticated user is the user to delete...
 //			user	DELETE	/user	
-	public void deleteUser(String id) throws JsonProcessingException, IOException{
+/*	public void deleteUser(UUID id) throws JsonProcessingException, IOException, NdexException{
 		ndexRestClient.delete("/user/" + id);
-	}
+	} */
 	
 	// delete the authenticated user (self)
-	public void deleteUser() throws JsonProcessingException, IOException, NdexException {
-		ndexRestClient.delete();
-	}
+	/*public void deleteUser() throws JsonProcessingException, IOException, NdexException {
+		if (ndexRestClient.getUserUid() == null)
+			throw new UnauthorizedOperationException ("Anonymous user can't be deleted.");
+		else 
+			deleteUser(ndexRestClient.getUserUid());
+	}*/
 	
 	/*-----------------------------------------
 	 * 
@@ -513,20 +451,12 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	 * -----------------------------------------
 	 */
 
-
-	// Get the API documentation for the network service
-//	network	GET	/network/api		RestResource[]
-	@SuppressWarnings("unchecked")
-	public List<RestResource> getNetworkApi() throws IOException {
-		return (List<RestResource>) ndexRestClient.getNdexObjectList("/network/api", "", RestResource.class);
-	}
-	
 	
 	// Network permissions
 	
 	// Assign permissions by posting a membership object
 //	network	POST	/network/{networkUUID}/member	Membership
-	public int setNetworkPermission(
+/*	public int setNetworkPermission(
 			String networkId, 
 			Membership membership) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(membership);
@@ -543,13 +473,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 	// Revoke permissions by deleting a membership object 
 	// (note: not actually implemented as an object on the server side)
 //	network	DELETE	/network/{networkUUID}/member/{userUUID}
-	public void revokeNetworkPermission(String networkId, String userId) throws JsonProcessingException, IOException{
+	public void revokeNetworkPermission(String networkId, String userId) throws JsonProcessingException, IOException, NdexException{
 		ndexRestClient.delete("/network/" + networkId + "/member/" + userId);
 	}
-	
+*/	
 	// Get network permissions as list of memberships
 //	network	GET	/network/{networkUUID}/membership/{skipBlocks}/{blockSize}		List<Membership>
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public List<Membership> getNetworkPermissions(String networkId, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
 		return (List<Membership>) ndexRestClient.getNdexObjectList("/network/"+ networkId + "/membership/" +  skipBlocks  + "/" + blockSize , "", Membership.class);
 	}
@@ -563,38 +493,13 @@ public class NdexRestClientModelAccessLayer // implements NdexDataModelService
 		return (List<Membership>) 
 				ndexRestClient.getNdexObjectList("/network/"+ networkId + "/user/" + permission + "/" +  skipBlocks  + "/" + blockSize , "", Membership.class);
 	}
-	
+*/	
 	// Network Summary objects
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
 	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException, NdexException {
 		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
-		//String route = "/network/"+networkId;			
-    	//HttpURLConnection con = this.ndexRestClient.getReturningConnection(route,"");
-		//InputStream inputStream = con.getInputStream();
-		//NetworkSummary networkSummary = objectMapper.readValue(inputStream, NetworkSummary.class);
-		//inputStream.close();
-		//con.disconnect();
-
-		//return networkSummary;
 	}
-
-    public boolean isServerRunningNdexServer()
-    {
-        String route = "/admin/status";
-        try
-        {
-            JsonNode node = ndexRestClient.get(route, "");
-            //Hack: If network count is not null in the JSON returned by the
-            //request, assume it is an NDEx server.
-            return node.get("networkCount") != null;
-        }
-        catch (IOException e)
-        {
-            return false;
-        }
-    }
-
 
 	/**
 	 * Search for networks by keywords
@@ -618,18 +523,8 @@ public NetworkSearchResult findNetworks(
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
-	//	return (SolrSearchResult<NetworkSummary> )ndexRestClient.postNdexObject(route, postData, SolrSearchResult.class);
 		return (NetworkSearchResult)ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
 		
-/*
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-		InputStream inputStream = con.getInputStream();
-		List<NetworkSummary> networks = objectMapper.readValue(inputStream, new TypeReference<List<NetworkSummary>>() { });
-		inputStream.close();
-		con.disconnect();
-
-		return networks;
-		*/
 	}
 
 	public List<NetworkSummary> getMyNetworks(UUID userId) 
@@ -643,7 +538,7 @@ public NetworkSearchResult findNetworks(
 	
 	
 //	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public ArrayList<NetworkSummary> searchNetwork(
 			SimpleNetworkQuery query,
 			int skipBlocks, 
@@ -652,7 +547,7 @@ public NetworkSearchResult findNetworks(
 		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (ArrayList<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
-	}
+	}  */
 	
 	public NetworkSearchResult findNetworks(
 			String searchString,
@@ -669,74 +564,35 @@ public NetworkSearchResult findNetworks(
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
 		if ( permissionOnAcc !=null) ((ObjectNode) postData).put("permission", permissionOnAcc.toString());
 		return (NetworkSearchResult )ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
-
-//		return (SolrSearchResult<NetworkSummary> )ndexRestClient.postNdexObject(route, postData, SolrSearchResult.class);
 		
 	}
 	
 	// Networks in standard NDEx object model
 	
-//	network	POST	/network/asNetwork	Network	NetworkSummary	
-	public NetworkSummary createNetwork(Network network) throws Exception {
-		String route = "/network/asNetwork";
-		JsonNode postData = objectMapper.valueToTree(network);
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-/*
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-		InputStream inputStream = con.getInputStream();
-		NetworkSummary networkSummary = objectMapper.readValue(inputStream, NetworkSummary.class);
-		inputStream.close();
-		con.disconnect();
-		
-		return networkSummary;
-		*/
-	}
-
-
 	// Create a network with a group as the admin
 //	network	POST	/network/asNetwork/group/{group UUID}	Network	NetworkSummary
-	public NetworkSummary createNetworkForGroup(Network network, String groupId) throws Exception {
+/*	public NetworkSummary createNetworkForGroup(Network network, String groupId) throws Exception {
 		String route = "/network/asNetwork/group/" + groupId;
 		JsonNode postData = objectMapper.valueToTree(network);
 		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-/*
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-		InputStream inputStream = con.getInputStream();
-		NetworkSummary networkSummary = objectMapper.readValue(inputStream, NetworkSummary.class);
-		inputStream.close();
-		con.disconnect();
-		
-		return networkSummary;
-		*/
-	}
+
+	} */
 
 	// Delete a network (actually implemented as deprecation)
 //	network	DELETE	/network/{networkUUID}
-	public void deleteNetwork(String id) throws IOException{
+	public void deleteNetwork(UUID id) throws IOException, NdexException{
 		ndexRestClient.delete("/network/" + id);
 	}
 	
 	// Make the network "published" - no longer mutable.
 //	network	POST	/network/{networkUUID}/publish		NetworkSummary
-	public NetworkSummary makeNetworkImmutable(String networkId) throws Exception {
+/*	public NetworkSummary makeNetworkImmutable(String networkId) throws Exception {
 		String route = "/network/" + networkId + "/publish";
 		JsonNode postData = objectMapper.createObjectNode(); 
 		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-	}
+	} */
 	
-//	network	GET	/network/{networkUUID}/asNetwork		Network
-	public Network getNetwork(String id) throws IOException, NdexException {
-		String route = "/network/" + id + "/asNetwork/"; 
-		return (Network) ndexRestClient.getNdexObject(route, "", Network.class);
-		/*
-		HttpURLConnection con = ndexRestClient.getReturningConnection(route, "");
-		InputStream inputStream = con.getInputStream();
-		Network network = objectMapper.readValue(inputStream, Network.class);
-		inputStream.close();
-		con.disconnect();
-		return network;
-		*/
-	}
+
 	
 	public InputStream getNetworkAsCXStream(String id) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id ;
@@ -762,27 +618,7 @@ public NetworkSearchResult findNetworks(
 		String route = "/network/" + id + "/aspect/" + aspectName + "/" + limit;
 		return  ndexRestClient.getStream(route, "");
 	}
-	
-	// Get block of edges as network
-//	network	GET	/network/{networkUUID}/edge/asNetwork/{skipBlocks}/{blockSize}		Network
-	public Network getEdges(String id, int skipBlocks, int edgesPerBlock) throws IOException, NdexException {
-		String route = "/network/" + id + "/edge/asNetwork/" + skipBlocks + "/" + edgesPerBlock; 
-		return (Network) ndexRestClient.getNdexObject(route, "", Network.class);
-		/*		
-		HttpURLConnection con = ndexRestClient.getReturningConnection(route, "");
-		InputStream inputStream = con.getInputStream();
-		BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
-		String inputLine;
-		while ((inputLine = in.readLine()) != null)
-		    System.out.println(inputLine);
-		in.close(); 
-		Network network = objectMapper.readValue(inputStream, Network.class);
-		inputStream.close();
-		con.disconnect();
-		return network;
-		*/
-	}
-	
+		
 
 // network	GET	/export/{networkId}/{format} String
 	public String exportNetwork(String networkId, String fileFormat)  {
@@ -797,20 +633,6 @@ public NetworkSearchResult findNetworks(
 	}	
 	
 
-	// TODO: Get edges linked to citations as a network
-//	network	POST	/network/{networkUUID}/citation/asNetwork/{skipBlocks}/{blockSize}	List<Long>	Network
-	
-	// TODO: Get a block of nodes as a network
-//	network	GET	/network/{networkUUID}/node/asNetwork/{skipBlocks}/{blockSize}		Network
-	
-	// Update network
-//	network	PUT	/network/asNetwork	Network	NetworkSummary
-	public void updateNetwork(Network network) throws Exception {
-		String route = "/network/asNetwork";
-		JsonNode postData = objectMapper.valueToTree(network);
-		ndexRestClient.putNdexObject(route, postData);
-	}
-	
 	// Update network profile
 //	network	POST	/network/{networkUUID}/summary	Network	NetworkSummary
 	public NetworkSummary updateNetworkSummary(NetworkSummary networkSummary, String networkId) throws Exception {
@@ -818,21 +640,7 @@ public NetworkSearchResult findNetworks(
 		JsonNode postData = objectMapper.valueToTree(networkSummary);
 		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
 	}	
-	
-	// Get network presentation properties
-	// These are simple properties, they are not resolved to controlled vocabularies
-	// in the object model or in the storage model
-	//
-	//	network	GET	/network/{networkUUID}/presentationProperties		Property[]
-	//
-	@SuppressWarnings("unchecked")
-	public List<SimplePropertyValuePair> getNetworkPresentationProperties(
-			String networkId) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/presentationProperties";		
-		return (List<SimplePropertyValuePair>) ndexRestClient.getNdexObjectList(route, "", SimplePropertyValuePair.class);
-	}
-		
+			
 	// Get network properties
 	// These are NDEx properties that are resolved to the controlled vocabulary
 	// terms (BaseTerm objects) of the network - even if the namespace is just
@@ -882,170 +690,21 @@ public NetworkSearchResult findNetworks(
     //-----------------------------------
 
 
-//	network	GET	/network/{networkUUID}/citation/{skipBlocks}/{blockSize}		Citation[]
-	@SuppressWarnings("unchecked")
-	public List<Citation> getNetworkCitations(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/citations/" + skipBlocks + "/" + blockSize;		
-		return (List<Citation>) ndexRestClient.getNdexObjectList(route, "", Citation.class);
-	}
-
-//	network	GET	/network/{networkUUID}/functionTerm/{skipBlocks}/{blockSize}		FunctionTerm[]
-	@SuppressWarnings("unchecked")
-	public List<FunctionTerm> getNetworkFunctionTerms(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/functionTerm/" + skipBlocks + "/" + blockSize;		
-		return (List<FunctionTerm>) ndexRestClient.getNdexObjectList(route, "", FunctionTerm.class);
-	}
-	
-	public void addNetworkNamespace(
-			String networkId,
-			Namespace nameSpace) 
-			throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + networkId + "/namespace";	
-		JsonNode postData = objectMapper.valueToTree(nameSpace);	
-		ndexRestClient.postNdexObject(route, postData, Namespace.class);
-		return;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public List<Namespace> getNetworkNamespaces(
-			String networkId) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/namespace";		
-		return (List<Namespace>) ndexRestClient.getNdexObjectList(route, "", Namespace.class);
-	}
-	
-	// Search for namespaces in network by search parameters
-	// TODO: DO WE NEED THIS?
-//	network	POST	/network/{networkUUID}/namespace/{skipBlocks}/{blockSize}	SearchParameters	Namespace[]
-	
-//	network	GET	/network/{networkUUID}/node/{skipBlocks}/{blockSize}		Node[]
-	@SuppressWarnings("unchecked")
-	public List<Node> getNetworkNodes(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/node/" + skipBlocks + "/" + blockSize;		
-		return (List<Node>) ndexRestClient.getNdexObjectList(route, "", Node.class);
-	}
-	
-	
-//	network	GET	/network/{networkUUID}/support/{skipBlocks}/{blockSize}		Support[]
-	@SuppressWarnings("unchecked")
-	public List<Support> getNetworkSupports(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/support/" + skipBlocks + "/" + blockSize;		
-		return (List<Support>) ndexRestClient.getNdexObjectList(route, "", Support.class);
-	}
-	
-	// Get baseterms in network
-//	network	GET	/network/{networkUUID}/baseTerm/{skipBlocks}/{blockSize}		BaseTerm[]
-	@SuppressWarnings("unchecked")
-	public List<BaseTerm> getNetworkBaseTerms(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/baseTerm/" + skipBlocks + "/" + blockSize;		
-		return (List<BaseTerm>) ndexRestClient.getNdexObjectList(route, "", BaseTerm.class);
-	}
-	
-	// Get baseterms matching search parameters in network
-//	network	POST	/network/{networkUUID}/baseTerm/search/{skipBlocks}/{blockSize}	SearchParameters	BaseTerm[]
-
-	// get baseterms in namespace in network
-	/*
-	@SuppressWarnings("unchecked")
-	public List<BaseTerm> getNetworkBaseTermsByNamespace(String namespacePrefix, String networkId) throws JsonProcessingException, IOException{
-		String route = "/network/" + networkId + "/namespaces";
-		ArrayNode postData = objectMapper.createArrayNode(); // will be of type ObjectNode
-		postData.add(namespacePrefix);
-		return (List<BaseTerm>) ndexRestClient.postNdexObjectList(route, postData, BaseTerm.class);
-	}
-*/
-
-	// Get block of edges as list
-//	network	GET	/network/{networkUUID}/edge/{skipBlocks}/{blockSize}		Edge[]
-	@SuppressWarnings("unchecked")
-	public List<Edge> getNetworkEdges(
-			String networkId,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/" + networkId + "/edge/" + skipBlocks + "/" + blockSize;		
-		return (List<Edge>) ndexRestClient.getNdexObjectList(route, "", Edge.class);
-	}
-	
-	// Upload a file to be processed as a network to be loaded into NDEx
-	// TODO
-	
-    // network	POST	/network/upload	File
-	public void uploadNetwork(String networkToUpload) throws Exception {
-		String route = "/network/upload";
-		ndexRestClient.postNetworkAsMultipartObject(route, networkToUpload);
-	}
-	 
 //	network	POST	/network/{networkUUID}/asNetwork/query	SimplePathQuery	Network	
 	// Neighborhood PathQuery
-    public Network getNeighborhood(String networkId, String searchString, int depth) throws JsonProcessingException, IOException, NdexException {
+   /* public Network getNeighborhood(String networkId, String searchString, int depth) throws JsonProcessingException, IOException, NdexException {
     	SimplePathQuery query = new SimplePathQuery();
     	query.setSearchString(searchString);
     	query.setSearchDepth(depth);
     	return getNeighborhood(networkId, query);
-    }
+    } */
     	
-    public Network getNeighborhood(String networkId, SimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
-    	String route = "/network/" + networkId +"/asNetwork/query";	
-    	JsonNode postData = objectMapper.valueToTree(query);
-    	return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
-    	
-    	/*
-		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
-		((ObjectNode) postData).put("searchString", queryTerm);
-		((ObjectNode) postData).put("searchDepth", depth);
-
-		HttpURLConnection con = ndexRestClient.postReturningConnection(route, postData);
-		InputStream inputStream = con.getInputStream();
-		Network network = objectMapper.readValue(inputStream, Network.class);
-		inputStream.close();
-		con.disconnect();
-
-		return network;
-		*/
-    	
-    }
-    
-    
-    //-----------------------------------
-	// Networks as Property Graphs 
-    //-----------------------------------
-    
 
     //	network	GET	/network/{networkId}/setFlag/{parameter}={value}	
     //  current supported parameters are   "readOnly={true|false}"
-	public String setNetworkFlag(String networkId, String parameter, String value)  {
-		String route = "/network/" + networkId +"/setFlag/" + parameter + "=" + value;
-
-        try {
-            JsonNode node = ndexRestClient.put(route, null);     // set network flag 
-            return (null == node) ? null : node.asText();      // return old value of the flag received from server
-            
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-		
-		return null;
+	public void setNetworkSystemProperty(UUID networkId, Map<String,Object> properties) throws IllegalStateException, Exception  {
+		String route = "/network/" + networkId +"/systemproperty" ;
+        ndexRestClient.putNdexObject(route, objectMapper.valueToTree(properties));    
 	}
 
 	//@POST
@@ -1053,11 +712,11 @@ public NetworkSearchResult findNetworks(
 	//@Produces("application/json")
 	
 //  network	POST	/network/{networkUUID}/asNetwork/prototypeNetworkQuery
-	public Network queryNetworkByEdgeFilter(String networkUUID, EdgeCollectionQuery query) throws JsonProcessingException, IOException, NdexException {
+/*	public Network queryNetworkByEdgeFilter(String networkUUID, EdgeCollectionQuery query) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + networkUUID +"/asNetwork/prototypeNetworkQuery";
 		JsonNode postData = objectMapper.valueToTree(query);
 		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
-	}
+	} */
 /*	
     private UUID createCXNetworkRestClient (InputStream input) {
         ResteasyProviderFactory factory = ResteasyProviderFactory.getInstance();
@@ -1144,7 +803,7 @@ public NetworkSearchResult findNetworks(
 
     }
 	
-	private  Exception createNdexSpecificException(
+	private static  Exception createNdexSpecificException(
 			CloseableHttpResponse response) throws JsonParseException, JsonMappingException, IllegalStateException, IOException {
 
 			ObjectMapper mapper = new ObjectMapper();

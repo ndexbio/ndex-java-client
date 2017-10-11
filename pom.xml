@@ -1,79 +1,122 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>org.ndexbio.client</groupId>
-  <artifactId>ndex-java-client</artifactId>
-  <version>2.0.0</version>
-  <name>NDEx Java REST Client</name>
-  <description>REST Client for in applications that access NDEx</description>
-  <inceptionYear>2013</inceptionYear>
-   <build>
-        <plugins>
-  <plugin>
-  <artifactId>maven-assembly-plugin</artifactId>
-  <configuration>
-    <descriptorRefs>
-      <descriptorRef>jar-with-dependencies</descriptorRef>
-    </descriptorRefs>
-  </configuration>
-  <executions>
-    <execution>
-      <id>make-assembly</id> <!-- this is used for inheritance merges -->
-      <phase>package</phase> <!-- bind to the packaging phase -->
-      <goals>
-        <goal>single</goal>
-      </goals>
-    </execution>
-  </executions>
-</plugin>
- 
-<plugin>
-   <groupId>org.apache.maven.plugins</groupId>
-   <artifactId>maven-compiler-plugin</artifactId>
-   <version>3.1</version>
-   <configuration>
-      <source>1.8</source>
-      <target>1.8</target>
-   </configuration>
-</plugin>
-    <plugin>
-   <groupId>com.mycila</groupId>
-   <artifactId>license-maven-plugin</artifactId>
-   <version>2.6</version>
-   <configuration>
-      <header>${basedir}/misc/license_header.txt</header>
-      <properties>
-         <inceptionYear>${project.inceptionYear}</inceptionYear>
-         <year>${year}</year>
-      </properties>
-      <includes>
-         <include>src/**/*.java</include>
-         <include>src/**/*.xml</include>
-      </includes>
-      <excludes>
-         <exclude>**/logback.xml</exclude>
-         <exclude>**/logback-test.xml</exclude>
-         <exclude>**/src/test/resources/**</exclude>
-      </excludes>
-   </configuration>
-</plugin>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.ndexbio.client</groupId>
+	<artifactId>ndex-java-client</artifactId>
+	<version>2.2.0</version>
+	<name>NDEx Java REST Client</name>
+	<description>REST Client for in applications that access NDEx</description>
+	<inceptionYear>2013</inceptionYear>
 
-</plugins>
-</build>
-  <dependencies>
-		
+	<scm>
+		<connection>scm:svn:http://none</connection>
+		<url>scm:svn:https://none</url>
+	</scm>
 
-   
-<dependency>
-	<groupId>commons-codec</groupId>
-	<artifactId>commons-codec</artifactId>
-	<version>1.10</version>
-</dependency>
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+					<archive>
+						<!-- will put the entries into META-INF/MANIFEST.MF file -->
+						<manifestentries>
+							<implementation-version>${project.version}</implementation-version>
+							<implementation-build>${buildNumber}</implementation-build>
+						</manifestentries>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- bind to the packaging phase -->
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.6</version>
+				<configuration>
+					<header>${basedir}/misc/license_header.txt</header>
+					<properties>
+						<inceptionYear>${project.inceptionYear}</inceptionYear>
+						<year>${year}</year>
+					</properties>
+					<includes>
+						<include>src/**/*.java</include>
+						<include>src/**/*.xml</include>
+					</includes>
+					<excludes>
+						<exclude>**/logback.xml</exclude>
+						<exclude>**/logback-test.xml</exclude>
+						<exclude>**/src/test/resources/**</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>false</doCheck>
+					<doUpdate>false</doUpdate>
+					<revisiononscmfailure>
+						<!-- Generate sequence build number based on: build number and timestamp -->
+						<format>Build: #{0} ({1,date})</format>
+						<items>
+							<item>buildNumber\d*</item>
+							<item>timestamp</item>
+						</items>
+					</revisiononscmfailure>
+				</configuration>
+			</plugin>
+			  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-scm-plugin</artifactId>
+    <version>1.4</version>
+  </plugin>
+		</plugins>
+	</build>
+	<dependencies>
+
+
+
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
 
 
 		<dependency>
 			<groupId>org.ndexbio</groupId>
 			<artifactId>ndex-object-model</artifactId>
-			<version>2.0.0</version>
+			<version>2.2.0</version>
 		</dependency>
 
 		<dependency>
@@ -81,48 +124,59 @@
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
 		</dependency>
-		
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-            <scope>test</scope>
-        </dependency>
 
-      <dependency>
-          <groupId>commons-io</groupId>
-          <artifactId>commons-io</artifactId>
-          <version>2.4</version>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
+
+<!-- 		<dependency>
+			<groupId>org.ndexbio</groupId>
+			<artifactId>ndexbio-rest</artifactId>
+			<version>2.0-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+-->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpmime</artifactId>
+			<version>4.3.6</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>buildnumber-maven-plugin</artifactId>
+			<version>1.4</version>
+			<type>maven-plugin</type>
+		</dependency>
+
+    <dependency>
+        <groupId>com.perforce</groupId>
+        <artifactId>p4maven</artifactId>
+        <version>[2011,2012)</version>
       </dependency>
-  
-        <dependency>
-            <groupId>org.ndexbio</groupId>
-            <artifactId>ndexbio-rest</artifactId>
-	        <version>2.0-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>  
-               
-        <dependency>
-	        <groupId>org.apache.commons</groupId>
-	        <artifactId>commons-lang3</artifactId>
-	        <version>3.0</version>
-        </dependency>
-          
-        <dependency>
-	        <groupId>com.googlecode.json-simple</groupId>
-	        <artifactId>json-simple</artifactId>
-	        <version>1.1</version>
-        </dependency>
-      
 
-   <dependency>
-	<groupId>org.apache.httpcomponents</groupId>
-	<artifactId>httpmime</artifactId>
-	<version>4.3.6</version>
-</dependency>
+	</dependencies>
 
-
-   
-  </dependencies>
- 
 </project>

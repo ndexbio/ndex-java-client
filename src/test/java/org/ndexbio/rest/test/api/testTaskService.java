@@ -30,7 +30,7 @@
  */
 package org.ndexbio.rest.test.api;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
 
 import org.junit.FixMethodOrder;
 import org.junit.Test;

@@ -33,23 +33,25 @@ package org.ndexbio.rest.test.utilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.UUID;
+
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
 public class UserUtils {
 
-	public static void deleteUser(NdexRestClientModelAccessLayer ndex) {
+	/*public static void deleteUser(NdexRestClientModelAccessLayer ndex) {
         try {
             ndex.deleteUser();
         } catch (Exception e) {
         	// ignore this exception -- the account we try to delete may not exist
         	//fail("Unable to delete user account: " + e.getMessage());
         }
-	}
+	}*/
 	
 	public static void deleteUser(NdexRestClientModelAccessLayer ndex, String user, String password) {
-        String previousUserName = ndex.getUserName();
+     /*   String previousUserName = ndex.getUserName();
         String previousPassword = ndex.getPassword();
         		
 		ndex.setCredentials(user, password);
@@ -60,16 +62,16 @@ public class UserUtils {
         	// fail("Unable to delete user account: " + e.getMessage());
         } finally {
     	    ndex.setCredentials(previousUserName, previousPassword);
-        }
+        } */
 	}
 
-	public static NewUser getNewUser(String accountName,
+	public static User getNewUser(String accountName,
 			                         String accountPassword, String description, String email,
 			                         String firstName, String lastName, String image, String webSite) {
 	        
-        NewUser user = new NewUser();
+        User user = new User();
 
-        user.setAccountName(accountName);
+        user.setUserName(accountName);
         user.setPassword(accountPassword);
         user.setDescription(description);
         user.setEmailAddress(email);
@@ -111,16 +113,12 @@ public class UserUtils {
         return;
 	}
 	
-	public static User createUserAccount(
-        NdexRestClientModelAccessLayer ndex, NewUser user) {
-
-        User newUser = null;
-        
+/*	public static UUID createUserAccount (NdexRestClientModelAccessLayer ndex, NewUser user) {
 	    try {
-	    	newUser = ndex.createUser(user);
+	    	return ndex.createUser(user);
 	    } catch (Exception e) {
 			fail("Unable to create user account: " + e.getMessage());
-	    }        
-	    return newUser;
-	}
+	    } 
+	    return null;
+	} */
 }

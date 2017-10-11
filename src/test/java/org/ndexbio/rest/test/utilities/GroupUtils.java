@@ -30,21 +30,24 @@
  */
 package org.ndexbio.rest.test.utilities;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.UUID;
+
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertTrue;
 
 public class GroupUtils {
 
 	public static Group createGroup(NdexRestClientModelAccessLayer ndex, Group group) {
         Group newGroup = null;
 		try {
-			newGroup = ndex.createGroup(group);
+			UUID newGroupId = ndex.createGroup(group);
+			newGroup = ndex.getGroup(newGroupId);
 		} catch (NdexException e) {
 			fail("Unable to create group : " + e.getMessage());
         } catch (Exception e) {
@@ -55,7 +58,7 @@ public class GroupUtils {
 	
 	public static void deleteGroup(NdexRestClientModelAccessLayer ndex, Group group) {
 		try {
-			ndex.deleteGroup(group.getExternalId().toString());
+			ndex.deleteGroup(group.getExternalId());
         } catch (Exception e) {
         	fail("Unable to delete group : " + e.getMessage());
         }		
@@ -78,7 +81,7 @@ public class GroupUtils {
 	}
 
 	public static Group getGroup(
-			NdexRestClientModelAccessLayer ndex, String groupId) {
+			NdexRestClientModelAccessLayer ndex, UUID groupId) {
 		Group group = null;
 		try {
 			group = ndex.getGroup(groupId);

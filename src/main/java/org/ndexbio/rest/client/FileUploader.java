@@ -31,13 +31,7 @@
 package org.ndexbio.rest.client;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.UUID;
-
-import org.apache.http.auth.AuthenticationException;
-import org.ndexbio.model.exceptions.NdexException;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class FileUploader {
 

@@ -54,7 +54,6 @@ import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimpleNetworkQuery;
-import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
@@ -90,7 +89,7 @@ public class NetworkUtils {
 		}
 		
         for (NetworkSummary network : allNetworks.getNetworks()) {
-            String networkUUIDToDelete = network.getExternalId().toString();	  
+            UUID networkUUIDToDelete = UUID.fromString(network.getExternalId().toString());	  
             try {
                 ndex.deleteNetwork(networkUUIDToDelete);
             } catch (Exception e) {
@@ -102,7 +101,7 @@ public class NetworkUtils {
         }
     }
     
-	public static void deleteNetwork(NdexRestClientModelAccessLayer ndex, String networkUUID) {
+	public static void deleteNetwork(NdexRestClientModelAccessLayer ndex, UUID networkUUID) {
         try {
             ndex.deleteNetwork(networkUUID);
         } catch (Exception e) {
@@ -111,56 +110,8 @@ public class NetworkUtils {
         return;
 	}    
     
-	public static void startNetworkUpload(NdexRestClientModelAccessLayer ndex, File networkToUpload, Map<String,String> uploadedNetworks) {
-
-		try {
-    	    ndex.uploadNetwork(networkToUpload.getCanonicalPath());    
-    	    // put name:size to map
-    	    uploadedNetworks.put(networkToUpload.getName(), NumberFormat.getNumberInstance(Locale.US).format(networkToUpload.length()));		
-	    } catch (Exception e) {
-            fail("Unable to upload test network " + networkToUpload.getName() + " : " + e.getMessage());
-        }
-		
-		return;
-	}
 	
-	public static void startNetworkUpload(NdexRestClientModelAccessLayer ndex, File networkToUpload) {
-		try {
-    	    ndex.uploadNetwork(networkToUpload.getCanonicalPath());    		
-	    } catch (Exception e) {
-            fail("Unable to upload test network " + networkToUpload.getName() + " : " + e.getMessage());
-        }
-		return;
-	}
-	
-    public static  Map<String,String> startNetworksUpload(NdexRestClientModelAccessLayer ndex, Map<String, String> networksToUpload) {
-    	
-    	if (null == networksToUpload) {
-    		return null;
-    	}
-    	
-    	Map<String, String> map = new HashMap<String, String>();
-    	
-    	File f = null;
-    	
-		for (Map.Entry<String, String> entry : networksToUpload.entrySet()) {
-			try {
-        	    f = new File(entry.getValue());
-                
-        	    ndex.uploadNetwork(entry.getValue());
-        	
-        	    // put name:size to map
-        	    map.put(f.getName(), NumberFormat.getNumberInstance(Locale.US).format(f.length()));
-        			
-		    } catch (Exception e) {
-                //fail();
-                System.out.println("Unable to upload test network " + f.getName() + " : " + e.getMessage());
-                continue;
-            }
-		}
-    	
-    	return map;
-    }
+  
 	public static Task waitForTaskToFinish(NdexRestClientModelAccessLayer ndex, User userAccount) {
 		List<Task> userTasks = null;
 		Status status;
@@ -169,7 +120,7 @@ public class NetworkUtils {
         	
             try {
             	// check if networks have uploaded
-                userTasks = ndex.getUserTasks(userAccount.getUserName(), Status.ALL.toString(), 0, 300);
+                userTasks = ndex.getUserTasks( Status.ALL.toString(), 0, 300);
             } catch (Exception e) {
             	fail("Unable to get list of user tasks: " +  e.getMessage());
             }
@@ -201,7 +152,7 @@ public class NetworkUtils {
 		ArrayList<String> uploadedNetworksUUIDs = new ArrayList<String>();
         	
         try {
-           userTasks = ndex.getUserTasks(userAccount.getUserName(), Status.ALL.toString(), 0, 300);
+           userTasks = ndex.getUserTasks( Status.ALL.toString(), 0, 300);
         } catch (Exception e) {
             fail("Unable to get list of user tasks: " +  e.getMessage());
         }
@@ -215,7 +166,7 @@ public class NetworkUtils {
         	Status status = waitForTaskToFinish(ndex, taskId);
         	assertEquals("upload task didn't complete cleanly", Status.COMPLETED, status);
         	
-        	task = ndex.getTask(taskId);
+        	task = ndex.getTask(UUID.fromString(taskId));
         	//Object networkUUID1 = task1.getAttribute("networkUUID");
         	
         	Object networkUUID = task.getAttribute("networkUUID");
@@ -244,7 +195,7 @@ public class NetworkUtils {
 		
 		while (true) {
 			try {
-				task = ndex.getTask(taskId);
+				task = ndex.getTask(UUID.fromString(taskId));
 			} catch (Exception e) {
 				fail("unable to get task status : " + e.getMessage());
 			}
@@ -281,7 +232,7 @@ public class NetworkUtils {
 
         try {
         	// set read-only flag to true or false
-			ndex.setNetworkFlag(networkUUID, "readOnly", flagStr);
+		//	ndex.setNetworkSystemProperty(networkUUID, "readOnly", flagStr);
         } catch (Exception e) {
         	fail("unable to to set read-only flag to " + flagStr + " for network " + networkUUID);
         }
@@ -379,17 +330,8 @@ public class NetworkUtils {
         return;
 	}
 
-	public static Network getNetwork(NdexRestClientModelAccessLayer ndex, String networkUUID) {
-		Network network = null;		
-		try {
-			network = ndex.getNetwork(networkUUID);
-		} catch (IOException | NdexException e) {
-			fail("unable to download network " + networkUUID + " : " + e.getMessage());				
-		}
-		return network;
-	}
 
-	public static NetworkSummary createNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
+/*	public static NetworkSummary createNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
     	NetworkSummary summary = null;
 		try {
 			summary = ndex.createNetwork(network);
@@ -398,17 +340,8 @@ public class NetworkUtils {
 		}
 		return summary;
 	}
+*/
 
-	public static Network getNeighborhood(NdexRestClientModelAccessLayer ndex, String networkUUID, String query, int depth) {
-		
-		Network subNetworkRetrieved = null;
-		try {
-			subNetworkRetrieved = ndex.getNeighborhood(networkUUID, query, depth);
-		} catch (Exception e) {
-            fail("unable to retrieve subnetwork : " + e.getMessage() );
-		}
-		return subNetworkRetrieved;
-	}
 
 	public static NetworkSummary getNetworkSummaryById(NdexRestClientModelAccessLayer ndex, String networkUUID) {
     	
@@ -421,13 +354,6 @@ public class NetworkUtils {
 		return networkSummary;
 	}
 
-	public static void updateNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
-    	try {
-			ndex.updateNetwork(network);
-		} catch (Exception  e) {
-			fail("Unable to update network " + network.getExternalId() + " : " + e.getMessage());
-		}
-	}
 
 	public static void compareObjectsContents(Network network, NetworkSummary networkSummary) {
 		
@@ -470,28 +396,9 @@ public class NetworkUtils {
 		
 	}
 
-	public static List<Namespace> getNetworkNamespaces(
-			NdexRestClientModelAccessLayer ndex, String networkUUID) {
-		List<Namespace> namespaces = null;
-		try {
-			namespaces = ndex.getNetworkNamespaces(networkUUID);
-		} catch (Exception e) {
-			fail("Unable to get network spaces :  " + e.getMessage());
-		} 
-		return namespaces;
-	}
-	
-	public static void addNetworkNamespace(
-			NdexRestClientModelAccessLayer ndex, String networkUUID, Namespace namespace) {
-		try {
-			ndex.addNetworkNamespace(networkUUID, namespace);
-		} catch (Exception e) {
-			// here we most likely get java.lang.AssertionError: Unable to get network spaces :  No content to map due to end-of-input
-			// ignore it
-		} 
-		return;
-	}
 
+	
+/*
 	public static List<Membership> getNetworkUserMemberships(
 			NdexRestClientModelAccessLayer ndex, String networkUUID,
 			String permission, int skipBlocks, int blockSize) {
@@ -525,28 +432,8 @@ public class NetworkUtils {
 			ndex.revokeNetworkPermission(networkUUID, userUUID.toString());
 		} catch (Exception e) { } 
 	}
+*/
 
-	public static List<BaseTerm> getBaseTerms(NdexRestClientModelAccessLayer ndex, 
-			String networkUUID, int skipBlocks, int blockSize) {		
-		List<BaseTerm> baseTerms = null;		
-		try {
-			baseTerms = ndex.getNetworkBaseTerms(networkUUID, skipBlocks, blockSize);
-		} catch (IOException e) {
-			fail("unable to get base terms : " + e.getMessage());
-		}	
-		return baseTerms;
-	}
-
-	public static Network getEdges(NdexRestClientModelAccessLayer ndex,
-			String networkUUID, int skipBlocks, int blockSize) {		
-		Network network = null;		
-		try {
-			network = ndex.getEdges(networkUUID, skipBlocks, blockSize);
-		} catch (Exception e) {
-			fail("uanble to get network by edges : " + e.getMessage());
-		}		
-		return network;
-	}
 
 	public static String exportNetwork(NdexRestClientModelAccessLayer ndex, 
 			String networkUUID, String networkFileNameExtension) {
@@ -559,17 +446,7 @@ public class NetworkUtils {
 		return taskId;
 	}
 
-	public static Network queryNetworkByEdgeFilter(NdexRestClientModelAccessLayer ndex, String networkUUID,EdgeCollectionQuery query) {
-		Network network = null;
-		
-		try {
-		    network = ndex.queryNetworkByEdgeFilter(networkUUID, query);
-		} catch (Exception e) {
-			fail("unable to query network by edge filter : " + e.getMessage());
-		}
-		
-		return network;
-	}
+
 
 	public static void setNetworkProperties(NdexRestClientModelAccessLayer ndex,
 			String networkUUID, List<NdexPropertyValuePair> properties) {
@@ -585,11 +462,11 @@ public class NetworkUtils {
 			NdexRestClientModelAccessLayer ndex, NetworkPropertyFilter propertyFilter) {
 		Collection<NetworkSummary> networkSummaries = null;
 		
-		try {
-			networkSummaries = ndex.searchNetworkByPropertyFilter(propertyFilter);
-		} catch (IOException e) {
-			fail("unable to search network by property filter : " + e.getMessage());
-		}
+//		try {
+//			networkSummaries = ndex.searchNetworkByPropertyFilter(propertyFilter);
+//		} catch (IOException e) {
+//			fail("unable to search network by property filter : " + e.getMessage());
+//		}
 		return networkSummaries;
 	}
 
@@ -635,7 +512,7 @@ public class NetworkUtils {
 			fail("unable to set network provenance : " + e.getMessage());
 		}	
 	}
-
+/*
 	public static ArrayList<NetworkSummary> searchNetwork(
 			NdexRestClientModelAccessLayer ndex, SimpleNetworkQuery query,
 			int skipBlocks, int blockSize) {		
@@ -648,5 +525,5 @@ public class NetworkUtils {
 		}
 		return networkSummaries;
 	}
-
+*/
 }

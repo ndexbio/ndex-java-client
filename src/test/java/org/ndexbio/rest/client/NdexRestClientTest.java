@@ -30,6 +30,10 @@
  */
 package org.ndexbio.rest.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -37,42 +41,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import org.apache.http.auth.AuthenticationException;
 import org.cxio.aspects.datamodels.EdgesElement;
 import org.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.cxio.aspects.datamodels.NodeAttributesElement;
 import org.cxio.aspects.datamodels.NodesElement;
-import org.cxio.metadata.MetaDataCollection;
-import org.cxio.metadata.MetaDataElement;
-import org.jboss.resteasy.client.jaxrs.BasicAuthentication;
-import org.jboss.resteasy.client.jaxrs.ResteasyClient;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.ResteasyWebTarget;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataOutput;
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.ndexbio.model.exceptions.NdexException;
+import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.CXSimplePathQuery;
+import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NetworkSearchResult;
+import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
-import org.ndexbio.model.object.network.Network;
-import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.Task;
 
 
 public class NdexRestClientTest {
@@ -81,33 +72,73 @@ public class NdexRestClientTest {
 	private NdexRestClientModelAccessLayer ndex;
     private static String _username = "cj1";
     private static String _password = "aaa";
-    private static String _route = "http://dev.ndexbio.org/v2";
+    private static String _route = "dev.ndexbio.org";
 		
+    @Rule
+    public ExpectedException thrown1= ExpectedException.none();
+    
 	@Before
 	public void setUp() throws Exception {
-//		client = new NdexRestClient("Support", "probably-insecure2"); //("dexterpratt", "insecure");
 		
         client = new NdexRestClient(_username, _password, _route);
-
-  //     client = new NdexRestClient(_username, _password, "http://dev2.ndexbio.org/rest");
-
-		/*
-		client = new NdexRestClient("cjtest", "guilan"); 
-			
-/*		client = new NdexRestClient("cjtest", "1234", 
-				"http://localhost:8080/ndexbio-rest",
-				"http://localhost:8080/AuthenticationService/AuthenticationService", AuthenticationType.SAML);  */
 		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 
 	@After
 	public void tearDown() throws Exception {
 	}
+	
+	@Test
+	public void testGetStatus() throws IOException, NdexException {
+		NdexStatus s = ndex.getServerStatus(true);
+		assertNotNull ( s.getProperties().get("Build"));
+		assertEquals(((String)s.getProperties().get("ServerVersion")).substring(0,1), "2");
+		s = ndex.getServerStatus(false);
+		assertNull((Object)s.getProperties().get("ImporterExporters"));
+	}
 
+	@Test 
+	public void testGetGroupOperations() throws IllegalStateException, Exception {
+		Group newGroup = new Group();
+		String testGroupName = "CJ's Test Group Created From Java Client";
+		String testGroupDesc = "Don't Modifiy this group";
+		newGroup.setGroupName(testGroupName);
+		newGroup.setDescription(testGroupDesc);
+		
+		UUID groupId= ndex.createGroup(newGroup);
+		
+		Group g = ndex.getGroup(groupId);
+		assertEquals(g.getGroupName(), testGroupName);
+		assertEquals(g.getExternalId(), groupId);
+		assertEquals(g.getDescription(), testGroupDesc);
+		
+		String testString = "SpecialStringOnlyForABCDEFTesting";
+		g.setDescription(testString);
+		ndex.updateGroup(g);
+		g = ndex.getGroup(groupId);
+		assertEquals(g.getDescription(), testString);
+		SimpleQuery query = new SimpleQuery();
+		query.setSearchString(testString);
+		Thread.sleep(3000);
+		SolrSearchResult<Group> r = ndex.findGroups(query, 0, 10);
+		assertEquals(r.getNumFound(), 1);
+		ndex.deleteGroup(groupId);
+        thrown1.expect(ObjectNotFoundException.class);
+        ndex.getGroup(groupId);
+	}
+	
+	@Test 
+	public void testTaskOperators () throws IOException, NdexException {
+		UUID taskId = UUID.fromString("ff254008-adfa-11e7-9b0a-06832d634f41");
+		Task t = ndex.getTask(taskId);
+		assertEquals(t.getExternalId(), taskId);
+		
+	}
+	
     @Test
     public void testCreateCXNetwork() throws IllegalStateException, Exception {
     	
-    	NetworkSearchResult r = 
+   /* 	NetworkSearchResult r = 
     			ndex.findNetworks("", null, 0, 1000);
     	System.out.println(r);
     	CXSimplePathQuery query = new CXSimplePathQuery ();
@@ -123,7 +154,7 @@ public class NdexRestClientTest {
     	query.setAspects(foo);
     	InputStream in0 = ndex.getNeighborhoodAsCXStream("981a352d-8e20-11e5-89b1-f66787c00b17", query);
     	printInputStream(in0);
-    	in0.close();
+    	in0.close(); */
     	
    //	InputStream in = ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
  /*   	MetaDataCollection md = CXMetaDataManager.getInstance().createCXMataDataTemplate();  
@@ -138,11 +169,11 @@ public class NdexRestClientTest {
     	printInputStream(in);
     	in.close(); 
     	*/
-            FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
+        /*    FileInputStream s = new FileInputStream ( "/Users/chenjing/Downloads/small-corpus-test.cx");
    			
             ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"), s);
             System.out.println("network updated." ) ;
-           // s.close(); 
+           // s.close(); */
     }
 
     private static String printInputStream(InputStream is) {
@@ -177,7 +208,7 @@ public class NdexRestClientTest {
     
     public  void testResteasy() throws UnsupportedEncodingException, IOException
     {
-          ResteasyProviderFactory factory =
+/*          ResteasyProviderFactory factory =
                    ResteasyProviderFactory.getInstance();
 
           // this line is only needed if you run this as a java console app.
@@ -228,7 +259,7 @@ public class NdexRestClientTest {
                  if (r != null) r.close();
                  if (client != null) client.close();
           }
-          
+          */
     }     
 
 

@@ -30,9 +30,11 @@
  */
 package org.ndexbio.rest.test.api;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -42,7 +44,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runners.MethodSorters;
-
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
@@ -50,12 +51,10 @@ import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.User;
-
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.GroupUtils;
 import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
-import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -95,7 +94,7 @@ public class testGroupService {
     // testUser is the user that will be created on the NDEx server as part of testing
     // prior to testing, this account should not exist on this server
     private static User    testAccount    = null;
-    private static NewUser testUser       = null;
+    private static User testUser       = null;
     
     private static String groupName       = "TestGroupName"; 
     
@@ -116,10 +115,10 @@ public class testGroupService {
     	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
     	
 		// start Jetty server in a new instance of JVM
-		jettyServer = JettyServerUtils.startJettyInNewJVM();
+//		jettyServer = JettyServerUtils.startJettyInNewJVM();
 		
     	// create user object; the properties describe the current test set-up
-        testUser = UserUtils.getNewUser(
+ /*       testUser = UserUtils.getNewUser(
 				accountName,
 				accountPassword,
 		        "This account is used for testing Group Service APIs",  // description
@@ -141,7 +140,7 @@ public class testGroupService {
     	UserUtils.deleteUser(ndex);
     	
 		// create test account
-    	testAccount = UserUtils.createUserAccount(ndex, testUser);
+    //	testAccount = UserUtils.createUserAccount(ndex, testUser);
     	
     	group = new Group();
     	
@@ -149,7 +148,7 @@ public class testGroupService {
     	group.setDescription("This group is used to test GroupService APIs");
     	group.setImage("http://imgur.com/gallery/ukfzg2C");
     	group.setGroupName("UCSD Cytoscape Consortium | NDEx Project");
-    	group.setWebsite("http://www.ndexbio.org");
+    	group.setWebsite("http://www.ndexbio.org"); */
     }
     
     /**
@@ -166,7 +165,7 @@ public class testGroupService {
     	//UserUtils.deleteUser(ndex);
     	
     	// stop the Jetty server, remove database; destroy Jetty Server process
-        JettyServerUtils.shutdownServerRemoveDatabase();
+  //      JettyServerUtils.shutdownServerRemoveDatabase();
     }
 
 	/**
@@ -200,7 +199,7 @@ public class testGroupService {
     	GroupUtils.compareGroupObjectsContents(group, newGroup);
     	
     	// now, get the newly created group using getGroup API
-    	String groupId = newGroup.getExternalId().toString();
+    	UUID groupId = newGroup.getExternalId();
     	Group createdGroup = GroupUtils.getGroup(ndex, groupId);
     	
     	// check the contents of the newly created  Group object
@@ -234,7 +233,9 @@ public class testGroupService {
         
     	// create the same group again using ndex client
         // expect DuplicateObjectException because group already exists on the server 
-    	newGroup = ndex.createGroup(group);
+    	UUID newGroupId = ndex.createGroup(group);
+    	ndex.getGroup(newGroupId);
+    	
     }
     
     /**
@@ -333,7 +334,7 @@ public class testGroupService {
     	
     	// set user name to a random value
     	String userName = "RandomUserName" + System.currentTimeMillis();
-    	ndex.setCredentials(userName, accountPassword);
+    //	ndex.setCredentials(userName, accountPassword);
     	
     	// expected exception is ObjectNotFoundException
         thrown.expect(ObjectNotFoundException.class);
@@ -346,10 +347,10 @@ public class testGroupService {
     	try {
         	// since the user account doesn't exist on the server
         	// we expect authentication failure when trying to create the group
-    		newGroup2 = ndex.createGroup(newGroup1);
+ //   		newGroup2 = ndex.createGroup(newGroup1);
     	} finally {	
     	    // set user name back to accountName
-    	    ndex.setCredentials(accountName, accountPassword);
+ //   	    ndex.setCredentials(accountName, accountPassword);
     	    assertNull(newGroup2);
     	}
     	

@@ -48,7 +48,6 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FilenameUtils;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -62,7 +61,6 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
-import org.ndexbio.rest.test.utilities.JettyServerUtils;
 import org.ndexbio.rest.test.utilities.NetworkUtils;
 import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
@@ -113,7 +111,7 @@ public class testPerformanceNetworkAPIs {
     private static String accountPassword = "uuu";
     
     private static User    testAccount    = null;
-    private static NewUser testUser       = null;
+    private static User testUser       = null;
     
 	DecimalFormat df1 = new DecimalFormat("#,###");
 	DecimalFormat df2 = new DecimalFormat("#,##0.000");	
@@ -139,9 +137,6 @@ public class testPerformanceNetworkAPIs {
     public static void setUp()  {
     	testServerURL = JUnitTestSuiteProperties.getTestServerURL();
     	
-		// start Jetty server in a new instance of JVM
-		jettyServer = JettyServerUtils.startJettyInNewJVM();
-
     	// build Map of networks in JSON format to be created on the Server via API
 		testJSONNetworksToCreate = PropertyFileUtils.parsePropertyFile(networksToCreatePropertyFile);
 
@@ -194,7 +189,7 @@ public class testPerformanceNetworkAPIs {
     public static void tearDown() {
  
     	// stop the Jetty server, remove database; destroy Jetty Server process
-        JettyServerUtils.shutdownServerRemoveDatabase();
+  //      JettyServerUtils.shutdownServerRemoveDatabase();
     }
 
     
@@ -222,11 +217,11 @@ public class testPerformanceNetworkAPIs {
             	    	
             // stop Jetty server if it is runs, remove database from file system, start Jetty server
         	// (i.e., (re)start server with clean database)
-        	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
-        	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
+ //       	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+ //       	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
         	
     		// re-create test account since it was deleted at previous step
-    		testAccount = UserUtils.createUserAccount(ndex, testUser);
+    	//	testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format
         	String absoluteNetworkPath = entry.getValue().toString();
@@ -240,7 +235,7 @@ public class testPerformanceNetworkAPIs {
         	
         	// create network on the server
             long timeBeforeCreate = System.currentTimeMillis();
-            NetworkSummary networkSummary = NetworkUtils.createNetwork(ndex, network);        	
+     //       NetworkSummary networkSummary = NetworkUtils.createNetwork(ndex, network);        	
 			long createTimeInMs = System.currentTimeMillis() - timeBeforeCreate;
             String formattedCreateTime = formatOutput(createTimeInMs);
         	
@@ -311,11 +306,11 @@ public class testPerformanceNetworkAPIs {
             	    	
             // stop Jetty server if it is running, remove database from file system, start Jetty server
         	// (i.e., (re)start server with clean database)
-        	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
-        	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
+     //   	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+     //   	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
         	
     		// re-create test account since it was deleted at previous step
-    		testAccount = UserUtils.createUserAccount(ndex, testUser);
+    //		testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format
         	String absoluteNetworkPath = entry.getValue().toString();
@@ -328,7 +323,7 @@ public class testPerformanceNetworkAPIs {
         	
         	long clientUploadTimeStart = System.currentTimeMillis();
         	// upload network to the test account
-        	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+      //  	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
 			long clientUploadTime = System.currentTimeMillis() - clientUploadTimeStart;
             String formattedClientUploadTime = formatOutput(clientUploadTime);
         	
@@ -413,11 +408,11 @@ public class testPerformanceNetworkAPIs {
             	    	
             // stop Jetty server if it is running, remove database from file system, start Jetty server
         	// (i.e., (re)start server with clean database)
-        	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
-        	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
+       // 	String responseFromServer = JettyServerUtils.sendCommand("restartServerWithCleanDatabase");
+       // 	assertEquals("unable to restart Jetty Server: ", responseFromServer, "done");
 
     		// re-create test account since it was deleted at previous step
-    		testAccount = UserUtils.createUserAccount(ndex, testUser);
+    //		testAccount = UserUtils.createUserAccount(ndex, testUser);
 
         	// absolute path name of the file containing network in JSON format
         	String absoluteNetworkPath = entry.getValue().toString();
@@ -430,7 +425,7 @@ public class testPerformanceNetworkAPIs {
         	
         	// upload network to the test account
         	long clientUploadTimeStart = System.currentTimeMillis();
-        	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
+       // 	NetworkUtils.startNetworkUpload(ndex, fileToUpload);
 			long clientUploadTimeInMs = System.currentTimeMillis() - clientUploadTimeStart;
         	Task task = NetworkUtils.waitForTaskToFinish(ndex, testAccount); 
         	String networkUUID = task.getAttribute("networkUUID").toString();  
@@ -440,14 +435,14 @@ public class testPerformanceNetworkAPIs {
             }
         	
         	// at this point, the network is uploaded to the server; let's restart the server and download this network
-        	responseFromServer = JettyServerUtils.sendCommand("restartServerWithoutCleaningDatabase");
-        	assertEquals("unable to start Jetty Server: ", responseFromServer, "done");
+     //   	responseFromServer = JettyServerUtils.sendCommand("restartServerWithoutCleaningDatabase");
+     //   	assertEquals("unable to start Jetty Server: ", responseFromServer, "done");
 
         	// get memory statistics before creating network
         	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
         	
 
-            long timeBeforeDownload = System.currentTimeMillis();
+    /* timeBeforeDownload = System.currentTimeMillis();
 			Network network = NetworkUtils.getNetwork(ndex, networkUUID);
 			long downloadTimeInMs = System.currentTimeMillis() - timeBeforeDownload;
             String formattedDownloadTime = formatOutput(downloadTimeInMs);
@@ -488,7 +483,7 @@ public class testPerformanceNetworkAPIs {
         	benchmark.put("download", formattedDownloadTime); 
         	benchmark.put("readonly", formattedDownloadReadOnlyTime);        	
 
-        	benchmarkData.put(entry.getKey(), benchmark);
+        	benchmarkData.put(entry.getKey(), benchmark);*/
         }
 
         printNetworkDownloadReport(memoryBefore, memoryAfter, benchmarkData);

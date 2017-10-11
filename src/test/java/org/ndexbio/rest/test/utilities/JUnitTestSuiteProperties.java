@@ -30,7 +30,8 @@
  */
 package org.ndexbio.rest.test.utilities;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

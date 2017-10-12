@@ -57,9 +57,7 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Namespace;
-import org.ndexbio.model.object.network.Network;
+
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 
@@ -256,7 +254,7 @@ public class NetworkUtils {
 	}
 
 	
-	public static void saveNetworkToFile(String fileName, Network network, boolean overwriteExistingFile)  {
+	/*public static void saveNetworkToFile(String fileName, Network network, boolean overwriteExistingFile)  {
 		
 		// check if the network already exists
 		File f = new File(fileName);
@@ -292,7 +290,7 @@ public class NetworkUtils {
 		}
         
 		return network;
-	}
+	} 
 	
 	public static void compareObjectsContents(Network network1, Network network2, boolean compareReadOnly) {
 
@@ -328,7 +326,7 @@ public class NetworkUtils {
     //    		network1.getPresentationProperties().size(), network2.getPresentationProperties().size()); 
         
         return;
-	}
+	} */
 
 
 /*	public static NetworkSummary createNetwork(NdexRestClientModelAccessLayer ndex, Network network) {
@@ -354,7 +352,7 @@ public class NetworkUtils {
 		return networkSummary;
 	}
 
-
+/*
 	public static void compareObjectsContents(Network network, NetworkSummary networkSummary) {
 		
         assertEquals("description doesn't match", network.getDescription(),  networkSummary.getDescription());
@@ -375,7 +373,7 @@ public class NetworkUtils {
         
 		return;
 	}
-
+*/
 	public static void updateNetworkSummary(NdexRestClientModelAccessLayer ndex, 
 			NetworkSummary newNetworkSummary, String networkUUID) {
 

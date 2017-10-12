@@ -77,15 +77,7 @@ import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Citation;
-import org.ndexbio.model.object.network.Edge;
-import org.ndexbio.model.object.network.FunctionTerm;
-import org.ndexbio.model.object.network.Namespace;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
-import org.ndexbio.model.object.network.Node;
-import org.ndexbio.model.object.network.Support;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;

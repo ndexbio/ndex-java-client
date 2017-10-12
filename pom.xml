@@ -8,10 +8,6 @@
 	<description>REST Client for in applications that access NDEx</description>
 	<inceptionYear>2013</inceptionYear>
 
-	<scm>
-		<connection>scm:svn:http://none</connection>
-		<url>scm:svn:https://none</url>
-	</scm>
 
 	<build>
 		<plugins>
@@ -21,13 +17,6 @@
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
-					<archive>
-						<!-- will put the entries into META-INF/MANIFEST.MF file -->
-						<manifestentries>
-							<implementation-version>${project.version}</implementation-version>
-							<implementation-build>${buildNumber}</implementation-build>
-						</manifestentries>
-					</archive>
 				</configuration>
 				<executions>
 					<execution>
@@ -70,36 +59,8 @@
 					</excludes>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<doUpdate>false</doUpdate>
-					<revisiononscmfailure>
-						<!-- Generate sequence build number based on: build number and timestamp -->
-						<format>Build: #{0} ({1,date})</format>
-						<items>
-							<item>buildNumber\d*</item>
-							<item>timestamp</item>
-						</items>
-					</revisiononscmfailure>
-				</configuration>
-			</plugin>
-			  <plugin>
-    <groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-scm-plugin</artifactId>
-    <version>1.4</version>
-  </plugin>
+			 
+
 		</plugins>
 	</build>
 	<dependencies>
@@ -164,18 +125,6 @@
 			<version>4.3.6</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.codehaus.mojo</groupId>
-			<artifactId>buildnumber-maven-plugin</artifactId>
-			<version>1.4</version>
-			<type>maven-plugin</type>
-		</dependency>
-
-    <dependency>
-        <groupId>com.perforce</groupId>
-        <artifactId>p4maven</artifactId>
-        <version>[2011,2012)</version>
-      </dependency>
 
 	</dependencies>
 

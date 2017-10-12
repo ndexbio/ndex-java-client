@@ -56,7 +56,6 @@ import org.junit.runners.MethodSorters;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -228,7 +227,7 @@ public class testPerformanceNetworkAPIs {
         	String networkName = FilenameUtils.getName(absoluteNetworkPath);
         	
         	// construct Network object to be created on the server by createNetwork()
-        	Network network = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
+    //    	Network network = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
         	
         	// get memory statistics before creating network
         	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
@@ -245,8 +244,8 @@ public class testPerformanceNetworkAPIs {
         	HashMap<String, String> benchmark = new HashMap<String, String>();
         	benchmark.put("name",   networkName);        	
         	benchmark.put("size",   NumberFormat.getNumberInstance(Locale.US).format(new File(absoluteNetworkPath).length()));
-        	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
-        	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
+      //  	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
+      //  	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
         	benchmark.put("upload", formattedCreateTime);
         	
             if (generateExcelReport) {

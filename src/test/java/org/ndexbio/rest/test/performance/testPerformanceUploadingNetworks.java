@@ -51,7 +51,6 @@ import org.junit.runners.MethodSorters;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-import org.ndexbio.model.object.network.Network;
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -267,7 +266,7 @@ public class testPerformanceUploadingNetworks {
         	String fileName = resourcePath + networkName + fileNameExtension;
         	
         	// construct Network object 
-        	Network network = NetworkUtils.readNetworkFromFile(fileName); 
+     //   	Network network = NetworkUtils.readNetworkFromFile(fileName); 
         	
         	// get memory statistics before creating network
         	memoryBefore.put(entry.getKey(), getMemoryUtiliztaion());
@@ -283,8 +282,8 @@ public class testPerformanceUploadingNetworks {
         	benchmark.put("name",   networkName);        	
         	benchmark.put("size",   NumberFormat.getNumberInstance(Locale.US).format(new File(networkPath).length()));
         	benchmark.put("json",   NumberFormat.getNumberInstance(Locale.US).format(new File(fileName).length()));
-        	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
-        	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
+//        	benchmark.put("nodes",  NumberFormat.getNumberInstance(Locale.US).format(network.getNodeCount()));
+ //       	benchmark.put("edges",  NumberFormat.getNumberInstance(Locale.US).format(network.getEdgeCount()));
         	benchmark.put("upload", formattedCreateTime);
 
         	benchmarkData.put(entry.getKey(), benchmark);

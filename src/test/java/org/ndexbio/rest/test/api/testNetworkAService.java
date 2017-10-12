@@ -69,9 +69,7 @@ import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-import org.ndexbio.model.object.network.BaseTerm;
-import org.ndexbio.model.object.network.Namespace;
-import org.ndexbio.model.object.network.Network;
+
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
@@ -303,7 +301,7 @@ public class testNetworkAService {
 		assertNotNull("network path is null; check properties file", absoluteNetworkPath);
 
     	// construct Network object to be created on the server by createNetwork()
-    	Network network = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
+    //	Network network = NetworkUtils.readNetworkFromFile(absoluteNetworkPath); 
     
     	
         for (int i = 0; i < 10; i++) {

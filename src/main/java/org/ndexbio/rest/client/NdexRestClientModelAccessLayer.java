@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -57,31 +56,21 @@ import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
-import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
-import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NetworkSearchResult;
-import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
-import org.ndexbio.model.object.Request;
-import org.ndexbio.model.object.RestResource;
-import org.ndexbio.model.object.SimpleNetworkQuery;
-import org.ndexbio.model.object.SimplePathQuery;
-import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
-import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.NetworkSummary;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -185,7 +174,7 @@ public class NdexRestClientModelAccessLayer
 
 	public SolrSearchResult<Group> findGroups(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return (SolrSearchResult<Group>)ndexRestClient.postNdexObject("/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, SolrSearchResult.class);
+		return ndexRestClient.postSearchQuery("/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, Group.class);
 	}
 	
 
@@ -236,13 +225,7 @@ public class NdexRestClientModelAccessLayer
 		ndexRestClient.delete("/group/" + groupId + "/membership?userid=" + userId);
 	} */
 	
-	/*-----------------------------------------
-	 * 
-	 *          Request
-	 *          
-	 * -----------------------------------------
-	 */
-	
+
 	/*-----------------------------------------
 	 * 
 	 *          Task
@@ -378,12 +361,14 @@ public class NdexRestClientModelAccessLayer
 	
 	// Search for users
 //			user	POST	/user/search/{skipBlocks}/{blockSize}	SimpleUserQuery	User[]
-/*	@SuppressWarnings("unchecked")
-	public List<User> findUsers(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
+//	@SuppressWarnings("unchecked")
+	public SolrSearchResult<User> findUsers(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return (List<User>)ndexRestClient.postNdexObjectList("/search/user?start="  + skipBlocks  + "&size=" + blockSize , postData, User.class);
+		return ndexRestClient.postSearchQuery("/search/user?start="  + skipBlocks  + "&size=" + blockSize , postData, User.class);
+				
+				//SolrSearchResult.class);
 	}
-*/	
+	
 	// Generate forgotten password email to user
 //			user	GET	/user/{UUID}/forgotPassword	
 /*	public User generateForgottenPasswordEmail(String userId) throws IOException, NdexException {

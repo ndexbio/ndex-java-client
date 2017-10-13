@@ -59,6 +59,7 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.NetworkConcurrentModificationException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
+import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.User;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -76,6 +77,8 @@ import com.google.common.base.Strings;
  */
 public class NdexRestClient {
 
+	private static final String clientVersion = "NDEx-Java-2.2.0";
+	
 	// for authorization
 	String _username = null;
 	String _password = null;
@@ -87,6 +90,10 @@ public class NdexRestClient {
 	String SAMLResponse = null;
 	
 	AuthenticationType authnType;
+	
+	private String userAgent;
+	
+	private String additionalUserAgent;
 
 	/**
 	 * 
@@ -103,18 +110,15 @@ public class NdexRestClient {
 		this(hostName);
 
 		setCredentials(username,password);
+		userAgent = clientVersion;
 	}
 
 	/**
 	 * Create a client as an anonymous user.
 	 * @param hostName
-	 * @throws JsonProcessingException
-	 * @throws IOException
-	 * @throws NdexException
+
 	 */
-	public NdexRestClient(String hostName) throws JsonProcessingException, IOException, NdexException {
-		super();
-//		System.out.println("Starting init of NDExRestClient ");
+	public NdexRestClient(String hostName)  {
 		
 		if ( hostName.toLowerCase().startsWith("http://"))
 			_baseroute = hostName;
@@ -126,6 +130,7 @@ public class NdexRestClient {
 		_username = null;
 		_password = null;
 		_userUid = null;
+		userAgent = clientVersion;
 	}
 
 /*	
@@ -162,38 +167,14 @@ public class NdexRestClient {
 	    return authnRequest;
 	}
 */	
-	private void addAuthentication(HttpURLConnection con) {
-		String authString = null;
-		
-		if ((_username == null) || (_username.trim()).isEmpty() ) {
-			// if User Name is null or empty, then treat this as anonymous
-			// request (i.e., do not add "Authorization" header)
-			return;
-		}
-		
-		switch ( this.authnType ) {
-		case BASIC:
-			String credentials = _username + ":" + _password;
-			authString = "Basic " + new String(new Base64().encode(credentials.getBytes()));
-			break;
-		case OAUTH:
-			System.out.println("OAuth authentication is not implmented yet.");
-			return;
-			//break;
-		case SAML:
-			authString = "SAML " + new String(new Base64().encode(this.SAMLResponse.getBytes()));
-			break;
-		default:
-			
-			//break;
-		}
-		con.setRequestProperty("Authorization", authString);	
+	private void setAuthorizationAndUserAgent(HttpURLConnection con) {
+		addAuthenticationAndUserAgent(con, _username, _password);
 	}
 	
-	private void addAuthentication(HttpURLConnection con, String userName, String password) {
+	private void addAuthenticationAndUserAgent(HttpURLConnection con, String userName, String password) {
 		String authString = null;
 		
-		if ((userName == null) || (userName.trim()).isEmpty() ) {
+		if ((userName == null) || userName.isEmpty() ) {
 			// if User Name is null or empty, then treat this as anonymous
 			// request (i.e., do not add "Authorization" header)
 			return;
@@ -215,7 +196,9 @@ public class NdexRestClient {
 			
 			//break;
 		}
-		con.setRequestProperty("Authorization", authString);	
+		con.setRequestProperty("Authorization", authString);
+		con.setRequestProperty("User-Agent", userAgent);
+		
 	}
 	
 	private String getAuthenticationString() {
@@ -238,8 +221,8 @@ public class NdexRestClient {
 	}
 
 	public void setCredentials(String username, String password) throws JsonProcessingException, IOException, NdexException {
-		this._username = username;
-		this._password = password;
+		this._username = username.trim();
+		this._password = password.trim();
 		
 		if ( _username !=null && username.length()>0) {
 			User currentUser = getNdexObject("/user?valid=true", _username,  _password, "", User.class);
@@ -566,7 +549,7 @@ public class NdexRestClient {
 		URL request = new URL(_baseroute + route + query);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
-		addAuthentication(con, userName, password);
+		addAuthenticationAndUserAgent(con, userName, password);
 		return con;
 	}	
 	
@@ -575,7 +558,7 @@ public class NdexRestClient {
 		URL request = new URL(_baseroute + route);
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
-		addAuthentication(con);
+		setAuthorizationAndUserAgent(con);
 		con.setRequestMethod("POST");
 		con.setDoOutput(true);
 		con.connect();
@@ -618,7 +601,7 @@ public class NdexRestClient {
 		//System.out.println("PUT (returning connection) URL = " + request);
 		ObjectMapper objectMapper = new ObjectMapper();
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
-		addAuthentication(con);
+		setAuthorizationAndUserAgent(con);
 
 		con.setDoOutput(true);
 		con.setRequestMethod("PUT");
@@ -719,7 +702,64 @@ public class NdexRestClient {
 		}
 	}
 
+	public <T> SolrSearchResult<T>  postSearchQuery(
+			final String route, 
+			final JsonNode postData,
+			final Class<T>  mappedClass)
+			throws JsonProcessingException, IOException, NdexException {
+		InputStream input = null;
+		HttpURLConnection con = null;
 
+		try {
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			con = postReturningConnection(route, postData);
+			//System.out.println("Response code=" + con.getResponseCode() + "  response message=" + con.getResponseMessage());
+			
+			if (null == con) {
+				return null;
+			}
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    input = con.getErrorStream();
+			 
+				if (null != input) {
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			}
+	
+			input = con.getInputStream();
+			if (null != input) {
+				JavaType type = mapper.getTypeFactory().
+						  constructParametricType(SolrSearchResult.class, mappedClass);
+				
+				SolrSearchResult<T> val = mapper.readValue(input, type);
+				
+				return val;
+				
+				//return mapper.readValue(input, mappedClass);
+			}
+			throw new IOException("failed to connect to ndex");
+
+		} finally {
+			if (null != input) input.close();
+			if ( con != null ) con.disconnect();
+		}
+	}
+
+	
+	
 	protected UUID createNdexObjectByPost(
 			final String route, 
 			final JsonNode postData)
@@ -970,7 +1010,7 @@ public class NdexRestClient {
 //		con.setRequestProperty("Content-Length",
 //				"" + Integer.toString(postDataString.getBytes().length));
 		con.setUseCaches(false);
-		addAuthentication(con);
+		setAuthorizationAndUserAgent(con);
 
 		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(wr, "UTF-8"));
@@ -1051,7 +1091,7 @@ public class NdexRestClient {
 //        try {
 
 	        con = (HttpURLConnection) request.openConnection();
-	        addAuthentication(con);
+	        setAuthorizationAndUserAgent(con);
 	        con.setDoOutput(true);
 	        con.setRequestProperty("Content-Type", "application/json");
 	        con.setRequestMethod("DELETE");
@@ -1145,6 +1185,15 @@ public class NdexRestClient {
 		    	// default case is: HTTP Status-Code 500: Internal Server Error.
 		    	throw new NdexException(ndexError);
 		}
+	}
+
+	public String getAdditionalUserAgent() {
+		return additionalUserAgent;
+	}
+
+	public void setAdditionalUserAgent(String additionalUserAgent) {
+		this.additionalUserAgent = additionalUserAgent;
+		this.userAgent = clientVersion +"; " + additionalUserAgent; 
 	}
 
 

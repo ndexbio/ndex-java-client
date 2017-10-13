@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -64,6 +65,9 @@ import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Task;
+import org.ndexbio.model.object.User;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 
 public class NdexRestClientTest {
@@ -97,6 +101,19 @@ public class NdexRestClientTest {
 		assertNull((Object)s.getProperties().get("ImporterExporters"));
 	}
 
+	@Test
+	public void testAnynomousClient() throws JsonProcessingException, IOException, NdexException {
+		NdexRestClient c1 = new NdexRestClient(_route);
+		NdexRestClientModelAccessLayer ndex2 = new NdexRestClientModelAccessLayer(c1);
+		SimpleQuery query = new SimpleQuery();
+		query.setSearchString("userName:\"cj1\"");
+		SolrSearchResult<User> r = ndex2.findUsers(query, 0, 100);
+		assertEquals( r.getNumFound(),1);
+		List<User> us = r.getResultList();
+		assertEquals(r.getResultList().get(0).getUserName(), "cj1");
+		
+	}
+	
 	@Test 
 	public void testGetGroupOperations() throws IllegalStateException, Exception {
 		Group newGroup = new Group();
@@ -122,6 +139,7 @@ public class NdexRestClientTest {
 		Thread.sleep(3000);
 		SolrSearchResult<Group> r = ndex.findGroups(query, 0, 10);
 		assertEquals(r.getNumFound(), 1);
+		assertEquals(r.getResultList().get(0).getDescription(), testString);
 		ndex.deleteGroup(groupId);
         thrown1.expect(ObjectNotFoundException.class);
         ndex.getGroup(groupId);

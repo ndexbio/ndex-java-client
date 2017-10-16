@@ -62,7 +62,7 @@ public class UpdateNetworkProfile extends Thread {
         }
 		
 		// wait till the network profile update is finished
-        while (true) {
+      /*  while (true) {
         	// System.out.println(Thread.currentThread().getName() + ": check if profile updated");
 
         	updatedNetworkSummary = NetworkUtils.getNetworkSummaryById(ndex, testNetworkUUID);
@@ -85,7 +85,7 @@ public class UpdateNetworkProfile extends Thread {
         		// System.out.println(Thread.currentThread().getName() + ": profile updated ; end the update thread");
             	break;
             } 	
-        } 
+        } */
 	}
 	
 	public NetworkSummary getUpdatedNetworkSummary() {

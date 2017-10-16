@@ -238,7 +238,7 @@ public class NetworkUtils {
         while (true) {
         			
     		//get network summary
-    		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
+    //		networkSummary = NetworkUtils.getNetworkSummaryById(ndex, networkUUID);
 
         
   
@@ -339,18 +339,6 @@ public class NetworkUtils {
 		return summary;
 	}
 */
-
-
-	public static NetworkSummary getNetworkSummaryById(NdexRestClientModelAccessLayer ndex, String networkUUID) {
-    	
-		NetworkSummary networkSummary = null;
-		try {
-			networkSummary = ndex.getNetworkSummaryById(networkUUID);
-		} catch (Exception e) {
-            fail("unable to get network summary : " + e.getMessage() );
-		}
-		return networkSummary;
-	}
 
 /*
 	public static void compareObjectsContents(Network network, NetworkSummary networkSummary) {

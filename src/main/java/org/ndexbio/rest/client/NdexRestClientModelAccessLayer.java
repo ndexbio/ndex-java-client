@@ -287,6 +287,27 @@ public class NdexRestClientModelAccessLayer
 		return ndexRestClient.getNdexObject("/user/"+userCreated, "", User.class);
 	}
 	
+	public List<NetworkSummary> getMyNetworks(UUID userId) 
+			throws JsonProcessingException, IOException {
+		
+		String route = "/user/"+ userId.toString() + "/networksummary";		
+		return ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
+
+	}
+
+	public List<NetworkSummary> getMyNetworks(int offset, int limit) 
+			throws JsonProcessingException, IOException, NdexException {
+		
+		if ( ndexRestClient.getUserUid() == null) 
+			throw new NdexException ("NdexRestClient object doesn't have authentication information.");
+		
+		String route = "/user/"+ ndexRestClient.getUserUid().toString() + "/networksummary?offset="+offset+"&limit="+ limit;		
+		return ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
+
+	}
+	
+
+	
 	// Authenticate user 
 //			user	GET	/user/authenticate	
 	public User authenticateUser(String userName, String password) throws IOException, NdexException {
@@ -474,7 +495,7 @@ public class NdexRestClientModelAccessLayer
 	// Network Summary objects
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
-	public NetworkSummary getNetworkSummaryById(String networkId) throws IOException, NdexException {
+	public NetworkSummary getNetworkSummaryById(UUID networkId) throws IOException, NdexException {
 		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
 	}
 
@@ -504,15 +525,6 @@ public NetworkSearchResult findNetworks(
 		
 	}
 
-	public List<NetworkSummary> getMyNetworks(UUID userId) 
-			throws JsonProcessingException, IOException {
-		
-		String route = "/user/"+ userId.toString() + "/networksummary";		
-		return (List<NetworkSummary>) ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
-
-	}
-
-	
 	
 //	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
 /*	@SuppressWarnings("unchecked")

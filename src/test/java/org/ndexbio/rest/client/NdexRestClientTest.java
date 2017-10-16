@@ -33,6 +33,7 @@ package org.ndexbio.rest.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -66,6 +67,7 @@ import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.NetworkSummary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -145,6 +147,13 @@ public class NdexRestClientTest {
         ndex.getGroup(groupId);
 	}
 	
+	@Test
+	public void testUserFunctions() throws JsonProcessingException, IOException {
+		List<NetworkSummary> myNetworks = ndex.getMyNetworks(client.getUserUid());
+		assertTrue(myNetworks.size()>10);
+		
+	}
+	
 	@Test 
 	public void testTaskOperators () throws IOException, NdexException {
 		UUID taskId = UUID.fromString("ff254008-adfa-11e7-9b0a-06832d634f41");
@@ -156,6 +165,12 @@ public class NdexRestClientTest {
     @Test
     public void testCreateCXNetwork() throws IllegalStateException, Exception {
     	
+    	NetworkSummary s = ndex.getNetworkSummaryById(UUID.fromString("9025e42a-9e3f-11e7-8676-06832d634f41"));
+    	assertEquals (s.getName(), "cj test Network for unit test - dont remove");
+
+    	
+		List<NetworkSummary> myNetworks = ndex.getMyNetworks(0,1);
+
    /* 	NetworkSearchResult r = 
     			ndex.findNetworks("", null, 0, 1000);
     	System.out.println(r);

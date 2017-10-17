@@ -1,0 +1,529 @@
+[
+	{
+		"numberVerification": [
+			{
+				"longNumber": 281474976710655
+			}
+		]
+	},
+	{
+		"metaData": [
+			{
+				"consistencyGroup": 1,
+				"elementCount": 1,
+				"lastUpdate": 1507929415279,
+				"name": "ndexStatus",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 1,
+				"lastUpdate": 1507929415281,
+				"name": "provenanceHistory",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 3,
+				"idCounter": 76,
+				"name": "nodes",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 3,
+				"idCounter": 77,
+				"name": "edges",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 3,
+				"name": "networkAttributes",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 6,
+				"name": "edgeAttributes",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 3,
+				"name": "cartesianLayout",
+				"properties": [],
+				"version": "1.0"
+			},
+			{
+				"consistencyGroup": 1,
+				"elementCount": 3,
+				"name": "cyVisualProperties",
+				"properties": [],
+				"version": "1.0"
+			}
+		]
+	},
+	{
+		"ndexStatus": [
+			{
+				"externalId": "9025e42a-9e3f-11e7-8676-06832d634f41",
+				"creationTime": 1505938149662,
+				"modificationTime": 1507929415279,
+				"visibility": "PRIVATE",
+				"published": false,
+				"nodeCount": 3,
+				"edgeCount": 3,
+				"owner": "cj1",
+				"ndexServerURI": "http://dev.ndexbio.org",
+				"readOnly": false
+			}
+		]
+	},
+	{
+		"provenanceHistory": [
+			{
+				"entity": {
+					"uri": "http://dev.ndexbio.org/v2/network/9025e42a-9e3f-11e7-8676-06832d634f41/summary",
+					"creationEvent": {
+						"inputs": [
+							{
+								"uri": "http://dev.ndexbio.org/v2/network/9025e42a-9e3f-11e7-8676-06832d634f41/summary",
+								"creationEvent": {
+									"inputs": [
+										{
+											"uri": "http://cj-mac.ndexbio.org/v2/network/15eb6dbd-65c6-11e7-be6e-f6ab10c8380a/summary",
+											"creationEvent": {
+												"inputs": [
+													{
+														"uri": "http://cj-mac.ndexbio.org/v2/network/15eb6dbd-65c6-11e7-be6e-f6ab10c8380a/summary",
+														"creationEvent": {
+															"inputs": [
+																{
+																	"uri": "http://dev2.ndexbio.org/v2/network/909b5141-458e-11e7-a6ff-0660b7976219/summary",
+																	"creationEvent": {
+																		"inputs": [
+																			{
+																				"uri": null,
+																				"creationEvent": {
+																					"inputs": null,
+																					"startedAtTime": 1496186427095,
+																					"endedAtTime": 1496186427095,
+																					"properties": [],
+																					"eventType": "Cytoscape Upload"
+																				},
+																				"properties": []
+																			}
+																		],
+																		"startedAtTime": 1496186427187,
+																		"endedAtTime": 1496186427187,
+																		"properties": [
+																			{
+																				"name": "user",
+																				"value": "c c"
+																			},
+																			{
+																				"name": "user name",
+																				"value": "cjtest"
+																			}
+																		],
+																		"eventType": "Program Upload in CX"
+																	},
+																	"properties": [
+																		{
+																			"name": "edge count",
+																			"value": "3"
+																		},
+																		{
+																			"name": "node count",
+																			"value": "3"
+																		},
+																		{
+																			"name": "dc:title",
+																			"value": "cj test Network"
+																		}
+																	]
+																}
+															],
+															"startedAtTime": 1499728710380,
+															"endedAtTime": 1499728710380,
+															"properties": [
+																{
+																	"name": "user",
+																	"value": "c c"
+																},
+																{
+																	"name": "user name",
+																	"value": "cjtest"
+																}
+															],
+															"eventType": "Program Upload in CX"
+														},
+														"properties": [
+															{
+																"name": "edge count",
+																"value": "3"
+															},
+															{
+																"name": "node count",
+																"value": "3"
+															},
+															{
+																"name": "dc:title",
+																"value": "cj test Network"
+															}
+														]
+													}
+												],
+												"startedAtTime": 1504039283387,
+												"endedAtTime": 1504039283387,
+												"properties": [
+													{
+														"name": "user",
+														"value": "c c"
+													},
+													{
+														"name": "user name",
+														"value": "cjtest"
+													},
+													{
+														"name": "dc:title",
+														"value": "cj test Network"
+													},
+													{
+														"name": "description",
+														"value": "<div>somthing</div>"
+													},
+													{
+														"name": "version",
+														"value": "1.2"
+													}
+												],
+												"eventType": "Update Network Profile"
+											},
+											"properties": [
+												{
+													"name": "dc:title",
+													"value": "cj test Network"
+												},
+												{
+													"name": "description",
+													"value": "<div>somthing</div>"
+												},
+												{
+													"name": "version",
+													"value": "1.2"
+												}
+											]
+										}
+									],
+									"startedAtTime": 1505938149662,
+									"endedAtTime": 1505938149662,
+									"properties": [
+										{
+											"name": "user name",
+											"value": "cj1"
+										}
+									],
+									"eventType": "Program Upload in CX"
+								},
+								"properties": [
+									{
+										"name": "dc:title",
+										"value": "cj test Network"
+									}
+								]
+							}
+						],
+						"startedAtTime": 1507929415276,
+						"endedAtTime": 1507929415276,
+						"properties": [
+							{
+								"name": "user name",
+								"value": "cj1"
+							},
+							{
+								"name": "dc:title",
+								"value": "cj test Network for unit test - dont remove"
+							}
+						],
+						"eventType": "Update Network Profile"
+					},
+					"properties": [
+						{
+							"name": "dc:title",
+							"value": "cj test Network for unit test - dont remove"
+						},
+						{
+							"name": "description",
+							"value": "<div>somthing testNetworkSpecialSearchString12213</div>"
+						},
+						{
+							"name": "version",
+							"value": "1.2"
+						}
+					]
+				}
+			}
+		]
+	},
+	{
+		"nodes": [
+			{
+				"@id": 68,
+				"n": "Node 3"
+			},
+			{
+				"@id": 66,
+				"n": "Node 2"
+			},
+			{
+				"@id": 64,
+				"n": "Node 1"
+			}
+		]
+	},
+	{
+		"edges": [
+			{
+				"@id": 74,
+				"s": 66,
+				"t": 68,
+				"i": "controls"
+			},
+			{
+				"@id": 72,
+				"s": 64,
+				"t": 66,
+				"i": "interacts with"
+			},
+			{
+				"@id": 70,
+				"s": 64,
+				"t": 68,
+				"i": "neighbor_of"
+			}
+		]
+	},
+	{
+		"networkAttributes": [
+			{
+				"n": "name",
+				"v": "cj test Network for unit test - dont remove"
+			},
+			{
+				"n": "description",
+				"v": "<div>somthing</div>"
+			},
+			{
+				"n": "version",
+				"v": "1.2"
+			}
+		]
+	},
+	{
+		"edgeAttributes": [
+			{
+				"po": 74,
+				"n": "name",
+				"v": "Node 2 (interacts with) Node 3"
+			},
+			{
+				"po": 74,
+				"n": "interaction",
+				"v": "interacts with"
+			},
+			{
+				"po": 72,
+				"n": "name",
+				"v": "Node 1 (interacts with) Node 2"
+			},
+			{
+				"po": 72,
+				"n": "interaction",
+				"v": "interacts with"
+			},
+			{
+				"po": 70,
+				"n": "name",
+				"v": "Node 1 (interacts with) Node 3"
+			},
+			{
+				"po": 70,
+				"n": "interaction",
+				"v": "interacts with"
+			}
+		]
+	},
+	{
+		"cartesianLayout": [
+			{
+				"node": 68,
+				"x": 58.0,
+				"y": -76.0
+			},
+			{
+				"node": 66,
+				"x": -23.0,
+				"y": 96.0
+			},
+			{
+				"node": 64,
+				"x": -280.0,
+				"y": -65.0
+			}
+		]
+	},
+	{
+		"cyVisualProperties": [
+			{
+				"properties_of": "network",
+				"properties": {
+					"NETWORK_BACKGROUND_PAINT": "#FFFFFF",
+					"NETWORK_CENTER_X_LOCATION": "0.0",
+					"NETWORK_CENTER_Y_LOCATION": "0.0",
+					"NETWORK_CENTER_Z_LOCATION": "0.0",
+					"NETWORK_DEPTH": "0.0",
+					"NETWORK_EDGE_SELECTION": "true",
+					"NETWORK_HEIGHT": "400.0",
+					"NETWORK_NODE_SELECTION": "true",
+					"NETWORK_SCALE_FACTOR": "1.0",
+					"NETWORK_SIZE": "550.0",
+					"NETWORK_WIDTH": "550.0"
+				}
+			},
+			{
+				"properties_of": "nodes:default",
+				"properties": {
+					"COMPOUND_NODE_PADDING": "10.0",
+					"COMPOUND_NODE_SHAPE": "ROUND_RECTANGLE",
+					"NODE_BORDER_PAINT": "#CCCCCC",
+					"NODE_BORDER_STROKE": "SOLID",
+					"NODE_BORDER_TRANSPARENCY": "255",
+					"NODE_BORDER_WIDTH": "0.0",
+					"NODE_CUSTOMGRAPHICS_1": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_2": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_3": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_4": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_5": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_6": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_7": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_8": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_9": "org.cytoscape.ding.customgraphics.NullCustomGraphics,0,[ Remove Graphics ],",
+					"NODE_CUSTOMGRAPHICS_POSITION_1": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_2": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_3": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_4": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_5": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_6": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_7": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_8": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_POSITION_9": "C,C,c,0.00,0.00",
+					"NODE_CUSTOMGRAPHICS_SIZE_1": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_2": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_3": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_4": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_5": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_6": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_7": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_8": "50.0",
+					"NODE_CUSTOMGRAPHICS_SIZE_9": "50.0",
+					"NODE_CUSTOMPAINT_1": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_1, name=Node Custom Paint 1)",
+					"NODE_CUSTOMPAINT_2": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_2, name=Node Custom Paint 2)",
+					"NODE_CUSTOMPAINT_3": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_3, name=Node Custom Paint 3)",
+					"NODE_CUSTOMPAINT_4": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_4, name=Node Custom Paint 4)",
+					"NODE_CUSTOMPAINT_5": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_5, name=Node Custom Paint 5)",
+					"NODE_CUSTOMPAINT_6": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_6, name=Node Custom Paint 6)",
+					"NODE_CUSTOMPAINT_7": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_7, name=Node Custom Paint 7)",
+					"NODE_CUSTOMPAINT_8": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_8, name=Node Custom Paint 8)",
+					"NODE_CUSTOMPAINT_9": "DefaultVisualizableVisualProperty(id=NODE_CUSTOMPAINT_9, name=Node Custom Paint 9)",
+					"NODE_DEPTH": "0.0",
+					"NODE_FILL_COLOR": "#89D0F5",
+					"NODE_HEIGHT": "35.0",
+					"NODE_LABEL_COLOR": "#000000",
+					"NODE_LABEL_FONT_FACE": "SansSerif,plain,12",
+					"NODE_LABEL_FONT_SIZE": "12",
+					"NODE_LABEL_POSITION": "C,C,c,0.00,0.00",
+					"NODE_LABEL_TRANSPARENCY": "255",
+					"NODE_LABEL_WIDTH": "200.0",
+					"NODE_NESTED_NETWORK_IMAGE_VISIBLE": "true",
+					"NODE_PAINT": "#1E90FF",
+					"NODE_SELECTED": "false",
+					"NODE_SELECTED_PAINT": "#FFFF00",
+					"NODE_SHAPE": "ROUND_RECTANGLE",
+					"NODE_SIZE": "35.0",
+					"NODE_TRANSPARENCY": "255",
+					"NODE_VISIBLE": "true",
+					"NODE_WIDTH": "75.0",
+					"NODE_X_LOCATION": "0.0",
+					"NODE_Y_LOCATION": "0.0",
+					"NODE_Z_LOCATION": "0.0"
+				},
+				"dependencies": {
+					"nodeCustomGraphicsSizeSync": "true",
+					"nodeSizeLocked": "false"
+				},
+				"mappings": {
+					"NODE_LABEL": {
+						"type": "PASSTHROUGH",
+						"definition": "COL=name,T=string"
+					}
+				}
+			},
+			{
+				"properties_of": "edges:default",
+				"properties": {
+					"EDGE_CURVED": "true",
+					"EDGE_LABEL_COLOR": "#000000",
+					"EDGE_LABEL_FONT_FACE": "Dialog,plain,10",
+					"EDGE_LABEL_FONT_SIZE": "10",
+					"EDGE_LABEL_TRANSPARENCY": "255",
+					"EDGE_LABEL_WIDTH": "200.0",
+					"EDGE_LINE_TYPE": "SOLID",
+					"EDGE_PAINT": "#323232",
+					"EDGE_SELECTED": "false",
+					"EDGE_SELECTED_PAINT": "#FF0000",
+					"EDGE_SOURCE_ARROW_SELECTED_PAINT": "#FFFF00",
+					"EDGE_SOURCE_ARROW_SHAPE": "NONE",
+					"EDGE_SOURCE_ARROW_UNSELECTED_PAINT": "#000000",
+					"EDGE_STROKE_SELECTED_PAINT": "#FF0000",
+					"EDGE_STROKE_UNSELECTED_PAINT": "#848484",
+					"EDGE_TARGET_ARROW_SELECTED_PAINT": "#FFFF00",
+					"EDGE_TARGET_ARROW_SHAPE": "NONE",
+					"EDGE_TARGET_ARROW_UNSELECTED_PAINT": "#000000",
+					"EDGE_TRANSPARENCY": "255",
+					"EDGE_UNSELECTED_PAINT": "#404040",
+					"EDGE_VISIBLE": "true",
+					"EDGE_WIDTH": "2.0"
+				},
+				"dependencies": {
+					"arrowColorMatchesEdge": "true"
+				},
+				"mappings": {
+					"EDGE_LINE_TYPE": {
+						"type": "DISCRETE",
+						"definition": "COL=interaction,T=string,K=0=controls,V=0=LONG_DASH,K=1=interacts with,V=1=SOLID,K=2=neighbor_of,V=2=DOT"
+					},
+					"EDGE_UNSELECTED_PAINT": {
+						"type": "DISCRETE",
+						"definition": "COL=interaction,T=string,K=0=controls,V=0=#6600FF,K=1=interacts with,V=1=#339900,K=2=neighbor_of,V=2=#990033"
+					}
+				}
+			}
+		]
+	},
+	{
+		"status": [
+			{
+				"error": "",
+				"success": true
+			}
+		]
+	}
+]

@@ -50,6 +50,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.errorcodes.NDExError;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.ForbiddenOperationException;
@@ -65,6 +66,7 @@ import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
+import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.NetworkSummary;
@@ -280,13 +282,24 @@ public class NdexRestClientModelAccessLayer
 	 * -----------------------------------------
 	 */
 	
-
-	// Get user by username OR id
-//			user	GET	/user/{userIdentifier}		User
+    /**
+     * Get a user by UUID.
+     * @param userCreated
+     * @return
+     * @throws IOException
+     * @throws NdexException
+     */
 	public User getUser(UUID userCreated) throws IOException, NdexException {
 		return ndexRestClient.getNdexObject("/user/"+userCreated, "", User.class);
 	}
 	
+	/**
+	 * Get the list of network
+	 * @param userId
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 */
 	public List<NetworkSummary> getMyNetworks(UUID userId) 
 			throws JsonProcessingException, IOException {
 		
@@ -338,11 +351,10 @@ public class NdexRestClientModelAccessLayer
 	}	
 */
 	
-	// Get tasks owned by user, filtered by status
-//			user	GET	/user/{userUUID}/task/{status}/{skipBlocks}/{blockSize}		Task[]
-	@SuppressWarnings("unchecked")
-	public List<Task> getUserTasks( String status, int skipBlocks, int blockSize) throws IOException {
-		return (List<Task>) ndexRestClient.getNdexObjectList("/task?status=" + status  + "&start=" + skipBlocks  + "&size=" + blockSize , "", Task.class);
+	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException {
+		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
+				   (status == null ? "" : "&status="+status); 
+		return (List<Task>) ndexRestClient.getNdexObjectList(route , "", Task.class);
 	}	
 	
 /*	
@@ -583,11 +595,18 @@ public NetworkSearchResult findNetworks(
 	
 
 	
-	public InputStream getNetworkAsCXStream(String id) throws JsonProcessingException, IOException, NdexException {
+	public InputStream getNetworkAsCXStream(UUID id) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id ;
 		return  ndexRestClient.getStream(route, "");
 	}
 
+	public NiceCXNetwork getNetwork(UUID id) throws JsonProcessingException, IOException, NdexException {
+		
+		try (InputStream is = getNetworkAsCXStream(id)) {
+			return NdexRestClientUtilities.getCXNetworkFromStream(is);
+		}
+	}
+	
 	public InputStream getNetworkAspects(String id, Collection<String> aspects) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id + "/aspects";
 	//	return  ndexRestClient.getStream(route, "");

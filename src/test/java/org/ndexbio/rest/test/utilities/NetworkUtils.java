@@ -113,7 +113,7 @@ public class NetworkUtils {
 	public static Task waitForTaskToFinish(NdexRestClientModelAccessLayer ndex, User userAccount) {
 		List<Task> userTasks = null;
 		Status status;
-		
+	/*	
         while (true) {
         	
             try {
@@ -141,7 +141,7 @@ public class NetworkUtils {
             }
   
         }   // while (true)	
-        
+       */ 
         return userTasks.get(0);
 	}
 	
@@ -149,7 +149,7 @@ public class NetworkUtils {
 		List<Task> userTasks = null;
 		ArrayList<String> uploadedNetworksUUIDs = new ArrayList<String>();
         	
-        try {
+      /*  try {
            userTasks = ndex.getUserTasks( Status.ALL.toString(), 0, 300);
         } catch (Exception e) {
             fail("Unable to get list of user tasks: " +  e.getMessage());
@@ -180,7 +180,7 @@ public class NetworkUtils {
         	//}
 
         	uploadedNetworksUUIDs.add(networkUUID.toString());
-        }
+        } */
       
         return uploadedNetworksUUIDs;
 	}	

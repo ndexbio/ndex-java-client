@@ -191,7 +191,6 @@ public class NdexRestClientUtilities {
 		  readers.add(new GeneralAspectFragmentReader (FunctionTermElement.ASPECT_NAME,FunctionTermElement.class));
 		  readers.add(new GeneralAspectFragmentReader (CitationElement.ASPECT_NAME,CitationElement.class));
 		  readers.add(new GeneralAspectFragmentReader (SupportElement.ASPECT_NAME,SupportElement.class));
-//		  readers.add(new GeneralAspectFragmentReader (ReifiedEdgeElement.ASPECT_NAME,ReifiedEdgeElement.class));
 		  readers.add(new GeneralAspectFragmentReader (EdgeCitationLinksElement.ASPECT_NAME,EdgeCitationLinksElement.class));
 		  readers.add(new GeneralAspectFragmentReader (EdgeSupportLinksElement.ASPECT_NAME,EdgeSupportLinksElement.class));
 		  readers.add(new GeneralAspectFragmentReader (NodeCitationLinksElement.ASPECT_NAME,NodeCitationLinksElement.class));
@@ -254,6 +253,10 @@ public class NdexRestClientUtilities {
 	     				case NamespacesElement.ASPECT_NAME:
 	     					NamespacesElement ns = (NamespacesElement) elmt;
 	     					niceCX.setNamespaces(ns);
+	     					break;
+	     				case CitationElement.ASPECT_NAME:
+	     					CitationElement ce = (CitationElement) elmt;
+	     					niceCX.addCitation(ce);
 	     					break;
 	     				default:    // opaque aspect
 	     					niceCX.addOpapqueAspect(elmt);

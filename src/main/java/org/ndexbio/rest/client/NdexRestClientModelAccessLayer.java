@@ -299,22 +299,23 @@ public class NdexRestClientModelAccessLayer
 	 * @return
 	 * @throws JsonProcessingException
 	 * @throws IOException
+	 * @throws NdexException 
 	 */
-	public List<NetworkSummary> getMyNetworks(UUID userId) 
-			throws JsonProcessingException, IOException {
-		
-		String route = "/user/"+ userId.toString() + "/networksummary";		
-		return ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
+	public List<NetworkSummary> getMyNetworks() 
+			throws JsonProcessingException, IOException, NdexException {
+		return getMyNetworks(0,-1);
 
 	}
 
 	public List<NetworkSummary> getMyNetworks(int offset, int limit) 
 			throws JsonProcessingException, IOException, NdexException {
 		
-		if ( ndexRestClient.getUserUid() == null) 
-			throw new NdexException ("NdexRestClient object doesn't have authentication information.");
+		UUID userId = ndexRestClient.getUserUid();
+		if ( userId == null) {
+			throw new NdexException("Client object has not sign in to NDEx server yet.");
+		}
 		
-		String route = "/user/"+ ndexRestClient.getUserUid().toString() + "/networksummary?offset="+offset+"&limit="+ limit;		
+		String route = "/user/"+ userId + "/networksummary?offset="+offset+"&limit="+ limit;		
 		return ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
 
 	}
@@ -585,13 +586,7 @@ public NetworkSearchResult findNetworks(
 		ndexRestClient.delete("/network/" + id);
 	}
 	
-	// Make the network "published" - no longer mutable.
-//	network	POST	/network/{networkUUID}/publish		NetworkSummary
-/*	public NetworkSummary makeNetworkImmutable(String networkId) throws Exception {
-		String route = "/network/" + networkId + "/publish";
-		JsonNode postData = objectMapper.createObjectNode(); 
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
-	} */
+
 	
 
 	
@@ -606,13 +601,40 @@ public NetworkSearchResult findNetworks(
 			return NdexRestClientUtilities.getCXNetworkFromStream(is);
 		}
 	}
+
+	public InputStream getNetworkAspectElements(UUID id, String aspectName, int limit) throws JsonProcessingException, IOException, NdexException {
+
+		String route = "/network/" + id + "/aspect/"+aspectName + "?size=" + limit;
+		return  ndexRestClient.getStream(route, "");
+	}
+
+	public <T> List<T> getNetworkAspect(UUID id, String aspect, int limit, Class<T> mappedClass)
+			    throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + id + "/aspect/"+aspect + "?size=" + limit;
+		return  ndexRestClient.getNdexObjectList(route, "", mappedClass);
+
+	}
 	
-	public InputStream getNetworkAspects(String id, Collection<String> aspects) throws JsonProcessingException, IOException, NdexException {
+/*	public InputStream getNetworkAspects(UUID id, Collection<String> aspects) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id + "/aspects";
 	//	return  ndexRestClient.getStream(route, "");
 	  	JsonNode postData = objectMapper.valueToTree(aspects);
     	return  ndexRestClient.postNdexObject(route, postData);
 
+	} */
+
+	public void setSampleNetwork (UUID networkId, InputStream sampleNetworkStream) throws IOException, NdexException {
+		ndexRestClient.putStream("/network/" + networkId + "/sample", sampleNetworkStream );
+	}
+	
+/*	public void setSampleNetwork (UUID networkId, String sampleNetworkString) {
+		
+	} */
+	
+	public NiceCXNetwork getSampleNetwork ( UUID networkId ) throws JsonProcessingException, IOException, NdexException {
+		try (InputStream s = ndexRestClient.getStream("/network/" , networkId + "/sample")) {
+			return NdexRestClientUtilities.getCXNetworkFromStream(s);
+		}
 	}
 	
 	public InputStream getNeighborhoodAsCXStream(String id, CXSimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
@@ -621,11 +643,7 @@ public NetworkSearchResult findNetworks(
 	    return  ndexRestClient.postNdexObject(route, postData);
 	}
 	
-	public InputStream getNetworkAspectElements(String id, String aspectName, int limit) throws JsonProcessingException, IOException, NdexException {
-
-		String route = "/network/" + id + "/aspect/" + aspectName + "/" + limit;
-		return  ndexRestClient.getStream(route, "");
-	}
+	
 		
 
 // network	GET	/export/{networkId}/{format} String

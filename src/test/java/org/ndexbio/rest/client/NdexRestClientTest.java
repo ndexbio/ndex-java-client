@@ -54,12 +54,13 @@ import org.cxio.aspects.datamodels.EdgesElement;
 import org.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.cxio.aspects.datamodels.NodeAttributesElement;
 import org.cxio.aspects.datamodels.NodesElement;
-
+import org.cxio.core.interfaces.AspectElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.ndexbio.model.cx.CitationElement;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
@@ -152,8 +153,8 @@ public class NdexRestClientTest {
 	}
 
 	@Test
-	public void testUserFunctions() throws JsonProcessingException, IOException {
-		List<NetworkSummary> myNetworks = ndex.getMyNetworks(client.getUserUid());
+	public void testUserFunctions() throws JsonProcessingException, IOException, NdexException {
+		List<NetworkSummary> myNetworks = ndex.getMyNetworks();
 		assertTrue(myNetworks.size() > 10);
 
 	}
@@ -225,8 +226,10 @@ public class NdexRestClientTest {
 
 		boolean found = false;
 		for ( NetworkSummary net : myNetworks) {
-			if ( net.getExternalId().equals(networkId))
+			if ( net.getExternalId().equals(networkId)) {
 				found = true;
+				break;
+			}
 		}
 		
 		assertTrue ( found);
@@ -239,6 +242,55 @@ public class NdexRestClientTest {
 		assertEquals(cx2.getEdges().get(72L).getSource(), cx.getEdges().get(72L).getSource());
 		assertEquals(cx2.getEdges().get(72L).getTarget(), cx.getEdges().get(72L).getTarget());
 		
+		//update network
+		
+		NiceCXNetwork cx_bel;
+
+		try (InputStream is =
+				this.getClass().getResourceAsStream("/BEL_Framework_Small_Corpus_Document.cx")) {
+
+			cx_bel = NdexRestClientUtilities.getCXNetworkFromStream(is);
+		}
+		
+		try (InputStream iss = this.getClass().getResourceAsStream("/BEL_Framework_Small_Corpus_Document.cx")) {
+			ndex.updateCXNetwork(networkId, iss);
+		}
+		
+		s = ndex.getNetworkSummaryById(networkId);
+		count = 0;
+		while (!s.isCompleted()) {
+			if (count > 10)
+				fail("Network takes too long to process.");
+			Thread.sleep(2000);
+			System.out.println("Getting networkSummary from Ndex server.");
+			s = ndex.getNetworkSummaryById(networkId);
+		}
+		
+		assertEquals(s.getName(), "BEL Framework Small Corpus Document");
+		assertEquals(s.getNodeCount(), 1598);
+		assertEquals(s.getEdgeCount(), 2174);
+		
+		List<CitationElement> e = ndex.getNetworkAspect(networkId, "citations", -1, CitationElement.class);
+
+		assertEquals ( e.size() , cx_bel.getCitations().size());
+	
+		CitationElement et = e.get(10);
+		
+		assertTrue(cx_bel.getCitations().containsKey(et.getId()));
+		
+		// set sample network
+		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
+			ndex.setSampleNetwork(networkId, is);
+		}
+		
+		// get sample network
+		NiceCXNetwork sampleCX = ndex.getSampleNetwork(networkId);
+		assertEquals ( sampleCX.getEdges().size(), cx.getEdges().size());
+		assertEquals ( sampleCX.getNodes().size(), cx.getNodes().size());
+		assertEquals ( sampleCX.getNetworkAttributes().size(), cx.getNetworkAttributes().size());
+		assertEquals ( sampleCX.getEdgeAttributes().size(), cx.getEdgeAttributes().size());
+		assertEquals ( sampleCX.getNodeAttributes().size(), cx.getNodeAttributes().size());
+		
 		
 		//delete network 
 		ndex.deleteNetwork(networkId);
@@ -247,43 +299,10 @@ public class NdexRestClientTest {
 		ndex.getNetworkSummaryById(networkId);
 		
 		
-		/*
-		 * NetworkSearchResult r = ndex.findNetworks("", null, 0, 1000);
-		 * System.out.println(r); CXSimplePathQuery query = new CXSimplePathQuery ();
-		 * query.setSearchDepth(1); query.setSearchString("CALC");
-		 * query.setEdgeLimit(10); Set<String> foo = new TreeSet<>();
-		 * 
-		 * foo.add(NodesElement.ASPECT_NAME); foo.add(EdgesElement.ASPECT_NAME);
-		 * foo.add(NetworkAttributesElement.ASPECT_NAME);
-		 * foo.add(NodeAttributesElement.ASPECT_NAME); query.setAspects(foo);
-		 * InputStream in0 =
-		 * ndex.getNeighborhoodAsCXStream("981a352d-8e20-11e5-89b1-f66787c00b17",
-		 * query); printInputStream(in0); in0.close();
-		 */
 
-		// InputStream in =
-		// ndex.getNetworkAsCXStream("ad78abd0-6e00-11e5-978e-0251251672f9");
-		/*
-		 * MetaDataCollection md =
-		 * CXMetaDataManager.getInstance().createCXMataDataTemplate(); List<String > l =
-		 * new ArrayList<>(md.size()); for (MetaDataElement e : md) l.add(e.getName());
-		 * InputStream in =
-		 * ndex.getNetworkAspects("65308e68-8191-11e5-b7f9-0251251672f9", l);
-		 * printInputStream(in); in.close();
-		 * 
-		 * in = ndex.getNetworkAspectElements("6dffd124-7cd8-11e5-8e3a-96da26a8cd91",
-		 * "nodes",10); printInputStream(in); in.close();
-		 */
-		/*
-		 * FileInputStream s = new FileInputStream (
-		 * "/Users/chenjing/Downloads/small-corpus-test.cx");
-		 * 
-		 * ndex.updateCXNetwork(UUID.fromString("6e1554f5-7cd8-11e5-8e3a-96da26a8cd91"),
-		 * s); System.out.println("network updated." ) ; // s.close();
-		 */
 	}
 
-	private static String printInputStream(InputStream is) {
+/*	private static String printInputStream(InputStream is) {
 
 		BufferedReader br = null;
 		StringBuilder sb = new StringBuilder();
@@ -310,55 +329,8 @@ public class NdexRestClientTest {
 
 		return sb.toString();
 
-	}
+	} */
 
-	public void testResteasy() throws UnsupportedEncodingException, IOException {
-		/*
-		 * ResteasyProviderFactory factory = ResteasyProviderFactory.getInstance();
-		 * 
-		 * // this line is only needed if you run this as a java console app. // in
-		 * tomcat and jboss initialization should work without this
-		 * ResteasyProviderFactory.pushContext(javax.ws.rs.ext.Providers.class,
-		 * factory);
-		 * 
-		 * 
-		 * ResteasyClient client =null; Response r = null; try {
-		 * 
-		 * 
-		 * ResteasyClientBuilder resteasyClientBuilder = new
-		 * ResteasyClientBuilder().providerFactory(factory);
-		 * 
-		 * client = resteasyClientBuilder.build(); // client.register(new
-		 * BasicAuthentication(_username,_password));
-		 * 
-		 * // insert the url of the webservice here ResteasyWebTarget target =
-		 * client.target("http://localhost:8080/ndexbio-rest/network/asCX");
-		 * target.register(new BasicAuthentication(_username,_password));
-		 * MultipartFormDataOutput mdo = new MultipartFormDataOutput();
-		 * 
-		 * mdo.addFormData("file1", new FileInputStream(new File( //
-		 * "/Users/chenjing/Downloads/5a81ae28-679e-11e5-aba2-2e70fd96076e.cx"
-		 * "/Users/chenjing/working/cx/ligand.cx" )),
-		 * MediaType.APPLICATION_OCTET_STREAM_TYPE);
-		 * 
-		 * GenericEntity<MultipartFormDataOutput> entity = new
-		 * GenericEntity<MultipartFormDataOutput>(mdo) {};
-		 * 
-		 * //Upload File r = target.request().post( Entity.entity(entity,
-		 * MediaType.MULTIPART_FORM_DATA_TYPE));
-		 * 
-		 * // Read File Response String input = r.readEntity(String.class);
-		 * 
-		 * 
-		 * 
-		 * System.out.println("DONE'" + input);
-		 * 
-		 * } catch (Exception e) {
-		 * 
-		 * e.printStackTrace(); } finally { if (r != null) r.close(); if (client !=
-		 * null) client.close(); }
-		 */
-	}
 
 	@Test
 	public void testAuthentication() throws Exception {

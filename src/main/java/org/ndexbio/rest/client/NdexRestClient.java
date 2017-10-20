@@ -50,6 +50,7 @@ import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.ndexbio.model.errorcodes.ErrorCode;
 import org.ndexbio.model.errorcodes.NDExError;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
@@ -94,7 +95,7 @@ public class NdexRestClient {
 	private String userAgent;
 	
 	private String additionalUserAgent;
-
+	
 	/**
 	 * 
 	 * @param username	
@@ -109,8 +110,7 @@ public class NdexRestClient {
 	public NdexRestClient(String username, String password, String hostName) throws JsonProcessingException, IOException, NdexException {
 		this(hostName);
 
-		setCredentials(username,password);
-		userAgent = clientVersion;
+		signIn(username,password);
 	}
 
 	/**
@@ -131,6 +131,7 @@ public class NdexRestClient {
 		_password = null;
 		_userUid = null;
 		userAgent = clientVersion;
+		
 	}
 
 /*	
@@ -220,14 +221,23 @@ public class NdexRestClient {
 		return authString;	
 	}
 
-	public void setCredentials(String username, String password) throws JsonProcessingException, IOException, NdexException {
+	public void signIn(String username, String password) throws JsonProcessingException, IOException, NdexException  {
 		this._username = username.trim();
 		this._password = password.trim();
 		
 		if ( _username !=null && username.length()>0) {
-			User currentUser = getNdexObject("/user?valid=true", _username,  _password, "", User.class);
-			_userUid = currentUser.getExternalId();
+			User currentUser;
+				currentUser = getNdexObject("/user?valid=true", _username,  _password, "", User.class);
+				_userUid = currentUser.getExternalId();
+		
 		}
+		
+	}
+
+	public void signOut() {
+		this._password = null;
+		this._username  =null;
+		this._userUid = null;
 	}
 
 	/*
@@ -540,6 +550,30 @@ public class NdexRestClient {
 		output.flush();
 		output.close();
 		
+		return con;
+	}
+
+	/**
+	 * Method need to be in uppercase.
+	 * @param route
+	 * @param in
+	 * @param method
+	 * @return
+	 * @throws IOException
+	 */
+	private HttpURLConnection createReturningConnection(final String route, InputStream in, String method) throws IOException {
+		URL request = new URL(_baseroute + route);
+
+		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		setAuthorizationAndUserAgent(con);
+		con.setRequestMethod(method);
+		con.setDoOutput(true);
+		con.connect();
+
+		IOUtils.copy(in,con.getOutputStream());
+		con.getOutputStream().flush();
+		con.getOutputStream().close();
+		in.close();
 		return con;
 	}
 
@@ -931,6 +965,44 @@ public class NdexRestClient {
 		}
 	}
 	
+	/**
+	 * This function is for posting a large object to server. Expect server to return a URL.
+	 * @param route
+	 * @param in
+	 * @return
+	 * @throws IOException
+	 * @throws NdexException 
+	 */
+	protected void putStream(final String route, InputStream in) throws IOException, NdexException {
+		HttpURLConnection con = createReturningConnection(route, in,"PUT");
+			
+		if (null == con) {
+			throw new NdexException ("Failed to create http connection.");
+		}
+		
+		int returnCode =  con.getResponseCode();
+		if (returnCode == HttpURLConnection.HTTP_NO_CONTENT)
+			return ;
+
+		if ((returnCode == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+			(returnCode == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+			(returnCode == HttpURLConnection.HTTP_CONFLICT       ) ||
+			(returnCode == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
+			(returnCode == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+		    try (InputStream input = con.getErrorStream() ) {
+		 
+		    		if (null != input) {
+		    			// server sent an Ndex-specific exception (i.e., exception defined in 
+		    			// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+		    			// Re-construct and re-throw this exception here on the client side.
+		    			processNdexSpecificException(input, con.getResponseCode(), new ObjectMapper());
+		    		}
+			
+		    		throw new IOException("failed to connect to ndex");
+		    }
+		}
+	}
 	
 	protected List <? extends Object> postNdexObjectList(
 			final String route, 
@@ -960,7 +1032,7 @@ public class NdexRestClient {
 	}
 	
 	
-	protected HttpURLConnection postReturningConnection(String route,
+	private HttpURLConnection postReturningConnection(String route,
 			JsonNode postData) throws JsonProcessingException, IOException {
 
 		URL request = new URL(_baseroute + route);
@@ -1073,10 +1145,11 @@ public class NdexRestClient {
 		return _userUid;
 	}
 
-	public void setUserUid(UUID _userUid) {
+/*	public void setUserUid(UUID _userUid) {
 		this._userUid = _userUid;
-	}
+	} */
 
+	
 	
 	/*
 	 * Re-construct and re-throw exception received from the server.  

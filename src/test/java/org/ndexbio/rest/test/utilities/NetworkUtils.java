@@ -435,7 +435,7 @@ public class NetworkUtils {
 
 
 	public static void setNetworkProperties(NdexRestClientModelAccessLayer ndex,
-			String networkUUID, List<NdexPropertyValuePair> properties) {
+			UUID networkUUID, List<NdexPropertyValuePair> properties) {
 		
 		try {
 			ndex.setNetworkProperties(networkUUID, properties);
@@ -480,7 +480,7 @@ public class NetworkUtils {
 		}
 	}
 
-	public static ProvenanceEntity getProvenance(NdexRestClientModelAccessLayer ndex, String networkUUID) {
+	public static ProvenanceEntity getProvenance(NdexRestClientModelAccessLayer ndex, UUID networkUUID) {
 		ProvenanceEntity provenance = null;	
 		try {
 			provenance = ndex.getNetworkProvenance(networkUUID);
@@ -491,7 +491,7 @@ public class NetworkUtils {
 	}
 
 	public static void setProvenance(
-			NdexRestClientModelAccessLayer ndex, String networkUUID, ProvenanceEntity newProvenance) {
+			NdexRestClientModelAccessLayer ndex, UUID networkUUID, ProvenanceEntity newProvenance) {
 		try {
 			ndex.setNetworkProvenance(networkUUID, newProvenance);
 		} catch (Exception e) {

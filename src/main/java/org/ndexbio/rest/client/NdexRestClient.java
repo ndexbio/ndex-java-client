@@ -494,11 +494,11 @@ public class NdexRestClient {
 		}
 	}
 
-	protected Map<? extends Object, ? extends Object> getHashMap(
+	protected <T,V> Map<T, V> getHashMap(
 			final String route, 
 			final String query,
-			final Class<? extends Object> keyClass,
-			final Class<? extends Object> valueClass)
+			final Class<T> keyClass,
+			final Class<V> valueClass)
 			throws JsonProcessingException, IOException {
 		HttpURLConnection con = null;
 		try {

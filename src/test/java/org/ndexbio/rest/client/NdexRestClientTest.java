@@ -66,8 +66,10 @@ import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
+import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NetworkSearchResult;
+import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
@@ -269,6 +271,7 @@ public class NdexRestClientTest {
 		assertEquals(s.getName(), "BEL Framework Small Corpus Document");
 		assertEquals(s.getNodeCount(), 1598);
 		assertEquals(s.getEdgeCount(), 2174);
+		assertEquals(s.getProperties().size() + 3, cx_bel.getNetworkAttributes().size());
 		
 		List<CitationElement> e = ndex.getNetworkAspect(networkId, "citations", -1, CitationElement.class);
 
@@ -290,6 +293,11 @@ public class NdexRestClientTest {
 		assertEquals ( sampleCX.getNetworkAttributes().size(), cx.getNetworkAttributes().size());
 		assertEquals ( sampleCX.getEdgeAttributes().size(), cx.getEdgeAttributes().size());
 		assertEquals ( sampleCX.getNodeAttributes().size(), cx.getNodeAttributes().size());
+		
+		//get network user permission on network 
+		Map<String, Permissions> p = ndex.getUserNetworkPermission(client.getUserUid(), networkId, false);
+		assertTrue (p!=null);
+		assertEquals(p.get(networkId.toString()), Permissions.ADMIN);
 		
 		
 		//delete network 

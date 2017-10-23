@@ -102,6 +102,8 @@ public class NdexRestClientModelAccessLayer
 	 */
 	
 	
+	public NdexRestClient getNdexRestClient() { return ndexRestClient; }
+	
     public NdexStatus getServerStatus() throws IOException, NdexException {
 		return getServerStatus(false);	
     }
@@ -343,14 +345,14 @@ public class NdexRestClientModelAccessLayer
 	@SuppressWarnings("unchecked")
 	public List<Membership> getUserNetworkPermissions(String userId, String permission, int skipBlocks, int blockSize) throws IOException {
 		return (List<Membership>) ndexRestClient.getNdexObjectList("/user/"+ userId + "/network/" + permission  + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
-	}	
+	}	*/
 
 	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException {
 		
-		return (Map<String,Permissions>) ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
+		return  ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
 				  "", String.class, Permissions.class);
 	}	
-*/
+
 	
 	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException {
 		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
@@ -674,17 +676,17 @@ public NetworkSearchResult findNetworks(
 	//
 	//	network	GET	/network/{networkUUID}/properties		Property[]
 	//
-	@SuppressWarnings("unchecked")
+/*	@SuppressWarnings("unchecked")
 	public List<NdexPropertyValuePair> getNetworkProperties(
-			String networkId) 
+			UUID networkId) 
 			throws JsonProcessingException, IOException {
 		String route = "/network/" + networkId + "/properties";		
 		return (List<NdexPropertyValuePair>) ndexRestClient.getNdexObjectList(route, "", NdexPropertyValuePair.class);
-	}
+	}  */
 	
 
 	//	network	PUT	/network/{networkUUID}/properties		
-	public void setNetworkProperties(String networkId,
+	public void setNetworkProperties(UUID networkId,
 			 List<NdexPropertyValuePair> properties) throws IllegalStateException, Exception {
 		String route = "/network/" + networkId + "/properties";	
 		JsonNode putData = objectMapper.valueToTree(properties);
@@ -694,7 +696,7 @@ public NetworkSearchResult findNetworks(
 	// Get network provenance object
 //	network	GET	/network/{networkUUID}/provenance		Provenance
 	public ProvenanceEntity getNetworkProvenance(
-			String networkId) 
+			UUID networkId) 
 			throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + networkId + "/provenance";		
 		return (ProvenanceEntity) ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
@@ -703,7 +705,7 @@ public NetworkSearchResult findNetworks(
 	// Update network provenance object
 //	network	PUT	/network/{networkUUID}/provenance	Provenance	
 	public void setNetworkProvenance(
-			String networkId,
+			UUID networkId,
 			ProvenanceEntity provenance) 
 			throws IllegalStateException, Exception {
 		String route = "/network/" + networkId + "/provenance";	

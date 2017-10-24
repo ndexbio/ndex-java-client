@@ -589,7 +589,8 @@ public class NdexRestClient {
 		try {
 
 			con = putReturningConnection(route, putData);
-			if ( con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT) {
+			if ( con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT && 
+					 con.getResponseCode() != HttpURLConnection.HTTP_OK) {
 				processNdexSpecificException(con.getInputStream(),con.getResponseCode(), new ObjectMapper());
 			}
 

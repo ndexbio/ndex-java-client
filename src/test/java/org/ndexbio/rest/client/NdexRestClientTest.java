@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,7 @@ import org.ndexbio.model.cx.CitationElement;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
+import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexPropertyValuePair;
@@ -76,6 +78,7 @@ import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.model.object.network.VisibilityType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -298,6 +301,44 @@ public class NdexRestClientTest {
 		Map<String, Permissions> p = ndex.getUserNetworkPermission(client.getUserUid(), networkId, false);
 		assertTrue (p!=null);
 		assertEquals(p.get(networkId.toString()), Permissions.ADMIN);
+		
+		//set network properites
+		List<NdexPropertyValuePair> props = s.getProperties();
+		props.add(new NdexPropertyValuePair ("MyKey", "value1"));
+		ndex.setNetworkProperties(networkId, props);
+		NetworkSummary s2 = ndex.getNetworkSummaryById(networkId);
+		assertEquals(s2.getProperties().size(), props.size());
+		
+		count = 0;
+		while (!s2.isCompleted()) {
+			if (count > 20)
+				fail("Network takes too long to process.");
+			Thread.sleep(2000);
+			System.out.println("Getting networkSummary from Ndex server.");
+			s2 = ndex.getNetworkSummaryById(networkId);
+		}
+		
+		NiceCXNetwork n2 = ndex.getNetwork(networkId);
+		assertEquals( n2.getNetworkAttributes().size(), props.size() + 3);
+		
+		//change it to public 
+		Map<String,Object> sysprop = new HashMap<> ();
+		sysprop.put("visibility", "PUBLIC");
+		sysprop.put("readOnly", Boolean.TRUE);
+		ndex.setNetworkSystemProperty(networkId, sysprop);
+		
+		NdexRestClient c1 = new NdexRestClient(_route);
+		NdexRestClientModelAccessLayer ndex2 = new NdexRestClientModelAccessLayer(c1);
+		NetworkSummary s3 = ndex2.getNetworkSummaryById(networkId);
+		assertEquals(s3.getVisibility(), VisibilityType.PUBLIC);
+		assertTrue(s3.getIsReadOnly());
+		
+		sysprop.put("visibility", "PRIVATE");
+		sysprop.put("readOnly", Boolean.FALSE);
+		ndex.setNetworkSystemProperty(networkId, sysprop);
+		
+		thrown1.expect(UnauthorizedOperationException.class);
+		ndex2.getNetworkSummaryById(networkId);
 		
 		
 		//delete network 

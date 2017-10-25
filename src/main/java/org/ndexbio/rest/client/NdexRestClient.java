@@ -469,7 +469,6 @@ public class NdexRestClient {
 			final JsonNode postData,
 			final Class<T>  mappedClass)
 			throws JsonProcessingException, IOException, NdexException {
-		InputStream input = null;
 		HttpURLConnection con = null;
 
 		try {
@@ -488,7 +487,7 @@ public class NdexRestClient {
 				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
 				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
-			    input = con.getErrorStream();
+			    try (InputStream input = con.getErrorStream()) {
 			 
 				if (null != input) {
                     // server sent an Ndex-specific exception (i.e., exception defined in 
@@ -498,9 +497,10 @@ public class NdexRestClient {
 				}
 				
 				throw new IOException("failed to connect to ndex");
+			    }
 			}
 	
-			input = con.getInputStream();
+			try (InputStream input = con.getInputStream() ) {
 			if (null != input) {
 				
 				T val = mapper.readValue(input, mappedClass);
@@ -508,19 +508,15 @@ public class NdexRestClient {
 				return val;
 			}
 			throw new IOException("failed to connect to ndex");
+			}
 
 		} finally {
-			if (null != input) input.close();
 			if ( con != null ) con.disconnect();
 		}
 	}
 
-	protected <T> SolrSearchResult<T>  postSearchQuery(
-			final String route, 
-			final JsonNode postData,
-			final Class<T>  mappedClass)
-			throws JsonProcessingException, IOException, NdexException {
-		InputStream input = null;
+	protected <T> SolrSearchResult<T> postSearchQuery(final String route, final JsonNode postData,
+			final Class<T> mappedClass) throws JsonProcessingException, IOException, NdexException {
 		HttpURLConnection con = null;
 
 		try {
@@ -528,49 +524,49 @@ public class NdexRestClient {
 			ObjectMapper mapper = new ObjectMapper();
 
 			con = postReturningConnection(route, postData);
-			
+
 			if (null == con) {
 				return null;
 			}
-			
-			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
-				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
-				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
-				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
-				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
 
-			    input = con.getErrorStream();
-			 
-				if (null != input) {
-                    // server sent an Ndex-specific exception (i.e., exception defined in 
-					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
-					// Re-construct and re-throw this exception here on the client side.
-					processNdexSpecificException(input, con.getResponseCode(), mapper);
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
+					|| (con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND)
+					|| (con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT)
+					|| (con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN)
+					|| (con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR)) {
+
+				try (InputStream input = con.getErrorStream()) {
+
+					if (null != input) {
+						// server sent an Ndex-specific exception (i.e., exception defined in
+						// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+						// Re-construct and re-throw this exception here on the client side.
+						processNdexSpecificException(input, con.getResponseCode(), mapper);
+					}
+
+					throw new IOException("failed to connect to ndex");
 				}
-				
+			}
+
+			try (InputStream input = con.getInputStream()) {
+				if (null != input) {
+					JavaType type = mapper.getTypeFactory().constructParametricType(SolrSearchResult.class,
+							mappedClass);
+
+					SolrSearchResult<T> val = mapper.readValue(input, type);
+
+					return val;
+
+				}
 				throw new IOException("failed to connect to ndex");
 			}
-	
-			input = con.getInputStream();
-			if (null != input) {
-				JavaType type = mapper.getTypeFactory().
-						  constructParametricType(SolrSearchResult.class, mappedClass);
-				
-				SolrSearchResult<T> val = mapper.readValue(input, type);
-				
-				return val;
-				
-			}
-			throw new IOException("failed to connect to ndex");
 
 		} finally {
-			if (null != input) input.close();
-			if ( con != null ) con.disconnect();
+			if (con != null)
+				con.disconnect();
 		}
 	}
 
-	
-	
 	protected UUID createNdexObjectByPost(final String route, final JsonNode postData)
 			throws JsonProcessingException, IOException, NdexException {
 		HttpURLConnection con = null;
@@ -706,7 +702,7 @@ public class NdexRestClient {
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 
-		String postDataString = postData.toString();
+		String postDataString = postData == null? "": postData.toString();
 		
 		con.setDoOutput(true);
 		con.setDoInput(true);
@@ -792,9 +788,10 @@ public class NdexRestClient {
 		return _baseroute;
 	}
 
+	/*
 	public void setBaseroute(String _baseroute) {
 		this._baseroute = _baseroute;
-	}
+	} */
 
 	public UUID getUserUid() {
 		return _userUid;

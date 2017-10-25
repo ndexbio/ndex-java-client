@@ -32,12 +32,8 @@ package org.ndexbio.rest.client;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
-import java.util.TimeZone;
 
 import org.cxio.aspects.datamodels.CartesianLayoutElement;
 import org.cxio.aspects.datamodels.EdgeAttributesElement;
@@ -79,7 +75,7 @@ import org.ndexbio.model.cx.SupportElement;
 public class NdexRestClientUtilities {
 
 	  // used for creating a randomly generated string
-	  private static Random random = new Random();
+	/*  private static Random random = new Random();
 	  private static final char[] charMapping = {
 	    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
 	    'p'};
@@ -87,7 +83,7 @@ public class NdexRestClientUtilities {
 	  static {
 	    DATE_TIME_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 	  }
-	
+	*/
 	
 	
 	public static final String serviceProvider = "ndexbio.org";
@@ -101,7 +97,7 @@ public class NdexRestClientUtilities {
 		"ProtocolBinding=\"urn:oasis:names.tc:SAML:2.0:bindings:HTTP-Redirect\" "+ 
 		" ProviderName=\""+ serviceProvider + "\" "+
 		"AssertionConsumerServiceURL=\"" + serviceURL +"\"/>";
-	private CartesianLayoutFragmentReader CyViewFragmentReader;
+	//private CartesianLayoutFragmentReader CyViewFragmentReader;
 
 
 	

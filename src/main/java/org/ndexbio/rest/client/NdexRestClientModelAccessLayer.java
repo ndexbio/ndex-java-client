@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -90,9 +89,6 @@ public class NdexRestClientModelAccessLayer
 		objectMapper = new ObjectMapper();
 	}
 	
-/*	public String getBaseRoute(){
-		return ndexRestClient.getBaseroute();
-	} */
 
 	/*-----------------------------------------
 	 * 
@@ -312,10 +308,6 @@ public class NdexRestClientModelAccessLayer
 				//SolrSearchResult.class);
 	}
 	
-
-	
-
-	
 	/*-----------------------------------------
 	 * 
 	 *          Network
@@ -484,6 +476,12 @@ public NetworkSearchResult findNetworks(
 			return NdexRestClientUtilities.getCXNetworkFromStream(s);
 		}
 	}
+	
+	public UUID cloneNetwork (UUID networkId) throws JsonProcessingException, IOException, NdexException {
+		return ndexRestClient.createNdexObjectByPost("/network/" + networkId + "/copy", null);
+		
+	}
+	
 	
 	public InputStream getNeighborhoodAsCXStream(String id, CXSimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id + "/asCX/query";

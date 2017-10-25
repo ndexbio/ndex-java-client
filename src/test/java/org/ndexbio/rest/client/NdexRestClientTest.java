@@ -234,6 +234,20 @@ public class NdexRestClientTest {
 		assertEquals(s.getNodeCount(), cx.getNodes().size());
 		assertEquals(s.getEdgeCount(), cx.getEdges().size());
 
+		
+		//clone this network
+		UUID clonedNetworkId = ndex.cloneNetwork(networkId);
+		NiceCXNetwork clonedNiceCX = ndex.getNetwork(clonedNetworkId);
+		assertEquals(clonedNiceCX.getNodes().size(), cx2.getNodes().size());
+		assertEquals(clonedNiceCX.getEdges().size(), cx2.getEdges().size());
+		assertEquals(clonedNiceCX.getNetworkAttributes().size(), cx2.getNetworkAttributes().size());
+		assertEquals(clonedNiceCX.getNodeAttributes().size(), cx2.getNodeAttributes().size());
+		
+		//delete the clone
+		ndex.deleteNetwork(clonedNetworkId);
+		thrown1.expect(ObjectNotFoundException.class);
+		ndex.getNetworkSummaryById(clonedNetworkId);
+		
 		//Get the first network in my account.
 		List<NetworkSummary> myNetworks = ndex.getMyNetworks(0, 1);
 
@@ -375,43 +389,7 @@ public class NdexRestClientTest {
 	
 	}
 
-	@Test 
-	public void testNetworkClone() throws IllegalStateException, Exception {
 
-		UUID networkId;
-		NiceCXNetwork cx;
-
-		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
-
-			networkId = ndex.createCXNetwork(is);
-		}
-
-		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
-
-			cx = NdexRestClientUtilities.getCXNetworkFromStream(is);
-		}
-
-		NiceCXNetwork cx2 = ndex.getNetwork(networkId);
-
-		NetworkSummary s = ndex.getNetworkSummaryById(networkId);
-		int count = 0;
-		while (!s.isCompleted()) {
-			if (count > 10)
-				fail("Network takes too long to process.");
-			Thread.sleep(2000);
-			System.out.println("Getting networkSummary from Ndex server.");
-			s = ndex.getNetworkSummaryById(networkId);
-		}
-
-		// ndex.
-
-		// delete network
-		ndex.deleteNetwork(networkId);
-
-		thrown1.expect(ObjectNotFoundException.class);
-		ndex.getNetworkSummaryById(networkId);
-	}
-	
 	
 /*	private static String printInputStream(InputStream is) {
 

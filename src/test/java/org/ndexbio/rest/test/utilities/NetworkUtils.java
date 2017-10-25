@@ -421,7 +421,7 @@ public class NetworkUtils {
 */
 
 
-	public static String exportNetwork(NdexRestClientModelAccessLayer ndex, 
+	/*public static String exportNetwork(NdexRestClientModelAccessLayer ndex, 
 			String networkUUID, String networkFileNameExtension) {
 		String taskId = null;	
 		try {
@@ -430,7 +430,7 @@ public class NetworkUtils {
 			fail("unable to export network to file : " + e.getMessage());
 		}
 		return taskId;
-	}
+	}*/
 
 
 

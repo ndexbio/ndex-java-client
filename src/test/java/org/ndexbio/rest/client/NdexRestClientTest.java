@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +73,8 @@ import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.Permissions;
+import org.ndexbio.model.object.ProvenanceEntity;
+import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
@@ -164,6 +167,7 @@ public class NdexRestClientTest {
 
 	}
 
+
 	@Test
 	public void testTaskOperators() throws IOException, NdexException {
 		UUID taskId = UUID.fromString("ff254008-adfa-11e7-9b0a-06832d634f41");
@@ -186,6 +190,12 @@ public class NdexRestClientTest {
 		UUID networkId;
 		NiceCXNetwork cx;
 
+		// create a network in NDEx
+		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
+
+			networkId = ndex.createCXNetwork(is);
+		}
+
 		try (InputStream is =
 				// new FileInputStream("src/test/resources/test_network.cx")
 				this.getClass().getResourceAsStream("/test_network.cx")) {
@@ -193,11 +203,7 @@ public class NdexRestClientTest {
 			cx = NdexRestClientUtilities.getCXNetworkFromStream(is);
 		}
 
-		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
-
-			networkId = ndex.createCXNetwork(is);
-		}
-
+		//download the network and create a niceCX model from the stream.
 		NiceCXNetwork cx2 = ndex.getNetwork(networkId);
 
 		assertEquals(cx2.getNodes().size(), cx.getNodes().size());
@@ -213,6 +219,7 @@ public class NdexRestClientTest {
 		assertEquals(e1.getSource(), e2.getSource());
 		assertEquals(e2.getTarget(), e2.getTarget());
 
+		//wait till the network is completely processed in the server.
 		NetworkSummary s = ndex.getNetworkSummaryById(networkId);
 		int count = 0;
 		while (!s.isCompleted()) {
@@ -227,6 +234,7 @@ public class NdexRestClientTest {
 		assertEquals(s.getNodeCount(), cx.getNodes().size());
 		assertEquals(s.getEdgeCount(), cx.getEdges().size());
 
+		//Get the first network in my account.
 		List<NetworkSummary> myNetworks = ndex.getMyNetworks(0, 1);
 
 		boolean found = false;
@@ -246,6 +254,22 @@ public class NdexRestClientTest {
 		assertEquals(cx2.getEdges().size(), cx.getEdges().size());
 		assertEquals(cx2.getEdges().get(72L).getSource(), cx.getEdges().get(72L).getSource());
 		assertEquals(cx2.getEdges().get(72L).getTarget(), cx.getEdges().get(72L).getTarget());
+		
+		
+		// get and set provenance
+		ProvenanceEntity provenance = ndex.getNetworkProvenance(networkId);
+		assertEquals(provenance.getUri(), "http://dev.ndexbio.org/v2/network/" + networkId + "/summary");
+		assertEquals(provenance.getCreationEvent().getEventType(), "Program Upload in CX");
+		
+		ProvenanceEntity p2 = new ProvenanceEntity();
+		p2.setUri("http://www.ndexbio.org/foo");
+		List<SimplePropertyValuePair> propList = new ArrayList<>();
+		propList.add(new SimplePropertyValuePair("name", "bar"));
+		p2.setProperties(propList);
+		ndex.setNetworkProvenance(networkId, p2);
+		ProvenanceEntity p3 = ndex.getNetworkProvenance(networkId);
+		assertEquals(p3.getUri(), p2.getUri());
+		assertTrue( p3.getCreationEvent() == null);
 		
 		//update network
 		
@@ -333,6 +357,7 @@ public class NdexRestClientTest {
 		assertEquals(s3.getVisibility(), VisibilityType.PUBLIC);
 		assertTrue(s3.getIsReadOnly());
 		
+		//change it back to private and not readonly
 		sysprop.put("visibility", "PRIVATE");
 		sysprop.put("readOnly", Boolean.FALSE);
 		ndex.setNetworkSystemProperty(networkId, sysprop);
@@ -347,10 +372,47 @@ public class NdexRestClientTest {
 		thrown1.expect(ObjectNotFoundException.class);
 		ndex.getNetworkSummaryById(networkId);
 		
-		
-
+	
 	}
 
+	@Test 
+	public void testNetworkClone() throws IllegalStateException, Exception {
+
+		UUID networkId;
+		NiceCXNetwork cx;
+
+		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
+
+			networkId = ndex.createCXNetwork(is);
+		}
+
+		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
+
+			cx = NdexRestClientUtilities.getCXNetworkFromStream(is);
+		}
+
+		NiceCXNetwork cx2 = ndex.getNetwork(networkId);
+
+		NetworkSummary s = ndex.getNetworkSummaryById(networkId);
+		int count = 0;
+		while (!s.isCompleted()) {
+			if (count > 10)
+				fail("Network takes too long to process.");
+			Thread.sleep(2000);
+			System.out.println("Getting networkSummary from Ndex server.");
+			s = ndex.getNetworkSummaryById(networkId);
+		}
+
+		// ndex.
+
+		// delete network
+		ndex.deleteNetwork(networkId);
+
+		thrown1.expect(ObjectNotFoundException.class);
+		ndex.getNetworkSummaryById(networkId);
+	}
+	
+	
 /*	private static String printInputStream(InputStream is) {
 
 		BufferedReader br = null;

@@ -127,6 +127,21 @@ public class NdexRestClientTest {
 		// List<User> us = r.getResultList();
 		assertEquals(r.getResultList().get(0).getUserName(), "cj1");
 
+		//get a network from accessKey http://dev.ndexbio.org/#/network/86fbe77b-a799-11e7-b522-06832d634f41?accesskey=d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2
+		// this is a private network in this account 
+		try (InputStream in = ndex2.getNetworkAsCXStream(UUID.fromString("86fbe77b-a799-11e7-b522-06832d634f41"),
+				"d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2")) {
+			NiceCXNetwork cx = NdexRestClientUtilities.getCXNetworkFromStream(in);
+			for (NetworkAttributesElement e : cx.getNetworkAttributes()) {
+				if (e.getName().equals("name")) {
+					assertEquals(e.getValue(), "Aurora A signaling - sharable link test network - don't remove");
+					break;
+				}
+			}
+
+			assertEquals(cx.getEdges().size(), 47);
+			assertEquals(cx.getNodes().size(), 32);
+		}
 	}
 
 	@Test

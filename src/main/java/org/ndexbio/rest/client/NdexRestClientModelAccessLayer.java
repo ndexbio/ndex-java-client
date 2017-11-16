@@ -435,6 +435,15 @@ public NetworkSearchResult findNetworks(
 		return  ndexRestClient.getStream(route, "");
 	}
 
+	public InputStream getNetworkAsCXStream(UUID id, String accessKey) throws JsonProcessingException, IOException, NdexException {
+		String route = "/network/" + id ;
+		if ( accessKey != null) {
+			route += "?accesskey="+accessKey;
+		}
+		return  ndexRestClient.getStream(route, "");
+	}
+	
+	
 	public NiceCXNetwork getNetwork(UUID id) throws JsonProcessingException, IOException, NdexException {
 		
 		try (InputStream is = getNetworkAsCXStream(id)) {

@@ -36,27 +36,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.UUID;
 
 import org.cxio.aspects.datamodels.EdgesElement;
 import org.cxio.aspects.datamodels.NetworkAttributesElement;
-import org.cxio.aspects.datamodels.NodeAttributesElement;
-import org.cxio.aspects.datamodels.NodesElement;
-import org.cxio.core.interfaces.AspectElement;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,11 +56,9 @@ import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.exceptions.UnauthorizedOperationException;
-import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
-import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
 import org.ndexbio.model.object.SimplePropertyValuePair;
@@ -126,11 +113,17 @@ public class NdexRestClientTest {
 		assertEquals(r.getNumFound(), 1);
 		// List<User> us = r.getResultList();
 		assertEquals(r.getResultList().get(0).getUserName(), "cj1");
-
+		
+		//test getting public network as anonymous user
+		NiceCXNetwork c =  ndex.getNetwork(UUID.fromString("c81ea28a-bdc4-11e7-9235-06832d634f41"));
+		assertEquals(c.getEdges().size(),3);
+		assertEquals(c.getNodes().size(),3);
+		
 		//get a network from accessKey http://dev.ndexbio.org/#/network/86fbe77b-a799-11e7-b522-06832d634f41?accesskey=d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2
 		// this is a private network in this account 
-		try (InputStream in = ndex2.getNetworkAsCXStream(UUID.fromString("86fbe77b-a799-11e7-b522-06832d634f41"),
-				"d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2")) {
+		UUID privateNetUUID = UUID.fromString("86fbe77b-a799-11e7-b522-06832d634f41");
+		String accessKey = "d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2";
+		try (InputStream in = ndex2.getNetworkAsCXStream(privateNetUUID, accessKey)) {
 			NiceCXNetwork cx = NdexRestClientUtilities.getCXNetworkFromStream(in);
 			for (NetworkAttributesElement e : cx.getNetworkAttributes()) {
 				if (e.getName().equals("name")) {
@@ -142,6 +135,11 @@ public class NdexRestClientTest {
 			assertEquals(cx.getEdges().size(), 47);
 			assertEquals(cx.getNodes().size(), 32);
 		}
+		
+		// get a network summary by uuid and accessKey 
+		NetworkSummary summary = ndex2.getNetworkSummaryById(privateNetUUID, accessKey);
+		assertEquals(summary.getName(), "Aurora A signaling - sharable link test network - don't remove");
+		assertEquals(summary.getNodeCount(), 32);
 	}
 
 	@Test

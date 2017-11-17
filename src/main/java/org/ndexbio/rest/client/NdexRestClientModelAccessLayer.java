@@ -365,6 +365,16 @@ public class NdexRestClientModelAccessLayer
 		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
 	}
 
+	public NetworkSummary getNetworkSummaryById(UUID networkId, String accessKey) throws IOException, NdexException {
+		
+		String route = "/network/"+networkId + "/summary";
+		if ( accessKey != null) {
+			route += "?accesskey="+accessKey;
+		}
+		
+		return (NetworkSummary) ndexRestClient.getNdexObject(route, "", NetworkSummary.class);
+	}
+	
 	/**
 	 * Search for networks by keywords
 	 * @param searchString

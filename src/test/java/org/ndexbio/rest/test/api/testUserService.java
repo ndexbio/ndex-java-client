@@ -505,7 +505,7 @@ public class testUserService
         }
         
         // delete test account in case it exists on the server
-    	UserUtils.deleteUser(ndexLocal, account, password);
+   // 	UserUtils.deleteUser(ndexLocal, account, password);
         
         // create a new user account
   /*      try {

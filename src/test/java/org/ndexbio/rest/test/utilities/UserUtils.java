@@ -33,11 +33,19 @@ package org.ndexbio.rest.test.utilities;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.List;
 import java.util.UUID;
 
+import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.NetworkSummary;
+import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class UserUtils {
 
@@ -50,19 +58,24 @@ public class UserUtils {
         }
 	}*/
 	
-	public static void deleteUser(NdexRestClientModelAccessLayer ndex, String user, String password) {
-     /*   String previousUserName = ndex.getUserName();
-        String previousPassword = ndex.getPassword();
-        		
-		ndex.setCredentials(user, password);
-        try {
-            ndex.deleteUser();
-        } catch (Exception e) {
-        	// ignore this exception -- the account we try to delete may not exist
-        	// fail("Unable to delete user account: " + e.getMessage());
-        } finally {
-    	    ndex.setCredentials(previousUserName, previousPassword);
-        } */
+	public static void deleteUserNetworks(NdexRestClientModelAccessLayer ndex) throws JsonProcessingException, IOException, NdexException, InterruptedException {
+      int batchsize = 400;
+      long total = 0;
+      int skip = 200;
+	  List<NetworkSummary> myNetworks = ndex.getMyNetworks(skip, batchsize);
+      while (myNetworks != null && myNetworks.size() > 0) {
+    	    long t1 = Calendar.getInstance().getTimeInMillis();
+    	    System.out.print("Deleting " + myNetworks.size() + " networks...");
+    	  	for ( NetworkSummary s : myNetworks) {
+    	  		ndex.deleteNetwork(s.getExternalId());
+    	  	}
+    	  	long t2 = (Calendar.getInstance().getTimeInMillis() - t1);
+    	  	total += myNetworks.size();
+    	  	System.out.println("Done...." + t2/1000 + " secs ... (total: " + total+")" );
+    	  	Thread.sleep(1000);
+    	  	myNetworks = ndex.getMyNetworks(skip,batchsize);
+      }
+      
 	}
 
 	public static User getNewUser(String accountName,
@@ -121,4 +134,10 @@ public class UserUtils {
 	    } 
 	    return null;
 	} */
+	
+	public static void main(String[] args) throws JsonProcessingException, IOException, NdexException, InterruptedException  {
+		NdexRestClient client = new NdexRestClient("", "", "dev2.ndexbio.org");
+		NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(client);
+		deleteUserNetworks(ndex);
+	}
 }

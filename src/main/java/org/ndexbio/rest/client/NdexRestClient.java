@@ -107,9 +107,22 @@ public class NdexRestClient {
 	 * @throws JsonProcessingException 
 	 */
 	public NdexRestClient(String username, String password, String hostName) throws JsonProcessingException, IOException, NdexException {
+		this(username, password,hostName,null);
+
+		if ( username!=null && password!=null)
+			signIn(username,password);
+	}
+
+	
+	public NdexRestClient(String username, String password, String hostName, String userAgent) throws JsonProcessingException, IOException, NdexException {
 		this(hostName);
 
-		signIn(username,password);
+		if ( userAgent !=null)
+			setAdditionalUserAgent(userAgent);
+
+		if ( username!=null && password!=null)
+			signIn(username,password);
+		
 	}
 
 	/**
@@ -129,7 +142,7 @@ public class NdexRestClient {
 		_username = null;
 		_password = null;
 		_userUid = null;
-		userAgent = clientVersion;
+		userAgent =  clientVersion;
 		
 	}
 
@@ -722,6 +735,7 @@ public class NdexRestClient {
 		}
 	}
 
+/*	
 	protected void postNetworkAsMultipartObject(String route, String fileToUpload) throws JsonProcessingException, IOException {
 
 		Preconditions.checkState(!Strings.isNullOrEmpty(fileToUpload), "No file name specified.");
@@ -747,7 +761,7 @@ public class NdexRestClient {
 	        System.out.println(line);
 	    }
 	}
-	
+*/	
 	
 	/*
 	 * DELETE
@@ -843,10 +857,14 @@ public class NdexRestClient {
 	public String getAdditionalUserAgent() {
 		return additionalUserAgent;
 	}
+	
+	public String getUserAgent() {
+		return userAgent;
+	}
 
 	public void setAdditionalUserAgent(String additionalUserAgent) {
 		this.additionalUserAgent = additionalUserAgent;
-		this.userAgent = clientVersion +"; " + additionalUserAgent; 
+		this.userAgent += "; " + additionalUserAgent; 
 	}
 
 	

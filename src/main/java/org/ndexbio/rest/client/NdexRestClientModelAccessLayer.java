@@ -599,6 +599,7 @@ public NetworkSearchResult findNetworks(
            	  UsernamePasswordCredentials creds = 
             	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
               httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+              httpPost.addHeader( "User-Agent", ndexRestClient.getUserAgent());
                        
               //Send request
       	    try (CloseableHttpResponse response = client.execute(httpPost) ) {
@@ -680,7 +681,8 @@ public NetworkSearchResult findNetworks(
 	           	  UsernamePasswordCredentials creds = 
 	            	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
 	              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
-	                       
+	              httpPost.addHeader( "User-Agent", ndexRestClient.getUserAgent());
+         
 	              //Send request
 	      	      try (CloseableHttpResponse response = client.execute(httpPost)) {
 	               

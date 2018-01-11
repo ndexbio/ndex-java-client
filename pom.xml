@@ -8,7 +8,6 @@
 	<description>REST Client for in applications that access NDEx</description>
 	<inceptionYear>2013</inceptionYear>
 
-
 	<build>
 		<plugins>
 			<plugin>

@@ -123,7 +123,7 @@ public class testPerformanceNetworkAPIs {
     private static Map<String, HashMap> clientDataForStatisticsReport  = new HashMap<String, HashMap>();
 	
 
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It builds Maps of networks for testing from the property files, creates a test user 
 	 * account (accountName) with password (accountPassword),
@@ -178,7 +178,7 @@ public class testPerformanceNetworkAPIs {
     }
 
 
-    /** 
+    /* 
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @param   void
@@ -192,7 +192,7 @@ public class testPerformanceNetworkAPIs {
     }
 
     
-	/**
+	/*
 	 * This test reads networks in JSON format listed in the properties file (networksToCreatePropertyFile), 
 	 * directly creates these networks on the server using createNetwork() API, calculates and prints 
 	 * how long it took every network to be created.  It also saves these times in clientDataForStatisticsReport.
@@ -276,7 +276,7 @@ public class testPerformanceNetworkAPIs {
     }
 
 
-	/**
+	/*
 	 * This test uploads networks listed in the properties file (networksToUploadPropertyFile) 
 	 * to the server, calculates and prints how long it took every network to uploaded.  It also saves 
 	 * these times in clientDataForStatisticsReport.
@@ -370,7 +370,7 @@ public class testPerformanceNetworkAPIs {
     }
 	
 
-	/**
+	/*
 	 * This test takes a network listed in the properties file (testNetworksToDownload), uploads it to the server and
 	 * measures the upload time, then downloads it and measures the download time, then makes the network
 	 * read-only and downloads and measures the read-only download time.  After that, it takes the next
@@ -556,7 +556,7 @@ public class testPerformanceNetworkAPIs {
 	
 
     
-	/**
+	/*
 	 * This test takes a network, query and depth from the properties file (testNeighorhoodQueryNetworksToUpload), 
 	 * uploads network to the server, and issues query with the specified depth (currently, 1 or 2). 
      *
@@ -759,7 +759,7 @@ public class testPerformanceNetworkAPIs {
         }
     } */
    
-	/**
+	/*
 	 * This test just calls the script that parses ndex.log and generates 
 	 * performance report. 
      *
@@ -917,7 +917,7 @@ public class testPerformanceNetworkAPIs {
 	    System.out.println("                Free Memory: " + memory.get("free"));
 	}
 
-    /**
+    /*
      * This method takes as an argument a long value representing milliseconds, and
      * converts it to the formatted string of the form "HHh:MMm:SSs:MMMms".
      * 

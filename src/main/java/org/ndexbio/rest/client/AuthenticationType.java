@@ -30,6 +30,23 @@
  */
 package org.ndexbio.rest.client;
 
+/**
+ * Type of Authentications that NDEx server supports
+ * @author chenjing
+ *
+ */
 public enum AuthenticationType {
-	BASIC, SAML, OAUTH
+	
+	/**
+	 * HTTP Basic Authentication.
+	 */
+	BASIC, 
+	/**
+	 * SAML Authentication, Not supported in the current release.
+	 */
+	SAML, 
+	/**
+	 *  OAUTH. Current release only support Google OpenId. 
+	 */
+	OAUTH
 }

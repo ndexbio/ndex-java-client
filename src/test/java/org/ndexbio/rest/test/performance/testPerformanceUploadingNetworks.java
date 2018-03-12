@@ -89,7 +89,7 @@ public class testPerformanceUploadingNetworks {
 
     private static Process jettyServer    = null;
 	
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It builds a Map of networks for testing from the property file, creates a test user 
 	 * account (accountName) with password (accountPassword),
@@ -135,7 +135,7 @@ public class testPerformanceUploadingNetworks {
       //  testAccount = UserUtils.createUserAccount(ndex, testUser);
     }
 
-    /**
+    /*
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
@@ -150,7 +150,7 @@ public class testPerformanceUploadingNetworks {
     }
 	
     
-	/**
+	/*
 	 * This methods uploads networks listed in the properties file (networksToUpload), 
 	 * calculates and prints how long it took for every network to upload. 
 	 * 
@@ -235,7 +235,7 @@ public class testPerformanceUploadingNetworks {
         benchmarkData = null;
     }
 	
-	/**
+	/*
 	 * This methods uploads networks listed in the properties file (networksToUpload), 
 	 * calculates and prints how long it took for every network to upload. 
 	 * 
@@ -365,7 +365,7 @@ public class testPerformanceUploadingNetworks {
 	
 
     
-    /**
+    /*
      * This method takes as an argument a long value representing milliseconds, and
      * converts it to the formatted string of the form "HHh:MMm:SSs:MMMms".
      * 

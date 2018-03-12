@@ -31,37 +31,26 @@
 package org.ndexbio.rest.test.utilities;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.network.query.EdgeCollectionQuery;
 import org.ndexbio.model.network.query.NetworkPropertyFilter;
-import org.ndexbio.model.object.Membership;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NetworkSearchResult;
 import org.ndexbio.model.object.Permissions;
 import org.ndexbio.model.object.ProvenanceEntity;
-import org.ndexbio.model.object.SimpleNetworkQuery;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
-
 import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 
 public class NetworkUtils {

@@ -87,7 +87,7 @@ public class testNetworkConcurrentAcess {
 	
     private static Process jettyServer    = null;
     
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It creates ndex client used by other tests.
 	 * 
@@ -135,7 +135,7 @@ public class testNetworkConcurrentAcess {
         fileToUpload = new File(networkPath); */
     }
     
-    /**
+    /*
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
@@ -149,7 +149,7 @@ public class testNetworkConcurrentAcess {
 //        JettyServerUtils.shutdownServerRemoveDatabase();
     }
     
-	/**
+	/*
 	 * This methods runs before every test case.
 	 * It restarts the server with clean database (removes the database), and uploads test network to the server.
 	 * 

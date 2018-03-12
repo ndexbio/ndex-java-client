@@ -49,8 +49,10 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.errorcodes.NDExError;
+import org.ndexbio.model.exceptions.BadRequestException;
 import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
@@ -77,12 +79,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * 
+ * @author chenjing
+ *
+ */
 public class NdexRestClientModelAccessLayer 
 {
 	NdexRestClient ndexRestClient = null;
 	ObjectMapper objectMapper = null;
 	User currentUser = null;
 
+	/**
+	 * 
+	 * @param client
+	 */
 	public NdexRestClientModelAccessLayer(NdexRestClient client) {
 		super();
 		ndexRestClient = client;
@@ -97,13 +108,29 @@ public class NdexRestClientModelAccessLayer
 	 * -----------------------------------------
 	 */
 	
-	
+	/**
+	 * Get the client attached to the this data acess object.
+	 * @return
+	 */
 	public NdexRestClient getNdexRestClient() { return ndexRestClient; }
 	
+	/**
+	 * Get the current status of the NDEx server in the standard format.
+	 * @return
+	 * @throws IOException
+	 * @throws NdexException
+	 */
     public NdexStatus getServerStatus() throws IOException, NdexException {
 		return getServerStatus(false);	
     }
 
+    /**
+     * Get the status of the NDEx server.
+     * @param fullFormat status in 'full format' contains more information about the server such registered importers and exporters on this server.
+     * @return
+     * @throws IOException
+     * @throws NdexException
+     */
     public NdexStatus getServerStatus(boolean fullFormat) throws IOException, NdexException {
     	String route = "/admin/status?format=" + (fullFormat? "full": "standard") ;
 
@@ -119,20 +146,41 @@ public class NdexRestClientModelAccessLayer
 	 * -----------------------------------------
 	 */
 	
-	// Get group by id
-//			group	GET	/group/{groupUUID}		Group
+
+    /**
+     * Get group by id.
+     * @param groupId
+     * @return
+     * @throws IOException
+     * @throws NdexException
+     */
 	public Group getGroup(UUID groupId) throws IOException, NdexException {
 		return ndexRestClient.getNdexObject("/group/"+groupId, "", Group.class);
 	}
 	
-	// Update a group
-//			group	POST	/group/{groupUUID}	Group	Group
+	
+	/**
+	 * Update a group.  
+	 * @param group
+	 * @throws IllegalStateException
+	 * @throws Exception
+	 */
 	public void updateGroup(Group group) throws IllegalStateException, Exception{
 		JsonNode postData = objectMapper.valueToTree(group);
 		ndexRestClient.putNdexObject("/group/" + group.getExternalId() , postData);
 	}
 	
 
+	/**
+	 * Find NDEx groups that meet the search criteria. 
+	 * @param query
+	 * @param skipBlocks specifies that the result is the nth page of the requested data. 
+	 * @param blockSize  specifies the number of data items in each page.
+	 * @return   Returns a SolrSearchResult object which contains an array of Group objects and the total hit count of the search. 
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public SolrSearchResult<Group> findGroups(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
 		return ndexRestClient.postSearchQuery("/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, Group.class);
@@ -152,8 +200,15 @@ public class NdexRestClientModelAccessLayer
 		return (List<Membership>)ndexRestClient.getNdexObjectList("/group/" + groupId + "/network/" + permission + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
 	} */
 	
-	// Create a group
-//			group	POST	/group	
+
+	/**
+	 * Create a NDEx group.
+	 * @param group
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public UUID createGroup(Group group) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(group);
 		return ndexRestClient.createNdexObjectByPost("/group", postData);
@@ -161,6 +216,13 @@ public class NdexRestClientModelAccessLayer
 	
 	// Delete a group
 //			group	DELETE	/group/{groupUUID}	
+	/**
+	 * Delete the NDEx group by its id.
+	 * @param groupId
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public void deleteGroup(UUID groupId) throws JsonProcessingException, IOException, NdexException{
 		ndexRestClient.delete("/group/" + groupId.toString());
 	}	
@@ -174,7 +236,7 @@ public class NdexRestClientModelAccessLayer
 		return (Membership)ndexRestClient.postNdexObject("/group/" + groupId + "/member", postData, Membership.class);
 	}  */
 	
-	/**
+	/*
 	 * Removes the member specified by userId from the group specified by groupId. 
 	 * @param groupId Group id of 
 	 * @param userId
@@ -195,8 +257,13 @@ public class NdexRestClientModelAccessLayer
 	 */
 
 
-	// Get a task by id
-//			task	GET	/task/{taskUUID}		Task
+	/**
+	 * Get a task object by its Id.
+	 * @param taskId
+	 * @return
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public Task getTask(UUID taskId) throws IOException, NdexException {
 		return (Task) ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
 	}
@@ -238,9 +305,11 @@ public class NdexRestClientModelAccessLayer
 	}
 	
 	/**
-	 * Get the list of network
-	 * @param userId
-	 * @return
+	 * This is a function designed to support “My Account” pages in NDEx web applications. It returns a list of NetworkSummary objects that are 
+	 *  displayed in the user's home page.
+ 	 *	Only an authenticated user can use this function,
+	 *  otherwise an NdexException will be raised.
+	 * @return A list of NetworkSummary.
 	 * @throws JsonProcessingException
 	 * @throws IOException
 	 * @throws NdexException 
@@ -251,6 +320,16 @@ public class NdexRestClientModelAccessLayer
 
 	}
 
+	/**
+	 * This is a function designed to support “My Account” pages in NDEx web applications. It returns a list of NetworkSummary objects that are 
+	 *  displayed in the user's home page.  
+	 * @param offset
+	 * @param limit
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public List<NetworkSummary> getMyNetworks(int offset, int limit) 
 			throws JsonProcessingException, IOException, NdexException {
 		
@@ -286,13 +365,28 @@ public class NdexRestClientModelAccessLayer
 		return (List<Membership>) ndexRestClient.getNdexObjectList("/user/"+ userId + "/network/" + permission  + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
 	}	*/
 
+	/**
+	 * Get the type(s) of permission assigned to the authenticated user for the specified network. 
+	 * @param userId
+	 * @param networkId
+	 * @param directOnly If directonly is set to true, permissions granted through groups are not included in the result. 
+	 * @return A map which maps a network UUID to the highest permission assigned to the authenticated user. 
+	 * @throws IOException
+	 */
 	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException {
 		
 		return  ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
 				  "", String.class, Permissions.class);
 	}	
 
-	
+	/**
+	 * Returns a list of Task objects owned by the authenticated user with the specified status. 
+	 * @param status 
+	 * @param skipBlocks
+	 * @param blockSize
+	 * @return
+	 * @throws IOException
+	 */
 	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException {
 		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
 				   (status == null ? "" : "&status="+status); 
@@ -474,6 +568,13 @@ public NetworkSearchResult findNetworks(
 
 	}
 	
+	public MetaDataCollection getNetworkMetadata(UUID id)
+		    throws JsonProcessingException, IOException, NdexException {
+	String route = "/network/" + id + "/aspect";
+	return  ndexRestClient.getNdexObject(route, "", MetaDataCollection.class);
+
+}
+
 /*	public InputStream getNetworkAspects(UUID id, Collection<String> aspects) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id + "/aspects";
 	//	return  ndexRestClient.getStream(route, "");
@@ -503,6 +604,11 @@ public NetworkSearchResult findNetworks(
 	
 	
 	public InputStream getNeighborhoodAsCXStream(String id, CXSimplePathQuery query) throws JsonProcessingException, IOException, NdexException {
+		
+		int depth = query.getSearchDepth();
+		if ( depth <1 || depth >5) {
+			throw new BadRequestException ("Received query depth "+ depth + ". It has to be an integer between 1 and 4.");
+		}
 		String route = "/network/" + id + "/asCX/query";
 		JsonNode postData = objectMapper.valueToTree(query);
 	    return  ndexRestClient.postNdexObject(route, postData);

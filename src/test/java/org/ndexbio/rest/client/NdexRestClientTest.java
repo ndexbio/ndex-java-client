@@ -46,6 +46,7 @@ import java.util.UUID;
 
 import org.cxio.aspects.datamodels.EdgesElement;
 import org.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.cxio.metadata.MetaDataCollection;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -247,6 +248,8 @@ public class NdexRestClientTest {
 		assertEquals(s.getNodeCount(), cx.getNodes().size());
 		assertEquals(s.getEdgeCount(), cx.getEdges().size());
 
+		MetaDataCollection md = ndex.getNetworkMetadata(networkId);
+		assertEquals(md.size(), cx.getMetadata().size()-1);
 		
 		//clone this network
 		UUID clonedNetworkId = ndex.cloneNetwork(networkId);

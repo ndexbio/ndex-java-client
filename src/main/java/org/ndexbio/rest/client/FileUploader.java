@@ -33,6 +33,11 @@ package org.ndexbio.rest.client;
 import java.io.FileInputStream;
 import java.util.UUID;
 
+/**
+ * A utility class to upload a cx network to NDEx. 
+ * @author chenjing
+ *
+ */
 public class FileUploader {
 
 	
@@ -40,25 +45,35 @@ public class FileUploader {
     private static String _password = "cj2";
 	
 	public FileUploader() {
-		// TODO Auto-generated constructor stub
 	}
 
+	/**
+	 * Upload an CX network to NDEx.
+	 * @param args This function requires 4 parameters in the command line arguments:
+	 * 			1. user name
+	 * 			2. password
+	 * 			3. NDEx server URL or Host name
+	 * 			4. Path of the file to be uploaded.
+	 * 
+	 * @throws IllegalStateException
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws IllegalStateException, Exception {
 		_username = args[0];
 		_password = args[1];
-		
-		//"http://dev2.ndexbio.org/rest"
+
+		// "http://dev2.ndexbio.org/rest"
 		NdexRestClient client = new NdexRestClient(_username, _password, args[2]);
 		NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(client);
 
-	 //  	InputStream in = ndex.getNetworkAsCXStream(args[4]);
-	    // 	printInputStream(in);
-	    // 	in.close(); 
-	     	
-	     	
-	        FileInputStream s = new FileInputStream ( args[3]); //"/Users/chenjing/Downloads/small-corpus-test.cx");
-	           UUID u = ndex.createCXNetwork( s);
-	             System.out.println("network created. New UUID: " + u) ;
+		// InputStream in = ndex.getNetworkAsCXStream(args[4]);
+		// printInputStream(in);
+		// in.close();
+
+		try (FileInputStream s = new FileInputStream(args[3])) { // "/Users/chenjing/Downloads/small-corpus-test.cx");
+			UUID u = ndex.createCXNetwork(s);
+			System.out.println("network created. New UUID: " + u);
+		}
 
 	}
 

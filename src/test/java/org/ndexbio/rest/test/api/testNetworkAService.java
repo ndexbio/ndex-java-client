@@ -79,7 +79,7 @@ import org.ndexbio.rest.test.utilities.PropertyFileUtils;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
 
-/**
+/*
  *  This class contains JUNit tests for testing NetworkAService APIs from the 
  *  NetworkAService.java class located in src/main/java/org.ndexbio.rest.services package of ndexbio-rest module.
  *
@@ -136,7 +136,7 @@ public class testNetworkAService {
     
     private static Process jettyServer    = null;
     
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It starts Jetty server process and creates ndex client used by other tests.
 	 * 
@@ -180,7 +180,7 @@ public class testNetworkAService {
     	//testAccount = UserUtils.createUserAccount(ndex, testUser);
     }
     
-    /**
+    /*
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
@@ -194,7 +194,7 @@ public class testNetworkAService {
   //      JettyServerUtils.shutdownServerRemoveDatabase();
     }
     
-    /**
+    /*
      * This method runs before every test (before every method annotated with @Test).
      * It shuts down database, stops Jetty server, physically removes database, and restarts Jetty.
      * 
@@ -212,7 +212,7 @@ public class testNetworkAService {
 	//	testAccount = UserUtils.createUserAccount(ndex, testUser);
     }
      
-    /**
+    /*
      * Read network in JSON format from the file specified in the properties file,
      * create this network on the server using API, and then delete this network from the server.
      * 
@@ -242,7 +242,7 @@ public class testNetworkAService {
         NetworkUtils.deleteNetwork(ndex, networkSummary.getExternalId().toString()); */       
     }
 
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * and then delete this network from the server.
      * 
@@ -275,7 +275,7 @@ public class testNetworkAService {
     }
 
 
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * make it read-only, download it and make sure that the read-only properties (readOnlyCacheId
      * and readOnlyCommitId) are set correctly, make the network read-write again and delete it.
@@ -335,7 +335,7 @@ public class testNetworkAService {
     }    
 
     
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * and then delete this network from the server.
      * 
@@ -407,7 +407,7 @@ public class testNetworkAService {
     }    
 
     
-    /**
+    /*
      * Create network specified in the properties file on the server, then download it from the server.  
      * Delete this network from the server, and try to get it again.  
      * Expect to receive ObjectNotFoundException.
@@ -459,7 +459,7 @@ public class testNetworkAService {
 		assertNull("error -- retrieved deleted network", network3);  */
     }
     
-    /**
+    /*
      * Create network specified in the properties file on the server, then download it from the server. 
      * Delete this network from the server, and try to delete it again.  
      * Expect to receive ObjectNotFoundException.
@@ -507,7 +507,7 @@ public class testNetworkAService {
 		ndex.deleteNetwork(networkUUID);   	*/
     }   
     
-    /**
+    /*
      * Upload network specified in the properties file to the server, then download it from the server.
      * Get the network summary from the server, and compare the contents of two NetworkSummary objects.
      * Update network profile on the server.  Get the updated summary and network from the server
@@ -564,7 +564,7 @@ public class testNetworkAService {
     }     
 
     
-    /**
+    /*
      * Upload network specified in the properties file to the server, then use the search term and 
      * depth specified in the properties file to query the network.   
      * Delete network from the server.
@@ -610,7 +610,7 @@ public class testNetworkAService {
     	NetworkUtils.deleteNetwork(ndex, networkUUID); 
     } */
     
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * Get namespaces and check them. Delete this network from the server.
      * 
@@ -622,7 +622,7 @@ public class testNetworkAService {
      * @return  void
      */
 
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * Get namespaces and check their count. Create a new namespace and add it to
      * the network on the server. Get namespaces again and check that the new namespace
@@ -637,7 +637,7 @@ public class testNetworkAService {
      * @return  void
      */
   
-    /**
+    /*
      * Upload network specified in the properties file to the server.
      * Get membership of this network, try to assign the same membership again.
      * Create a new user, grant this user membership for the network; now the
@@ -734,7 +734,7 @@ public class testNetworkAService {
     	NetworkUtils.deleteNetwork(ndex, networkUUID.toString()); */
     }
 
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * Get baseterms and make sue that the length of list of baseterms is not 0.
      * Delete this network from the server.
@@ -749,7 +749,7 @@ public class testNetworkAService {
      * @return  void
      */
  
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * Get baseterms and make sure that the length of list of baseterms is not 0.
      * Delete this network from the server.
@@ -766,7 +766,7 @@ public class testNetworkAService {
     //@Test  
  
     
-    /**
+    /*
      * Upload network specified in the properties file to the server, 
      * start export task on the server, and wait for this task to finish.
      * Create another export task on the server this time specifying network type
@@ -782,7 +782,7 @@ public class testNetworkAService {
      */
   
 
-    /** 
+    /*
      * Upload network specified in the properties file to the server, 
      * and query it by ( Edge Property Name = value ) 
      * Delete this network from the server.
@@ -852,7 +852,7 @@ public class testNetworkAService {
     }    
 
     
-    /** 
+    /*
      * Upload 6 networks.  Assign property 1 to all 6 networks, property 2 to 5 networks,
      * property 3 to 4 networks, ... , property 6 to 1 network.
      * Query database for networks with specific properties and expect to receive 6 
@@ -1030,7 +1030,7 @@ public class testNetworkAService {
 		}  */
     }    
  
-    /** 
+    /* 
      * Upload a network. Get its' provenance. Set some network properties.
      * Get networks' provenance again and check the provenance event type.
      * Remove provenance from the network (set it to "empty" provenance).
@@ -1136,7 +1136,7 @@ public class testNetworkAService {
     	NetworkUtils.deleteNetwork(ndex, networkUUID); */
     }    
     
-    /** 
+    /*
      * Upload 6 networks.  Search these networks for simple search term.
      * 
      * APIs tested: public void uploadNetwork(UploadedFile uploadedNetwork)

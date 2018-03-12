@@ -31,7 +31,6 @@
 package org.ndexbio.rest.test.api;
 
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -48,18 +47,16 @@ import org.ndexbio.model.exceptions.DuplicateObjectException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.exceptions.ObjectNotFoundException;
 import org.ndexbio.model.object.Group;
-import org.ndexbio.model.object.NewUser;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.User;
 import org.ndexbio.rest.client.NdexRestClient;
 import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.GroupUtils;
 import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
-import org.ndexbio.rest.test.utilities.UserUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-/**
+/*
  *  This class contains JUNit tests for testing GroupService APIs from the 
  *  UserService.java class located in src/main/java/org.ndexbio.rest.services package of ndexbio-rest module.
  *
@@ -103,7 +100,7 @@ public class testGroupService {
     
     private static Process jettyServer    = null;
     
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It creates ndex client used by other tests.
 	 * 
@@ -151,7 +148,7 @@ public class testGroupService {
     	group.setWebsite("http://www.ndexbio.org"); */
     }
     
-    /**
+    /*
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
@@ -168,7 +165,7 @@ public class testGroupService {
   //      JettyServerUtils.shutdownServerRemoveDatabase();
     }
 
-	/**
+	/*
 	 * This methods runs after every test case.
 	 * It deletes test group that was created on the server.
 	 * 
@@ -183,7 +180,7 @@ public class testGroupService {
     	GroupUtils.deleteGroup(ndex, newGroup);
     } 
 
-    /**
+    /*
      * Create a group on the server, and delete it.
      * 
      * APIs tested: public Group createGroup(Group)
@@ -238,7 +235,7 @@ public class testGroupService {
     	
     }
     
-    /**
+    /*
      * Try to create a group with the same name as user/account name. 
      * DuplicateObjectException is expected.
      * 
@@ -270,7 +267,7 @@ public class testGroupService {
     	ndex.createGroup(newGroup);
     }
     
-    /**
+    /*
      * Try to create a group with a bad account name (illegal character in name).
      * 
      * APIs tested: public Group createGroup(Group)
@@ -307,7 +304,7 @@ public class testGroupService {
     }
     
     
-    /**
+    /*
      * Try to create a group with a non-existent user/account.
      * 
      * APIs tested: public Group createGroup(Group)
@@ -356,7 +353,7 @@ public class testGroupService {
     	
     }
     
-    /**
+    /*
      * Try to create a group with a non-existent user/account.
      * 
      * APIs tested: public List<Group> findGroups(SimpleUserQuery, int, int) 

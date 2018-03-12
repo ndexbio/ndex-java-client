@@ -57,7 +57,7 @@ import org.ndexbio.rest.client.NdexRestClientModelAccessLayer;
 import org.ndexbio.rest.test.utilities.JUnitTestSuiteProperties;
 import org.ndexbio.rest.test.utilities.UserUtils;
 
-/**
+/*
  *  This class contains JUNit tests for testing UserService APIs from the 
  *  UserService.java class located in src/main/java/org.ndexbio.rest.services package of ndexbio-rest module.
  *
@@ -103,7 +103,7 @@ public class testUserService
     
     private static Process jettyServer    = null;
 
-	/**
+	/*
 	 * This methods runs once before any of the test methods in the class.
 	 * It creates ndex client used by other tests.
 	 * 
@@ -136,7 +136,7 @@ public class testUserService
     	//UserUtils.deleteUser(ndex);
     }
 
-    /**
+    /*
      * Clean-up method.  The last method called in this class by JUnit framework.
      * 
      * @throws  Exception
@@ -150,14 +150,14 @@ public class testUserService
  //       JettyServerUtils.shutdownServerRemoveDatabase();
     }
 
-    /**
+    /*
      * Create a user account on the server.
      * Assumption: user account doesn't exist on the server.
      * 
      * API tested: public User createUser(final NewUser newUser)
      */
 
-    /**
+    /*
      * Authenticate a user account on the server.
      * 
      * API tested: public User authenticateUser(String, String)
@@ -221,7 +221,7 @@ public class testUserService
     	assertNull("Retrieved non-existant user '" + nonExistentUser + "' using invalid password '" + nonExistentPassword + "'", user); 	*/
     }
     
-    /**
+    /*
      * Try to get non-existent user from the server.
      * 
      * API tested: public User getUser(String)
@@ -243,7 +243,7 @@ public class testUserService
         fail("execution should never get to this point!");
     }
     
-    /**
+    /*
      * Try to get non-existent user from the server.
      * 
      * API tested: public User getUser(String)
@@ -263,7 +263,7 @@ public class testUserService
     }    
     
     
-    /**
+    /*
      * Get existing user by account name and by UUID.
      * 
      * APIs tested: public User createUser(NewUser)
@@ -332,7 +332,7 @@ public class testUserService
     }
 
     
-    /**
+    /*
      * Update User information in database: Description, First Name, Last Name, Image and Web-Site.
      * 
      * APIs tested: public User createUser(NewUser)
@@ -449,7 +449,7 @@ public class testUserService
     }
 
     
-    /**
+    /*
      *  Try to update User information that cannot be changed in the database once User object is persisted:
      *    User Name, User UUID, Email Address, Disk Quota, Disk Used and Type.
      * 
@@ -471,7 +471,7 @@ public class testUserService
         //newUser1.setType(newUser1.getType() + " -- updated");
     }
     
-    /**
+    /*
      *  Create a test account and try to change it's password.
      * 
      * APIs tested: public void changePassword(String)
@@ -600,7 +600,7 @@ public class testUserService
     }
     
 
-    /**
+    /*
      * Delete user account from the server.  
      * 
      * API tested: public User getUser(String)

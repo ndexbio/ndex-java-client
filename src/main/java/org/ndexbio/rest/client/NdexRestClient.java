@@ -225,6 +225,14 @@ public class NdexRestClient {
 		return authString;	
 	}
 
+	/**
+	 * Use username and password to sign in to NDEx server from this client object. 
+	 * @param username  
+	 * @param password
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public void signIn(String username, String password) throws JsonProcessingException, IOException, NdexException  {
 		this._username = username.trim();
 		this._password = password.trim();
@@ -238,6 +246,14 @@ public class NdexRestClient {
 		
 	}
 	
+	/**
+	 * Use a IDToken to sign in to NDEx server from this client. User need to make sure the IDToken is not expired. When this IDToken 
+	 * is close to its expiration time. User can use a new IDToken to sign in again.
+	 * @param IDToken
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 */
 	public void signIn(String IDToken) throws JsonProcessingException, IOException, NdexException {
 		this.authnType = AuthenticationType.OAUTH;
 		this.idToken = IDToken;
@@ -251,6 +267,8 @@ public class NdexRestClient {
 		this._password = null;
 		this._username  =null;
 		this._userUid = null;
+		this.idToken = null;
+		this.authnType = AuthenticationType.BASIC;
 	}
 
 	/*

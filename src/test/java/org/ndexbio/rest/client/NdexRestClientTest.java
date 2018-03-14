@@ -48,6 +48,7 @@ import org.cxio.aspects.datamodels.EdgesElement;
 import org.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.cxio.metadata.MetaDataCollection;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -247,6 +248,8 @@ public class NdexRestClientTest {
 		assertEquals(s.getName(), "cj test Network for unit test - dont remove");
 		assertEquals(s.getNodeCount(), cx.getNodes().size());
 		assertEquals(s.getEdgeCount(), cx.getEdges().size());
+		assertTrue(!s.getHasSample());
+		assertTrue(s.getHasLayout());
 
 		MetaDataCollection md = ndex.getNetworkMetadata(networkId);
 		assertEquals(md.size(), cx.getMetadata().size()-1);
@@ -261,9 +264,12 @@ public class NdexRestClientTest {
 		
 		//delete the clone
 		ndex.deleteNetwork(clonedNetworkId);
-		thrown1.expect(ObjectNotFoundException.class);
-		ndex.getNetworkSummaryById(clonedNetworkId);
-		
+		try {
+			ndex.getNetworkSummaryById(clonedNetworkId);
+			Assert.fail("Cloned network was not deleted successfully.");
+		} catch (ObjectNotFoundException e) {
+			System.out.println("Cloned network deleted.");
+		}
 		//Get the first network in my account.
 		List<NetworkSummary> myNetworks = ndex.getMyNetworks(0, 1);
 
@@ -329,6 +335,8 @@ public class NdexRestClientTest {
 		assertEquals(s.getNodeCount(), 1598);
 		assertEquals(s.getEdgeCount(), 2174);
 		assertEquals(s.getProperties().size() + 3, cx_bel.getNetworkAttributes().size());
+		assertTrue(s.getHasSample());
+		assertTrue(!s.getHasLayout());
 		
 		List<CitationElement> e = ndex.getNetworkAspect(networkId, "citations", -1, CitationElement.class);
 
@@ -362,6 +370,7 @@ public class NdexRestClientTest {
 		ndex.setNetworkProperties(networkId, props);
 		NetworkSummary s2 = ndex.getNetworkSummaryById(networkId);
 		assertEquals(s2.getProperties().size(), props.size());
+		assertTrue(s.getHasSample());
 		
 		count = 0;
 		while (!s2.isCompleted()) {
@@ -392,18 +401,41 @@ public class NdexRestClientTest {
 		sysprop.put("readOnly", Boolean.FALSE);
 		ndex.setNetworkSystemProperty(networkId, sysprop);
 		
-		thrown1.expect(UnauthorizedOperationException.class);
-		ndex2.getNetworkSummaryById(networkId);
+		try {
+			ndex2.getNetworkSummaryById(networkId);
+			Assert.fail("Changed network back to private, but it still visible to anonymous users.");
+		} catch (UnauthorizedOperationException e3) {
+			System.out.println("Network becaue private again and no longer visible to anonymous users.");
+		}
 		
-		
+
 		//delete network 
 		ndex.deleteNetwork(networkId);
-		
+         
+		System.out.println("All network operations have been executed.");
+		// final check
 		thrown1.expect(ObjectNotFoundException.class);
 		ndex.getNetworkSummaryById(networkId);
 		
-	
+		// don't put any code after this line in this function. It won't be executed because of the exception thrown above. 
 	}
+	
+/*	@Test
+	// this test is should be commented out most of the time. Need to put in a valid ID token 
+	public void testIDTokenAuthentication() throws JsonProcessingException, IOException, NdexException {
+	    // paste a valid id token here
+		String idtoken = "";
+
+		NdexRestClient client2 = new NdexRestClient( _route);
+		client2.signIn(idtoken);
+		NdexRestClientModelAccessLayer ndex3 = new NdexRestClientModelAccessLayer(client2);
+		NetworkSummary s = ndex3.getNetworkSummaryById(UUID.fromString("4a555eec-2717-11e8-b6cb-525400c25d22"));
+		assertEquals(s.getEdgeCount(), 17);
+	//	assertEquals()
+		
+
+		
+	} */
 
 
 	

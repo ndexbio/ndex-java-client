@@ -72,7 +72,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class NdexRestClient {
 
-	private static String clientVersion = "NDEx-Java/2.2.2";
+	private static String clientVersion = "NDEx-Java/2.2.3";
 	
 	
 	// for authorization
@@ -90,6 +90,10 @@ public class NdexRestClient {
 	private String userAgent;
 	
 	private String additionalUserAgent;
+	
+	private String idToken;
+	
+	private String rawUserAgent;
 	
 /*	private String getVersionString () {
 		final Properties properties = new Properties();
@@ -148,10 +152,12 @@ public class NdexRestClient {
 		_username = null;
 		_password = null;
 		_userUid = null;
+		idToken = null;
 	//	 if (clientVersion == null) {
 	//		 clientVersion = getVersionString();
 	//	 }
-		 userAgent = clientVersion;
+		 rawUserAgent = "Java/"+System.getProperty("java.version") + " " + clientVersion;
+		 userAgent = rawUserAgent;
 		
 	}
 
@@ -188,7 +194,8 @@ public class NdexRestClient {
 	}
 */	
 	private void setAuthorizationAndUserAgent(HttpURLConnection con) {
-		if ((_username == null) || _username.isEmpty()) {
+		if ( this.authnType == AuthenticationType.BASIC && (_username == null || _username.isEmpty())) {
+	
 			// if User Name is null or empty, then treat this as anonymous
 			// request (i.e., do not add "Authorization" header)
 			return;
@@ -208,8 +215,7 @@ public class NdexRestClient {
 			authString = "Basic " + new String(new Base64().encode(credentials.getBytes()));
 			break;
 		case OAUTH:
-			System.out.println("OAuth authentication is not implmented yet.");
-			break;
+			return "Bearer " + idToken;
 	/*	case SAML:
 			authString = "SAML " + new String(new Base64().encode(this.SAMLResponse.getBytes()));
 			break; */
@@ -225,11 +231,20 @@ public class NdexRestClient {
 		
 		if ( _username !=null && username.length()>0) {
 			User currentUser;
+			this.authnType = AuthenticationType.BASIC;		
 				currentUser = getNdexObject("/user?valid=true", "", User.class);
 				_userUid = currentUser.getExternalId();
-		
 		}
 		
+	}
+	
+	public void signIn(String IDToken) throws JsonProcessingException, IOException, NdexException {
+		this.authnType = AuthenticationType.OAUTH;
+		this.idToken = IDToken;
+		
+		User currentUser;
+		currentUser = getNdexObject("/user?valid=true", "", User.class);
+		_userUid = currentUser.getExternalId();
 	}
 
 	public void signOut() {
@@ -846,7 +861,11 @@ public class NdexRestClient {
 
 	public void setAdditionalUserAgent(String additionalUserAgent) {
 		this.additionalUserAgent = additionalUserAgent;
-		this.userAgent = clientVersion + " " + additionalUserAgent; 
+			
+		this.userAgent = rawUserAgent +
+				additionalUserAgent !=null?
+				(" " + additionalUserAgent) : ""; 
+		
 	}
 
 	

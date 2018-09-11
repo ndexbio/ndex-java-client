@@ -44,15 +44,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.cxio.aspects.datamodels.EdgesElement;
-import org.cxio.aspects.datamodels.NetworkAttributesElement;
-import org.cxio.metadata.MetaDataCollection;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.ndexbio.cxio.aspects.datamodels.EdgesElement;
+import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.CitationElement;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.NdexException;

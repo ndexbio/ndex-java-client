@@ -188,6 +188,7 @@ public class NdexRestClientUtilities {
 	  	    if (cxEdgeIdCounter == null || cxEdgeIdCounter.longValue() < edgeIdCounter)
 	  	        metadata.setIdCounter(EdgesElement.ASPECT_NAME, Long.valueOf(edgeIdCounter));
 	  	
+	  	    metadata.remove(NdexNetworkStatus.ASPECT_NAME);
 	  	    niceCX.setMetadata(metadata);
 	  	    
 	        return niceCX;

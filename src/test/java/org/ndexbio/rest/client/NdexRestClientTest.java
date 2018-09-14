@@ -252,7 +252,7 @@ public class NdexRestClientTest {
 		assertTrue(s.getHasLayout());
 
 		MetaDataCollection md = ndex.getNetworkMetadata(networkId);
-		assertEquals(md.size(), cx.getMetadata().size()-1);
+		assertEquals(md.size(), cx.getMetadata().size());
 		
 		//clone this network
 		UUID clonedNetworkId = ndex.cloneNetwork(networkId);
@@ -290,23 +290,7 @@ public class NdexRestClientTest {
 		assertEquals(cx2.getEdges().size(), cx.getEdges().size());
 		assertEquals(cx2.getEdges().get(72L).getSource(), cx.getEdges().get(72L).getSource());
 		assertEquals(cx2.getEdges().get(72L).getTarget(), cx.getEdges().get(72L).getTarget());
-		
-		
-		// get and set provenance
-		ProvenanceEntity provenance = ndex.getNetworkProvenance(networkId);
-		assertEquals(provenance.getUri(), "http://dev.ndexbio.org/v2/network/" + networkId + "/summary");
-		assertEquals(provenance.getCreationEvent().getEventType(), "Program Upload in CX");
-		
-		ProvenanceEntity p2 = new ProvenanceEntity();
-		p2.setUri("http://www.ndexbio.org/foo");
-		List<SimplePropertyValuePair> propList = new ArrayList<>();
-		propList.add(new SimplePropertyValuePair("name", "bar"));
-		p2.setProperties(propList);
-		ndex.setNetworkProvenance(networkId, p2);
-		ProvenanceEntity p3 = ndex.getNetworkProvenance(networkId);
-		assertEquals(p3.getUri(), p2.getUri());
-		assertTrue( p3.getCreationEvent() == null);
-		
+				
 		//update network
 		
 		NiceCXNetwork cx_bel;
@@ -405,7 +389,7 @@ public class NdexRestClientTest {
 			ndex2.getNetworkSummaryById(networkId);
 			Assert.fail("Changed network back to private, but it still visible to anonymous users.");
 		} catch (UnauthorizedOperationException e3) {
-			System.out.println("Network becaue private again and no longer visible to anonymous users.");
+			System.out.println("Network becomes private again and no longer visible to anonymous users.");
 		}
 		
 

@@ -187,19 +187,6 @@ public class NdexRestClientModelAccessLayer
 	}
 	
 
-//	group	POST	/network/searchByProperties	 Collection<NetworkSummary>
-/*	@SuppressWarnings("unchecked")
-	public List<NetworkSummary> searchNetworkByPropertyFilter(NetworkPropertyFilter query) throws JsonProcessingException, IOException{
-		JsonNode postData = objectMapper.valueToTree(query);
-		return (List<NetworkSummary>)ndexRestClient.postNdexObjectList("/network/searchByProperties", postData, NetworkSummary.class);
-	} */
-	// Get network permissions of group as list of memberships
-//			group	GET	/group/{groupUUID}/network/{permission}/{skipBlocks}/{blockSize}		Membership[]
-/*	@SuppressWarnings("unchecked")
-	public List<Membership> findGroupNetworks(String groupId, Permissions permission, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
-		return (List<Membership>)ndexRestClient.getNdexObjectList("/group/" + groupId + "/network/" + permission + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
-	} */
-	
 
 	/**
 	 * Create a NDEx group.
@@ -496,18 +483,6 @@ public NetworkSearchResult findNetworks(
 	}
 
 	
-//	network	POST	/network/search/{skipBlocks}/{blockSize}	SimpleNetworkQuery	NetworkSummary[]
-/*	@SuppressWarnings("unchecked")
-	public ArrayList<NetworkSummary> searchNetwork(
-			SimpleNetworkQuery query,
-			int skipBlocks, 
-			int blockSize) 
-			throws JsonProcessingException, IOException {
-		String route = "/network/search/" + skipBlocks+"/"+ blockSize;		
-		JsonNode postData = objectMapper.valueToTree(query);
-		return (ArrayList<NetworkSummary>) ndexRestClient.postNdexObjectList(route, postData, NetworkSummary.class);
-	}  */
-	
 	public NetworkSearchResult findNetworks(
 			String searchString,
 			String accountName,
@@ -529,10 +504,6 @@ public NetworkSearchResult findNetworks(
 	public void deleteNetwork(UUID id) throws IOException, NdexException{
 		ndexRestClient.delete("/network/" + id);
 	}
-	
-
-	
-
 	
 	public InputStream getNetworkAsCXStream(UUID id) throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + id ;
@@ -615,21 +586,6 @@ public NetworkSearchResult findNetworks(
 	}
 	
 	
-		
-
-// network	GET	/export/{networkId}/{format} String
-	//TODO: Need to be rewritten
-/*	public String exportNetwork(String networkId, String fileFormat)  {
-		String route = "/network/export/" + networkId + "/" + fileFormat;
-        String value = null;
-        try {
-        	value = ndexRestClient.getString(route, "");
-        } catch (IOException e) {
-        	System.out.println("e.getMessage()=" + e.getMessage());
-        }
-		return value;
-	}	*/
-	
 
 	// Update network profile
 //	network	POST	/network/{networkUUID}/summary	Network	NetworkSummary
@@ -648,17 +604,15 @@ public NetworkSearchResult findNetworks(
 		ndexRestClient.putNdexObject(route, putData); 
 	}
 	
-	// Get network provenance object
-//	network	GET	/network/{networkUUID}/provenance		Provenance
+	@Deprecated
 	public ProvenanceEntity getNetworkProvenance(
 			UUID networkId) 
 			throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + networkId + "/provenance";		
 		return (ProvenanceEntity) ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
-	}
-	
-	// Update network provenance object
-//	network	PUT	/network/{networkUUID}/provenance	Provenance	
+	}	
+
+	@Deprecated
 	public void setNetworkProvenance(
 			UUID networkId,
 			ProvenanceEntity provenance) 
@@ -676,17 +630,6 @@ public NetworkSearchResult findNetworks(
 		String route = "/network/" + networkId +"/systemproperty" ;
         ndexRestClient.putNdexObject(route, objectMapper.valueToTree(properties));    
 	}
-
-	//@POST
-	//@Path("/{networkId}/asNetwork/prototypeNetworkQuery")
-	//@Produces("application/json")
-	
-//  network	POST	/network/{networkUUID}/asNetwork/prototypeNetworkQuery
-/*	public Network queryNetworkByEdgeFilter(String networkUUID, EdgeCollectionQuery query) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + networkUUID +"/asNetwork/prototypeNetworkQuery";
-		JsonNode postData = objectMapper.valueToTree(query);
-		return (Network) ndexRestClient.postNdexObject(route, postData, Network.class);
-	} */
 
 
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
@@ -979,4 +922,18 @@ public User updateUserEmail(User user, String newEmail) throws JsonProcessingExc
 				deleteUser(ndexRestClient.getUserUid());
 		}*/
 	   
+
+//		group	POST	/network/searchByProperties	 Collection<NetworkSummary>
+	/*	@SuppressWarnings("unchecked")
+		public List<NetworkSummary> searchNetworkByPropertyFilter(NetworkPropertyFilter query) throws JsonProcessingException, IOException{
+			JsonNode postData = objectMapper.valueToTree(query);
+			return (List<NetworkSummary>)ndexRestClient.postNdexObjectList("/network/searchByProperties", postData, NetworkSummary.class);
+		} */
+		// Get network permissions of group as list of memberships
+//				group	GET	/group/{groupUUID}/network/{permission}/{skipBlocks}/{blockSize}		Membership[]
+	/*	@SuppressWarnings("unchecked")
+		public List<Membership> findGroupNetworks(String groupId, Permissions permission, int skipBlocks, int blockSize) throws JsonProcessingException, IOException{
+			return (List<Membership>)ndexRestClient.getNdexObjectList("/group/" + groupId + "/network/" + permission + "/" + skipBlocks  + "/" + blockSize , "", Membership.class);
+		} */
+		
 }

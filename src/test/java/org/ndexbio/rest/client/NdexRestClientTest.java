@@ -39,6 +39,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -183,6 +184,20 @@ public class NdexRestClientTest {
 	}
 
 
+	@Test
+	public void testNetworkSummaris() throws JsonProcessingException, IOException, NdexException {
+		
+		List<UUID> uuids = new ArrayList<>();
+		uuids.add(UUID.fromString("3dbd6883-14a2-11e7-b0de-06832d634f41"));
+		uuids.add(UUID.fromString("c81ea28a-bdc4-11e7-9235-06832d634f41"));
+		
+		List<NetworkSummary> myNetworks = ndex.getNetworkSummariesByIds(uuids);
+		assertTrue(myNetworks.size() == 2);
+		assertTrue(myNetworks.get(1).getName().equals("Network for unit test - dont remove -public"));
+
+	}
+	
+	
 	@Test
 	public void testTaskOperators() throws IOException, NdexException {
 		UUID taskId = UUID.fromString("ff254008-adfa-11e7-9b0a-06832d634f41");

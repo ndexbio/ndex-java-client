@@ -34,9 +34,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -77,6 +79,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -455,7 +458,18 @@ public class NdexRestClientModelAccessLayer
 		
 		return (NetworkSummary) ndexRestClient.getNdexObject(route, "", NetworkSummary.class);
 	}
+
 	
+	public List<NetworkSummary> getNetworkSummariesByIds(Collection<UUID> networkIds) throws IOException, NdexException {
+		
+		String route = "/batch/network/summary";
+		
+		ArrayNode array = objectMapper.createArrayNode();
+		
+		array.addAll(networkIds.stream().map(e -> objectMapper.createObjectNode().textNode(e.toString())).collect(Collectors.toList()) ) ;
+		return  ndexRestClient.postNdexList(route, array, NetworkSummary.class);
+	}
+
 	/**
 	 * Search for networks by keywords
 	 * @param searchString

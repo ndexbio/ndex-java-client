@@ -64,6 +64,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
  * Simple REST Client for NDEX web service.
@@ -570,6 +571,61 @@ public class NdexRestClient {
 		}
 	}
 
+	
+	protected <T> List<T> postNdexList(
+			final String route, 
+			final ArrayNode postData,
+			final Class<T>  mappedClass)
+			throws JsonProcessingException, IOException, NdexException {
+		HttpURLConnection con = null;
+
+		try {
+
+			ObjectMapper mapper = new ObjectMapper();
+
+			con = postReturningConnection(route, postData);
+			
+			if (null == con) {
+				return null;
+			}
+			
+			if ((con.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED   ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND      ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_CONFLICT       ) ||
+				(con.getResponseCode() == HttpURLConnection.HTTP_FORBIDDEN      ) ||				
+				(con.getResponseCode() == HttpURLConnection.HTTP_INTERNAL_ERROR )) {				
+
+			    try (InputStream input = con.getErrorStream()) {
+			 
+				if (null != input) {
+                    // server sent an Ndex-specific exception (i.e., exception defined in 
+					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
+					// Re-construct and re-throw this exception here on the client side.
+					processNdexSpecificException(input, con.getResponseCode(), mapper);
+				}
+				
+				throw new IOException("failed to connect to ndex");
+			    }
+			}
+	
+			try (InputStream input = con.getInputStream() ) {
+			if (null != input) {
+				
+				JavaType type = mapper.getTypeFactory().
+						  constructCollectionType(List.class, mappedClass);
+
+				List<T> val = mapper.readValue(input,  type);
+				return val;
+			}
+			throw new IOException("failed to connect to ndex");
+			}
+
+		} finally {
+			if ( con != null ) con.disconnect();
+		}
+	}
+	
+	
 	protected <T> SolrSearchResult<T> postSearchQuery(final String route, final JsonNode postData,
 			final Class<T> mappedClass) throws JsonProcessingException, IOException, NdexException {
 		HttpURLConnection con = null;
@@ -673,8 +729,6 @@ public class NdexRestClient {
 			
 		    HttpURLConnection con = null;
 
-			ObjectMapper mapper = new ObjectMapper();
-
 			con = postReturningConnection(route, postData);
 			
 			if (null == con) {
@@ -693,7 +747,7 @@ public class NdexRestClient {
                     // server sent an Ndex-specific exception (i.e., exception defined in 
 					// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
 					// Re-construct and re-throw this exception here on the client side.
-					processNdexSpecificException(input, con.getResponseCode(), mapper);
+					processNdexSpecificException(input, con.getResponseCode(),  new ObjectMapper());
 				}
 				
 				throw new IOException("failed to connect to ndex");

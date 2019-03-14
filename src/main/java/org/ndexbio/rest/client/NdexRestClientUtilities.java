@@ -157,7 +157,7 @@ public class NdexRestClientUtilities {
 	     					niceCX.addCitation(ce);
 	     					break;
 	     				default:    // opaque aspect
-	     					niceCX.addOpapqueAspect(elmt);
+	     					niceCX.addOpaqueAspect(elmt);
 	     			}
 
 	     	} 

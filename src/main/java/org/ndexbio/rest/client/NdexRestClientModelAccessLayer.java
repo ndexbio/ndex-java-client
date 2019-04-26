@@ -81,11 +81,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.ndexbio.model.object.NetworkSet;
 
 /**
+ * Provides wrapper methods for NDEx REST server api. 
+ * 
+ * For more information about the api visit: http://ndexbio.org
  * 
  * @author chenjing
- *
  */
 public class NdexRestClientModelAccessLayer 
 {
@@ -112,7 +115,7 @@ public class NdexRestClientModelAccessLayer
 	 */
 	
 	/**
-	 * Get the client attached to the this data acess object.
+	 * Get the client attached to the this data access object.
 	 * @return
 	 */
 	public NdexRestClient getNdexRestClient() { return ndexRestClient; }
@@ -392,6 +395,41 @@ public class NdexRestClientModelAccessLayer
 				//SolrSearchResult.class);
 	}
 	
+        /* ----------------------------------------
+         *
+         *          Network Set
+         *
+         * ----------------------------------------
+         */
+        
+        /**
+         * 
+         * @param networkSetId id of network set
+         * @param accessKey optional key that allows any user to have read 
+         *                  access to this network set regardless if that user 
+         *                  has the READ privilege on this network. The access
+         *                  key function must be enabled. 
+         * @return NetworkSet object upon success otherwise null
+         * @throws IOException if there was an error with query
+         * @throws NdexException if there was an error with query
+         * @throws IllegalArgumentException if networkSetId is null
+         */
+        public NetworkSet getNetworkSetById(UUID networkSetId, 
+                                            final String accessKey) throws IllegalArgumentException, 
+                IOException, NdexException {
+            
+            if (networkSetId == null){
+                throw new IllegalArgumentException("networkSetId is null");
+            }
+            String query = "";
+            if (accessKey != null){
+                query = "?accesskey=" + accessKey;
+            }
+            return (NetworkSet) ndexRestClient.getNdexObject("/networkset/"+networkSetId,
+                                                             query, NetworkSet.class);
+	}
+        
+        
 	/*-----------------------------------------
 	 * 
 	 *          Network

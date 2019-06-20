@@ -562,14 +562,9 @@ public class NdexRestClient {
 			    }
 			}
 	
-			try (InputStream input = con.getInputStream() ) {
-			if (null != input) {
-				
+			try (InputStream input = getInputStreamFromConnection( con) ) {
 				T val = mapper.readValue(input, mappedClass);
-				
 				return val;
-			}
-			throw new IOException("failed to connect to ndex");
 			}
 
 		} finally {
@@ -614,16 +609,13 @@ public class NdexRestClient {
 			    }
 			}
 	
-			try (InputStream input = con.getInputStream() ) {
-			if (null != input) {
+			try (InputStream input = getInputStreamFromConnection( con) ) {
 				
 				JavaType type = mapper.getTypeFactory().
 						  constructCollectionType(List.class, mappedClass);
 
 				List<T> val = mapper.readValue(input,  type);
 				return val;
-			}
-			throw new IOException("failed to connect to ndex");
 			}
 
 		} finally {
@@ -665,17 +657,13 @@ public class NdexRestClient {
 				}
 			}
 
-			try (InputStream input = con.getInputStream()) {
-				if (null != input) {
+			try (InputStream input = getInputStreamFromConnection(con)) {
 					JavaType type = mapper.getTypeFactory().constructParametricType(SolrSearchResult.class,
 							mappedClass);
 
 					SolrSearchResult<T> val = mapper.readValue(input, type);
 
 					return val;
-
-				}
-				throw new IOException("failed to connect to ndex");
 			}
 
 		} finally {
@@ -713,7 +701,7 @@ public class NdexRestClient {
 			}
 		}
 
-		BufferedInputStream input = new BufferedInputStream(con.getInputStream());
+		BufferedInputStream input = new BufferedInputStream( getInputStreamFromConnection(con));
 
 		BufferedReader br = new BufferedReader(new InputStreamReader(input));
 		StringBuffer sb = new StringBuffer();
@@ -760,13 +748,7 @@ public class NdexRestClient {
 				}
 			}
 	
-			InputStream input = con.getInputStream();
-			if (null != input) {
-				return input;
-			}
-			throw new IOException("failed to connect to ndex");
-
-		
+			return getInputStreamFromConnection(con);
 	}
 	
 
@@ -824,7 +806,7 @@ public class NdexRestClient {
 		con.setDoOutput(true);
 		con.setDoInput(true);
         con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
-		//con.setRequestProperty("Accept-Encoding", "gzip");
+		con.setRequestProperty("Accept-Encoding", "gzip");
 		con.setInstanceFollowRedirects(false);
 		con.setRequestMethod("POST");
         
@@ -948,12 +930,5 @@ public class NdexRestClient {
 				(" " + additionalUserAgent) : ""; 
 		
 	}
-
-	
-	
-	
-
-	
-	
 	
 }

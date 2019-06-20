@@ -255,7 +255,7 @@ public class NdexRestClientTest {
 		while (!s.isCompleted()) {
 			if (count > 10)
 				fail("Network takes too long to process.");
-			Thread.sleep(2000);
+			Thread.sleep(5000);
 			System.out.println("Getting networkSummary from Ndex server.");
 			s = ndex.getNetworkSummaryById(networkId);
 		}

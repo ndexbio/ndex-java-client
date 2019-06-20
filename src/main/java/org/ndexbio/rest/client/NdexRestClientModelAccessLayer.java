@@ -365,8 +365,9 @@ public class NdexRestClientModelAccessLayer
 	 * @param directOnly If directonly is set to true, permissions granted through groups are not included in the result. 
 	 * @return A map which maps a network UUID to the highest permission assigned to the authenticated user. 
 	 * @throws IOException
+	 * @throws NdexException 
 	 */
-	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException {
+	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException, NdexException {
 		
 		return  ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
 				  "", String.class, Permissions.class);
@@ -379,8 +380,9 @@ public class NdexRestClientModelAccessLayer
 	 * @param blockSize
 	 * @return
 	 * @throws IOException
+	 * @throws NdexException 
 	 */
-	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException {
+	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException, NdexException {
 		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
 				   (status == null ? "" : "&status="+status); 
 		return (List<Task>) ndexRestClient.getNdexObjectList(route , "", Task.class);

@@ -314,15 +314,15 @@ public class NdexRestClient {
 				}
 			}
 
-			InputStream input = con.getInputStream();
+			return getInputStreamFromConnection(con);
 
-			if (null != input) {
+			/*if (null != input) {
 				if ("gzip".equalsIgnoreCase(con.getContentEncoding())) {
 					input = new GZIPInputStream(input);
 				}
 				return input;
 			}
-			throw new NdexException("failed to connect to ndex server.");
+			throw new NdexException("failed to connect to ndex server."); */
 		} catch (IOException e) {
 			String s = e.getMessage();
 			if (s.startsWith("Server returned HTTP response code: 401")) {
@@ -332,6 +332,18 @@ public class NdexRestClient {
 			throw e;
 		}
 
+	}
+	
+	private static InputStream getInputStreamFromConnection(HttpURLConnection conn) throws IOException, NdexException {
+		InputStream input = conn.getInputStream();
+
+		if (null != input) {
+			if ("gzip".equalsIgnoreCase(conn.getContentEncoding())) {
+				input = new GZIPInputStream(input);
+			}
+			return input;
+		}
+		throw new NdexException("Failed to connect to NDEx server. Can't get input stream from " + conn.getURL().getPath());
 	}
 	
 	protected <T> T  getNdexObject(
@@ -364,17 +376,9 @@ public class NdexRestClient {
 					throw new IOException("failed to connect to ndex");
 				}				
 				
-				try (InputStream input = con.getInputStream()) {
-
-					if (null != input){
-						if ("gzip".equalsIgnoreCase(con.getContentEncoding()))  {
-							InputStream input2 = new GZIPInputStream(input);
-							return mapper.readValue(input2, mappedClass);
-						}
-						return mapper.readValue(input, mappedClass);
-					}
+				try (InputStream input = getInputStreamFromConnection(con)) {
+					return mapper.readValue(input, mappedClass);
 				}
-				throw new NdexException("failed to connect to ndex server.");
 			} catch (IOException e) {	
 				String s = e.getMessage();
 			    if ( s.startsWith("Server returned HTTP response code: 401")) {
@@ -391,7 +395,7 @@ public class NdexRestClient {
 			final String route, 
 			final String query,
 			final Class<T> mappedClass)
-			throws JsonProcessingException, IOException {
+			throws JsonProcessingException, IOException, NdexException {
 		HttpURLConnection con = null;
 		try {
 			
@@ -400,7 +404,7 @@ public class NdexRestClient {
 					  constructCollectionType(List.class, mappedClass);
 
 			con = getReturningConnection(route, query);
-			try (InputStream input= con.getInputStream()) {
+			try (InputStream input= getInputStreamFromConnection( con) ){
 				if (null != input){
 					return mapper.readValue(input, type);
 				}
@@ -417,7 +421,7 @@ public class NdexRestClient {
 			final String query,
 			final Class<T> keyClass,
 			final Class<V> valueClass)
-			throws JsonProcessingException, IOException {
+			throws JsonProcessingException, IOException, NdexException {
 		HttpURLConnection con = null;
 		try {
 			
@@ -425,7 +429,7 @@ public class NdexRestClient {
 			JavaType type = mapper.getTypeFactory().constructMapType(HashMap.class, keyClass, valueClass);
 
 			con = getReturningConnection(route, query);
-			try (InputStream input = con.getInputStream()) {
+			try (InputStream input = getInputStreamFromConnection(con)) {
 				if (null != input){
 					return mapper.readValue(input, type);
 				}
@@ -443,6 +447,8 @@ public class NdexRestClient {
 
 		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		setAuthorizationAndUserAgent(con);
+		con.setRequestProperty("Accept-Encoding", "gzip");
+
 		return con;
 	}	
 
@@ -800,6 +806,8 @@ public class NdexRestClient {
 			
 		    		throw new IOException("failed to connect to ndex");
 		    }
+		} else {
+			throw new NdexException("HTTP connection error. return code: " + returnCode);
 		}
 	}
 	
@@ -815,9 +823,10 @@ public class NdexRestClient {
 		
 		con.setDoOutput(true);
 		con.setDoInput(true);
+        con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
+		//con.setRequestProperty("Accept-Encoding", "gzip");
 		con.setInstanceFollowRedirects(false);
 		con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
         
 		con.setUseCaches(false);
 		setAuthorizationAndUserAgent(con);

@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -697,7 +698,7 @@ public NetworkSearchResult findNetworks(
             		  				.addBinaryBody("CXNetworkStream", input,ContentType.create("application/octet-stream"), "filename").build();
    
               //Set to request body
-              httpPost.setEntity(multiPartEntity) ;
+              httpPost.setEntity (multiPartEntity) ;
  
            	  UsernamePasswordCredentials creds = 
             	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());

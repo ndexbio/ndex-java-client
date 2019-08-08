@@ -39,7 +39,6 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +52,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.ndexbio.cxio.aspects.datamodels.EdgesElement;
 import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.ndexbio.cxio.core.readers.NiceCXNetworkReader;
 import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.CitationElement;
 import org.ndexbio.model.cx.NiceCXNetwork;
@@ -63,8 +63,6 @@ import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
 import org.ndexbio.model.object.Permissions;
-import org.ndexbio.model.object.ProvenanceEntity;
-import org.ndexbio.model.object.SimplePropertyValuePair;
 import org.ndexbio.model.object.SimpleQuery;
 import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
@@ -103,7 +101,7 @@ public class NdexRestClientTest {
 		assertNotNull(s.getProperties().get("Build"));
 		assertEquals(((String) s.getProperties().get("ServerVersion")).substring(0, 1), "2");
 		s = ndex.getServerStatus(false);
-		assertNull((Object) s.getProperties().get("ImporterExporters"));
+		assertNull(s.getProperties().get("ImporterExporters"));
 	}
 
 	@Test
@@ -127,7 +125,8 @@ public class NdexRestClientTest {
 		UUID privateNetUUID = UUID.fromString("86fbe77b-a799-11e7-b522-06832d634f41");
 		String accessKey = "d62c3bdab55c1956f8cda2a4a1072043cba64a795f89d280dd615cc2d8c9f5b2";
 		try (InputStream in = ndex2.getNetworkAsCXStream(privateNetUUID, accessKey)) {
-			NiceCXNetwork cx = NdexRestClientUtilities.getCXNetworkFromStream(in);
+			NiceCXNetworkReader reader = new NiceCXNetworkReader();
+			NiceCXNetwork cx = reader.readNiceCXNetwork(in);
 			for (NetworkAttributesElement e : cx.getNetworkAttributes()) {
 				if (e.getName().equals("name")) {
 					assertEquals(e.getValue(), "Aurora A signaling - sharable link test network - don't remove");
@@ -229,8 +228,8 @@ public class NdexRestClientTest {
 		try (InputStream is =
 				// new FileInputStream("src/test/resources/test_network.cx")
 				this.getClass().getResourceAsStream("/test_network.cx")) {
-
-			cx = NdexRestClientUtilities.getCXNetworkFromStream(is);
+			NiceCXNetworkReader reader = new NiceCXNetworkReader();
+			cx = reader.readNiceCXNetwork(is);
 		}
 
 		//download the network and create a niceCX model from the stream.

@@ -43,7 +43,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -52,6 +51,7 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.ndexbio.cxio.core.readers.NiceCXNetworkReader;
 import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.errorcodes.NDExError;
@@ -259,7 +259,7 @@ public class NdexRestClientModelAccessLayer
 	 * @throws NdexException
 	 */
 	public Task getTask(UUID taskId) throws IOException, NdexException {
-		return (Task) ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
+		return ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
 	}
 	
 	// Update a task
@@ -386,7 +386,7 @@ public class NdexRestClientModelAccessLayer
 	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException, NdexException {
 		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
 				   (status == null ? "" : "&status="+status); 
-		return (List<Task>) ndexRestClient.getNdexObjectList(route , "", Task.class);
+		return ndexRestClient.getNdexObjectList(route , "", Task.class);
 	}	
 	
 	// Search for users
@@ -428,7 +428,7 @@ public class NdexRestClientModelAccessLayer
             if (accessKey != null){
                 query = "?accesskey=" + accessKey;
             }
-            return (NetworkSet) ndexRestClient.getNdexObject("/networkset/"+networkSetId,
+            return ndexRestClient.getNdexObject("/networkset/"+networkSetId,
                                                              query, NetworkSet.class);
 	}
         
@@ -487,7 +487,7 @@ public class NdexRestClientModelAccessLayer
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
 	public NetworkSummary getNetworkSummaryById(UUID networkId) throws IOException, NdexException {
-		return (NetworkSummary) ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
+		return ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
 	}
 
 	public NetworkSummary getNetworkSummaryById(UUID networkId, String accessKey) throws IOException, NdexException {
@@ -497,7 +497,7 @@ public class NdexRestClientModelAccessLayer
 			route += "?accesskey="+accessKey;
 		}
 		
-		return (NetworkSummary) ndexRestClient.getNdexObject(route, "", NetworkSummary.class);
+		return ndexRestClient.getNdexObject(route, "", NetworkSummary.class);
 	}
 
 	
@@ -533,7 +533,7 @@ public NetworkSearchResult findNetworks(
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
-		return (NetworkSearchResult)ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
+		return ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
 		
 	}
 
@@ -552,7 +552,7 @@ public NetworkSearchResult findNetworks(
         ((ObjectNode) postData).put("includeGroups", Boolean.toString(includeGroups));
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
 		if ( permissionOnAcc !=null) ((ObjectNode) postData).put("permission", permissionOnAcc.toString());
-		return (NetworkSearchResult )ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
+		return ndexRestClient.postNdexObject(route, postData, NetworkSearchResult.class);
 		
 	}
 	
@@ -577,7 +577,9 @@ public NetworkSearchResult findNetworks(
 	public NiceCXNetwork getNetwork(UUID id) throws JsonProcessingException, IOException, NdexException {
 		
 		try (InputStream is = getNetworkAsCXStream(id)) {
-			return NdexRestClientUtilities.getCXNetworkFromStream(is);
+			NiceCXNetworkReader reader = new NiceCXNetworkReader();
+			return reader.readNiceCXNetwork(is);
+			//return NdexRestClientUtilities.getCXNetworkFromStream(is);
 		}
 	}
 
@@ -619,7 +621,10 @@ public NetworkSearchResult findNetworks(
 	
 	public NiceCXNetwork getSampleNetwork ( UUID networkId ) throws JsonProcessingException, IOException, NdexException {
 		try (InputStream s = ndexRestClient.getStream("/network/" , networkId + "/sample")) {
-			return NdexRestClientUtilities.getCXNetworkFromStream(s);
+			
+			NiceCXNetworkReader reader = new NiceCXNetworkReader();
+			return reader.readNiceCXNetwork(s);
+			//return NdexRestClientUtilities.getCXNetworkFromStream(s);
 		}
 	}
 	
@@ -647,7 +652,7 @@ public NetworkSearchResult findNetworks(
 	public NetworkSummary updateNetworkSummary(NetworkSummary networkSummary, String networkId) throws Exception {
 		String route = "/network/" + networkId + "/summary";
 		JsonNode postData = objectMapper.valueToTree(networkSummary);
-		return (NetworkSummary) ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
+		return ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
 	}	
 	
 
@@ -664,7 +669,7 @@ public NetworkSearchResult findNetworks(
 			UUID networkId) 
 			throws JsonProcessingException, IOException, NdexException {
 		String route = "/network/" + networkId + "/provenance";		
-		return (ProvenanceEntity) ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
+		return  ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
 	}	
 
 	@Deprecated
@@ -919,7 +924,6 @@ public NetworkSearchResult findNetworks(
 }  */
 
 // Update user email address, alerting user via old email
-// TODO
 //		user	POST	/user/emailAddress	string	
 /*
 public User updateUserEmail(User user, String newEmail) throws JsonProcessingException, IOException{
@@ -929,7 +933,7 @@ public User updateUserEmail(User user, String newEmail) throws JsonProcessingExc
 */
 
 // Change user password
-// TODO
+
 //			user	POST	/user/password	string	
 // 
 // ATTENTION: in case password has been successfully changed on the server, it will be changed on the 

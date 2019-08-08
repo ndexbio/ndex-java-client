@@ -307,9 +307,9 @@ public class NdexRestClient {
 						// org.ndexbio.rest.exceptions.mappers package of ndexbio-rest project).
 						// Re-construct and re-throw this exception here on the client side.
 						processNdexSpecificException(input, con.getResponseCode(), new ObjectMapper());
+						input.close();
 					}
 
-					input.close();
 					throw new IOException("failed to connect to ndex server at " + route);
 				}
 			}
@@ -788,9 +788,8 @@ public class NdexRestClient {
 			
 		    		throw new IOException("failed to connect to ndex");
 		    }
-		} else {
-			throw new NdexException("HTTP connection error. return code: " + returnCode);
 		}
+		throw new NdexException("HTTP connection error. return code: " + returnCode);
 	}
 	
 

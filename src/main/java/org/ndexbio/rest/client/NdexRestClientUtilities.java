@@ -72,8 +72,21 @@ import org.ndexbio.model.cx.NodeSupportLinksElement;
 import org.ndexbio.model.cx.Provenance;
 import org.ndexbio.model.cx.SupportElement;
 
+/**
+ * Replaced by NiceCXNetworkReader in ndex-object-model.
+ * @author jingchen
+ *
+ */
+@Deprecated 
 public class NdexRestClientUtilities {
 
+	  /**
+	   * Replaced by NiceCXNetworkReader.readNiceCXNetwork in ndex-object-model 
+	   * @param in
+	   * @return
+	   * @throws IOException
+	   */
+	  @Deprecated
 	  public static NiceCXNetwork getCXNetworkFromStream( final InputStream in) throws IOException {
 		  Set<AspectFragmentReader> readers = new HashSet<>(20);
 		  
@@ -83,17 +96,17 @@ public class NdexRestClientUtilities {
 		  readers.add(NodesFragmentReader.createInstance());
 		  readers.add(NodeAttributesFragmentReader.createInstance());
 		  
-		  readers.add(new GeneralAspectFragmentReader<NdexNetworkStatus> (NdexNetworkStatus.ASPECT_NAME,
+		  readers.add(new GeneralAspectFragmentReader<> (NdexNetworkStatus.ASPECT_NAME,
 				NdexNetworkStatus.class));
-		  readers.add(new GeneralAspectFragmentReader<NamespacesElement> (NamespacesElement.ASPECT_NAME,NamespacesElement.class));
-		  readers.add(new GeneralAspectFragmentReader<FunctionTermElement> (FunctionTermElement.ASPECT_NAME,FunctionTermElement.class));
-		  readers.add(new GeneralAspectFragmentReader<CitationElement> (CitationElement.ASPECT_NAME,CitationElement.class));
-		  readers.add(new GeneralAspectFragmentReader<SupportElement> (SupportElement.ASPECT_NAME,SupportElement.class));
-		  readers.add(new GeneralAspectFragmentReader<EdgeCitationLinksElement> (EdgeCitationLinksElement.ASPECT_NAME,EdgeCitationLinksElement.class));
-		  readers.add(new GeneralAspectFragmentReader<EdgeSupportLinksElement> (EdgeSupportLinksElement.ASPECT_NAME,EdgeSupportLinksElement.class));
-		  readers.add(new GeneralAspectFragmentReader<NodeCitationLinksElement> (NodeCitationLinksElement.ASPECT_NAME,NodeCitationLinksElement.class));
-		  readers.add(new GeneralAspectFragmentReader<NodeSupportLinksElement> (NodeSupportLinksElement.ASPECT_NAME,NodeSupportLinksElement.class));
-		  readers.add(new GeneralAspectFragmentReader<Provenance> (Provenance.ASPECT_NAME,Provenance.class));
+		  readers.add(new GeneralAspectFragmentReader<> (NamespacesElement.ASPECT_NAME,NamespacesElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (FunctionTermElement.ASPECT_NAME,FunctionTermElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (CitationElement.ASPECT_NAME,CitationElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (SupportElement.ASPECT_NAME,SupportElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (EdgeCitationLinksElement.ASPECT_NAME,EdgeCitationLinksElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (EdgeSupportLinksElement.ASPECT_NAME,EdgeSupportLinksElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (NodeCitationLinksElement.ASPECT_NAME,NodeCitationLinksElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (NodeSupportLinksElement.ASPECT_NAME,NodeSupportLinksElement.class));
+		  readers.add(new GeneralAspectFragmentReader<> (Provenance.ASPECT_NAME,Provenance.class));
 		  
 		  readers.add( CyVisualPropertiesFragmentReader.createInstance());
 		  readers.add( CartesianLayoutFragmentReader.createInstance());

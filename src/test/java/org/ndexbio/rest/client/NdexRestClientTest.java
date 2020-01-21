@@ -44,9 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -75,25 +74,24 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NdexRestClientTest {
 
-	private NdexRestClient client;
-	private NdexRestClientModelAccessLayer ndex;
+	private static NdexRestClient client;
+	private static NdexRestClientModelAccessLayer ndex;
 	private static String _username = "cj1";
 	private static String _password = "aaaaaaaaa";
-	private String _route = "dev.ndexbio.org";
+	private static String _route = "dev.ndexbio.org";
 
 	@Rule
 	public ExpectedException thrown1 = ExpectedException.none();
 
-	@Before
-	public void setUp() throws Exception {
-
+	@BeforeClass
+	public static void setUp() throws Exception {
+		 _username = "cj1";
+		 _password = "aaaaaaaaa";
+		 _route = "dev.ndexbio.org";
 		client = new NdexRestClient(_username, _password, _route);
 		ndex = new NdexRestClientModelAccessLayer(client);
 	}
 
-	@After
-	public void tearDown() throws Exception {
-	}
 
 	@Test
 	public void testGetStatus() throws IOException, NdexException {

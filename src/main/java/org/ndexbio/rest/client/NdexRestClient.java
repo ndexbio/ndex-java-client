@@ -143,7 +143,8 @@ public class NdexRestClient {
 	 */
 	public NdexRestClient(String hostName)  {
 		
-		if ( hostName.toLowerCase().startsWith("http://"))
+		if ( hostName.toLowerCase().startsWith("http://") || 
+				hostName.toLowerCase().startsWith("https://"))
 			_baseroute = hostName;
 		else
 			_baseroute = "http://"+ hostName + "/v2";

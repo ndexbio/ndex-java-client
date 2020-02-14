@@ -102,6 +102,15 @@ public class NdexRestClientTest {
 		assertNull(s.getProperties().get("ImporterExporters"));
 	}
 
+	
+	@Test
+	public void testCreatingClientOnHTTPSProtocol() throws IOException, NdexException {
+		NdexRestClient c = new NdexRestClient("https://public.ndexbio.org/v2");
+		NdexRestClientModelAccessLayer ndex0 = new NdexRestClientModelAccessLayer(c);
+		NdexStatus s = ndex0.getServerStatus(true);
+		assertNotNull(s.getProperties().get("Build"));
+	}
+	
 	@Test
 	public void testAnynomousClient() throws JsonProcessingException, IOException, NdexException {
 		NdexRestClient c1 = new NdexRestClient(_route);

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.ndexbio.client</groupId>
 	<artifactId>ndex-java-client</artifactId>
-	<version>2.4.5-SNAPSHOT</version>
+	<version>2.4.5</version>
 	<name>NDEx Java REST Client</name>
 	<description>REST Client for in applications that access NDEx</description>
 	<inceptionYear>2013</inceptionYear>
@@ -152,15 +152,9 @@
 		<dependency>
 			<groupId>org.ndexbio</groupId>
 			<artifactId>ndex-object-model</artifactId>
-			<version>2.4.5-SNAPSHOT</version>
+			<version>2.4.5</version>
 		</dependency>
-<!-- 
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>19.0</version>
-		</dependency>
- -->
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

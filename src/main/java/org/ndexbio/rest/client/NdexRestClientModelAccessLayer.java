@@ -139,7 +139,7 @@ public class NdexRestClientModelAccessLayer
      * @throws NdexException
      */
     public NdexStatus getServerStatus(boolean fullFormat) throws IOException, NdexException {
-    	String route = "/admin/status?format=" + (fullFormat? "full": "standard") ;
+    	final String route = NdexApiVersion.v2 + "/admin/status?format=" + (fullFormat? "full": "standard") ;
 
     	NdexStatus status = this.ndexRestClient.getNdexObject(route, "", NdexStatus.class);
     	
@@ -162,7 +162,7 @@ public class NdexRestClientModelAccessLayer
      * @throws NdexException
      */
 	public Group getGroup(UUID groupId) throws IOException, NdexException {
-		return ndexRestClient.getNdexObject("/group/"+groupId, "", Group.class);
+		return ndexRestClient.getNdexObject(NdexApiVersion.v2 + "/group/"+groupId, "", Group.class);
 	}
 	
 	
@@ -174,7 +174,7 @@ public class NdexRestClientModelAccessLayer
 	 */
 	public void updateGroup(Group group) throws IllegalStateException, Exception{
 		JsonNode postData = objectMapper.valueToTree(group);
-		ndexRestClient.putNdexObject("/group/" + group.getExternalId() , postData);
+		ndexRestClient.putNdexObject(NdexApiVersion.v2 + "/group/" + group.getExternalId() , postData);
 	}
 	
 
@@ -190,7 +190,7 @@ public class NdexRestClientModelAccessLayer
 	 */
 	public SolrSearchResult<Group> findGroups(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return ndexRestClient.postSearchQuery("/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, Group.class);
+		return ndexRestClient.postSearchQuery(NdexApiVersion.v2 + "/search/group?start="  + skipBlocks  + "&size=" + blockSize , postData, Group.class);
 	}
 	
 
@@ -205,7 +205,7 @@ public class NdexRestClientModelAccessLayer
 	 */
 	public UUID createGroup(Group group) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(group);
-		return ndexRestClient.createNdexObjectByPost("/group", postData);
+		return ndexRestClient.createNdexObjectByPost(NdexApiVersion.v2 + "/group", postData);
 	}
 	
 	// Delete a group
@@ -218,7 +218,7 @@ public class NdexRestClientModelAccessLayer
 	 * @throws NdexException
 	 */
 	public void deleteGroup(UUID groupId) throws JsonProcessingException, IOException, NdexException{
-		ndexRestClient.delete("/group/" + groupId.toString());
+		ndexRestClient.delete(NdexApiVersion.v2 + "/group/" + groupId.toString());
 	}	
 	
 	// Add or modify account permission for a group by posting a membership
@@ -259,7 +259,7 @@ public class NdexRestClientModelAccessLayer
 	 * @throws NdexException
 	 */
 	public Task getTask(UUID taskId) throws IOException, NdexException {
-		return ndexRestClient.getNdexObject("/task/"+ taskId, "", Task.class);
+		return ndexRestClient.getNdexObject(NdexApiVersion.v2 + "/task/"+ taskId, "", Task.class);
 	}
 	
 	// Update a task
@@ -277,7 +277,7 @@ public class NdexRestClientModelAccessLayer
     * @throws NdexException
     */
 	public void deleteTask(UUID taskId) throws JsonProcessingException, IOException, NdexException{
-		ndexRestClient.delete("/task/" + taskId);
+		ndexRestClient.delete(NdexApiVersion.v2 + "/task/" + taskId);
 	}	
 	
 	/*-----------------------------------------
@@ -295,7 +295,7 @@ public class NdexRestClientModelAccessLayer
      * @throws NdexException
      */
 	public User getUser(UUID userCreated) throws IOException, NdexException {
-		return ndexRestClient.getNdexObject("/user/"+userCreated, "", User.class);
+		return ndexRestClient.getNdexObject(NdexApiVersion.v2 + "/user/"+userCreated, "", User.class);
 	}
 	
 	/**
@@ -332,7 +332,7 @@ public class NdexRestClientModelAccessLayer
 			throw new NdexException("Client object has not sign in to NDEx server yet.");
 		}
 		
-		String route = "/user/"+ userId + "/networksummary?offset="+offset+"&limit="+ limit;		
+		final String route = NdexApiVersion.v2 + "/user/"+ userId + "/networksummary?offset="+offset+"&limit="+ limit;		
 		return ndexRestClient.getNdexObjectList(route,"", NetworkSummary.class);
 
 	}
@@ -370,7 +370,7 @@ public class NdexRestClientModelAccessLayer
 	 */
 	public Map<String,Permissions> getUserNetworkPermission(UUID userId, UUID networkId, boolean directOnly) throws IOException, NdexException {
 		
-		return  ndexRestClient.getHashMap("/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
+		return  ndexRestClient.getHashMap(NdexApiVersion.v2 + "/user/"+ userId + "/permission?networkid=" + networkId  + "&directonly=" + directOnly,
 				  "", String.class, Permissions.class);
 	}	
 
@@ -384,7 +384,7 @@ public class NdexRestClientModelAccessLayer
 	 * @throws NdexException 
 	 */
 	public List<Task> getUserTasks( Status status, int skipBlocks, int blockSize) throws IOException, NdexException {
-		String route = "/task?start=" + skipBlocks  + "&size=" + blockSize + 
+		final String route = NdexApiVersion.v2 + "/task?start=" + skipBlocks  + "&size=" + blockSize + 
 				   (status == null ? "" : "&status="+status); 
 		return ndexRestClient.getNdexObjectList(route , "", Task.class);
 	}	
@@ -393,7 +393,7 @@ public class NdexRestClientModelAccessLayer
 //	@SuppressWarnings("unchecked")
 	public SolrSearchResult<User> findUsers(SimpleQuery query, int skipBlocks, int blockSize) throws JsonProcessingException, IOException, NdexException{
 		JsonNode postData = objectMapper.valueToTree(query);
-		return ndexRestClient.postSearchQuery("/search/user?start="  + skipBlocks  + "&size=" + blockSize , postData, User.class);
+		return ndexRestClient.postSearchQuery(NdexApiVersion.v2 + "/search/user?start="  + skipBlocks  + "&size=" + blockSize , postData, User.class);
 				
 				//SolrSearchResult.class);
 	}
@@ -428,7 +428,7 @@ public class NdexRestClientModelAccessLayer
             if (accessKey != null){
                 query = "?accesskey=" + accessKey;
             }
-            return ndexRestClient.getNdexObject("/networkset/"+networkSetId,
+            return ndexRestClient.getNdexObject(NdexApiVersion.v2 + "/networkset/"+networkSetId,
                                                              query, NetworkSet.class);
 	}
         
@@ -487,12 +487,12 @@ public class NdexRestClientModelAccessLayer
 	
 //	network	GET	/network/{networkUUID}		NetworkSummary
 	public NetworkSummary getNetworkSummaryById(UUID networkId) throws IOException, NdexException {
-		return ndexRestClient.getNdexObject("/network/"+networkId + "/summary", "", NetworkSummary.class);
+		return ndexRestClient.getNdexObject(NdexApiVersion.v2 + "/network/"+networkId + "/summary", "", NetworkSummary.class);
 	}
 
 	public NetworkSummary getNetworkSummaryById(UUID networkId, String accessKey) throws IOException, NdexException {
 		
-		String route = "/network/"+networkId + "/summary";
+		String route = NdexApiVersion.v2 + "/network/"+networkId + "/summary";
 		if ( accessKey != null) {
 			route += "?accesskey="+accessKey;
 		}
@@ -503,7 +503,7 @@ public class NdexRestClientModelAccessLayer
 	
 	public List<NetworkSummary> getNetworkSummariesByIds(Collection<UUID> networkIds) throws IOException, NdexException {
 		
-		String route = "/batch/network/summary";
+		final String route = NdexApiVersion.v2 + "/batch/network/summary";
 		
 		ArrayNode array = objectMapper.createArrayNode();
 		
@@ -529,7 +529,7 @@ public NetworkSearchResult findNetworks(
 			int skipBlocks, 
 			int blockSize) 
 			throws JsonProcessingException, IOException, NdexException {
-		String route = "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
+		final String route = NdexApiVersion.v2 + "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
 		if (accountName != null) ((ObjectNode) postData).put("accountName", accountName);
@@ -546,7 +546,7 @@ public NetworkSearchResult findNetworks(
 			int skipBlocks, 
 			int blockSize) 
 			throws JsonProcessingException, IOException, NdexException {
-		String route = "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
+		final String route = NdexApiVersion.v2 + "/search/network?start=" + skipBlocks+"&size="+ blockSize;		
 		JsonNode postData = objectMapper.createObjectNode(); // will be of type ObjectNode
 		((ObjectNode) postData).put("searchString", searchString);
         ((ObjectNode) postData).put("includeGroups", Boolean.toString(includeGroups));
@@ -557,16 +557,16 @@ public NetworkSearchResult findNetworks(
 	}
 	
 	public void deleteNetwork(UUID id) throws IOException, NdexException{
-		ndexRestClient.delete("/network/" + id);
+		ndexRestClient.delete(NdexApiVersion.v2 + "/network/" + id);
 	}
 	
 	public InputStream getNetworkAsCXStream(UUID id) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + id ;
+		final String route = NdexApiVersion.v3 + "/network/" + id ;
 		return  ndexRestClient.getStream(route, "");
 	}
 
 	public InputStream getNetworkAsCXStream(UUID id, String accessKey) throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + id ;
+		String route = NdexApiVersion.v3 + "/network/" + id ;
 		if ( accessKey != null) {
 			route += "?accesskey="+accessKey;
 		}
@@ -585,20 +585,20 @@ public NetworkSearchResult findNetworks(
 
 	public InputStream getNetworkAspectElements(UUID id, String aspectName, int limit) throws JsonProcessingException, IOException, NdexException {
 
-		String route = "/network/" + id + "/aspect/"+aspectName + "?size=" + limit;
+		final String route = NdexApiVersion.v2 + "/network/" + id + "/aspect/"+aspectName + "?size=" + limit;
 		return  ndexRestClient.getStream(route, "");
 	}
 
 	public <T> List<T> getNetworkAspect(UUID id, String aspect, int limit, Class<T> mappedClass)
 			    throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + id + "/aspect/"+aspect + "?size=" + limit;
+		final String route = NdexApiVersion.v2 + "/network/" + id + "/aspect/"+aspect + "?size=" + limit;
 		return  ndexRestClient.getNdexObjectList(route, "", mappedClass);
 
 	}
 	
 	public MetaDataCollection getNetworkMetadata(UUID id)
 		    throws JsonProcessingException, IOException, NdexException {
-	String route = "/network/" + id + "/aspect";
+	final String route = NdexApiVersion.v2 + "/network/" + id + "/aspect";
 	return  ndexRestClient.getNdexObject(route, "", MetaDataCollection.class);
 
 }
@@ -612,7 +612,7 @@ public NetworkSearchResult findNetworks(
 	} */
 
 	public void setSampleNetwork (UUID networkId, InputStream sampleNetworkStream) throws IOException, NdexException {
-		ndexRestClient.putStream("/network/" + networkId + "/sample", sampleNetworkStream );
+		ndexRestClient.putStream(NdexApiVersion.v2 + "/network/" + networkId + "/sample", sampleNetworkStream );
 	}
 	
 /*	public void setSampleNetwork (UUID networkId, String sampleNetworkString) {
@@ -620,7 +620,7 @@ public NetworkSearchResult findNetworks(
 	} */
 	
 	public NiceCXNetwork getSampleNetwork ( UUID networkId ) throws JsonProcessingException, IOException, NdexException {
-		try (InputStream s = ndexRestClient.getStream("/network/" , networkId + "/sample")) {
+		try (InputStream s = ndexRestClient.getStream(NdexApiVersion.v2 + "/network/" , networkId + "/sample")) {
 			
 			NiceCXNetworkReader reader = new NiceCXNetworkReader();
 			return reader.readNiceCXNetwork(s);
@@ -629,7 +629,7 @@ public NetworkSearchResult findNetworks(
 	}
 	
 	public UUID cloneNetwork (UUID networkId) throws JsonProcessingException, IOException, NdexException {
-		return ndexRestClient.createNdexObjectByPost("/network/" + networkId + "/copy", null);
+		return ndexRestClient.createNdexObjectByPost(NdexApiVersion.v2 +"/network/" + networkId + "/copy", null);
 		
 	}
 	
@@ -640,7 +640,7 @@ public NetworkSearchResult findNetworks(
 		if ( depth <1 || depth >5) {
 			throw new BadRequestException ("Received query depth "+ depth + ". It has to be an integer between 1 and 4.");
 		}
-		String route = "/network/" + id + "/asCX/query";
+		final String route = NdexApiVersion.v2 + "/network/" + id + "/asCX/query";
 		JsonNode postData = objectMapper.valueToTree(query);
 	    return  ndexRestClient.postNdexObject(route, postData);
 	}
@@ -650,7 +650,7 @@ public NetworkSearchResult findNetworks(
 	// Update network profile
 //	network	POST	/network/{networkUUID}/summary	Network	NetworkSummary
 	public NetworkSummary updateNetworkSummary(NetworkSummary networkSummary, String networkId) throws Exception {
-		String route = "/network/" + networkId + "/summary";
+		final String route = NdexApiVersion.v2 + "/network/" + networkId + "/summary";
 		JsonNode postData = objectMapper.valueToTree(networkSummary);
 		return ndexRestClient.postNdexObject(route, postData, NetworkSummary.class);
 	}	
@@ -659,7 +659,7 @@ public NetworkSearchResult findNetworks(
 	//	network	PUT	/network/{networkUUID}/properties		
 	public void setNetworkProperties(UUID networkId,
 			 List<NdexPropertyValuePair> properties) throws IllegalStateException, Exception {
-		String route = "/network/" + networkId + "/properties";	
+		final String route = NdexApiVersion.v2 + "/network/" + networkId + "/properties";	
 		JsonNode putData = objectMapper.valueToTree(properties);
 		ndexRestClient.putNdexObject(route, putData); 
 	}
@@ -668,7 +668,7 @@ public NetworkSearchResult findNetworks(
 	public ProvenanceEntity getNetworkProvenance(
 			UUID networkId) 
 			throws JsonProcessingException, IOException, NdexException {
-		String route = "/network/" + networkId + "/provenance";		
+		final String route = NdexApiVersion.v2 + "/network/" + networkId + "/provenance";		
 		return  ndexRestClient.getNdexObject(route, "", ProvenanceEntity.class);
 	}	
 
@@ -677,7 +677,7 @@ public NetworkSearchResult findNetworks(
 			UUID networkId,
 			ProvenanceEntity provenance) 
 			throws IllegalStateException, Exception {
-		String route = "/network/" + networkId + "/provenance";	
+		final String route = NdexApiVersion.v2 + "/network/" + networkId + "/provenance";	
 		JsonNode putData = objectMapper.valueToTree(provenance);
 	    ndexRestClient.putNdexObject(route, putData);
 	}
@@ -687,14 +687,14 @@ public NetworkSearchResult findNetworks(
     //	network	GET	/network/{networkId}/setFlag/{parameter}={value}	
     //  current supported parameters are   "readOnly={true|false}"
 	public void setNetworkSystemProperty(UUID networkId, Map<String,Object> properties) throws IllegalStateException, Exception  {
-		String route = "/network/" + networkId +"/systemproperty" ;
+		final String route = NdexApiVersion.v2 + "/network/" + networkId +"/systemproperty" ;
         ndexRestClient.putNdexObject(route, objectMapper.valueToTree(properties));    
 	}
 
 
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
     	  CloseableHttpClient client = HttpClients.createDefault();
-    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + "/network");
+    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + NdexApiVersion.v3 + "/network");
 
     	  try
           {
@@ -776,7 +776,7 @@ public NetworkSearchResult findNetworks(
 	
 	   public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
 	    	  CloseableHttpClient client = HttpClients.createDefault();
-	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + "/network/" + networkUUID.toString());
+	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + NdexApiVersion.v3 + "/network/" + networkUUID.toString());
 
 	    	  try
 	          {

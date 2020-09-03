@@ -63,7 +63,7 @@ public class NdexRestClientModelAccessLayerTest {
         UUID id = UUID.fromString("E2AE10B4-DFBA-4A15-BDB1-91C2257E12AC");
         NetworkSet myset = new NetworkSet();
         myset.setName("hi");
-        expect(mock.getNdexObject("/networkset/" + id.toString(), "", NetworkSet.class)).andReturn(myset);
+        expect(mock.getNdexObject(NdexApiVersion.v2 + "/networkset/" + id.toString(), "", NetworkSet.class)).andReturn(myset);
         replay(mock);
         NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(mock);
         
@@ -79,7 +79,7 @@ public class NdexRestClientModelAccessLayerTest {
         UUID id = UUID.fromString("E2AE10B4-DFBA-4A15-BDB1-91C2257E12AC");
         NetworkSet myset = new NetworkSet();
         myset.setName("hi");
-        expect(mock.getNdexObject("/networkset/" + id.toString(), "?accesskey=somekey",
+        expect(mock.getNdexObject(NdexApiVersion.v2 + "/networkset/" + id.toString(), "?accesskey=somekey",
                                   NetworkSet.class)).andReturn(myset);
         replay(mock);
         NdexRestClientModelAccessLayer ndex = new NdexRestClientModelAccessLayer(mock);

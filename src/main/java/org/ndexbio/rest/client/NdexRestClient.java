@@ -147,7 +147,7 @@ public class NdexRestClient {
 				hostName.toLowerCase().startsWith("https://"))
 			_baseroute = hostName;
 		else
-			_baseroute = "http://"+ hostName + "/v2";
+			_baseroute = "http://"+ hostName + "/";
 		authnType = AuthenticationType.BASIC;
 		this.authenticationURL = null;
 		
@@ -242,7 +242,7 @@ public class NdexRestClient {
 		if ( _username !=null && username.length()>0) {
 			User currentUser;
 			this.authnType = AuthenticationType.BASIC;		
-				currentUser = getNdexObject("/user?valid=true", "", User.class);
+				currentUser = getNdexObject(NdexApiVersion.v2 + "/user?valid=true", "", User.class);
 				_userUid = currentUser.getExternalId();
 		}
 		
@@ -261,7 +261,7 @@ public class NdexRestClient {
 		this.idToken = IDToken;
 		
 		User currentUser;
-		currentUser = getNdexObject("/user?valid=true", "", User.class);
+		currentUser = getNdexObject(NdexApiVersion.v2 + "/user?valid=true", "", User.class);
 		_userUid = currentUser.getExternalId();
 	}
 

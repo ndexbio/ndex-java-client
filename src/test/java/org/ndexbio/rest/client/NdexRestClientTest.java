@@ -206,7 +206,7 @@ public class NdexRestClientTest {
 	
 	@Test
 	public void testTaskOperators() throws IOException, NdexException {
-		UUID taskId = UUID.fromString("ff254008-adfa-11e7-9b0a-06832d634f41");
+		UUID taskId = UUID.fromString("edcb0433-a151-11eb-aaa0-525400c25d22");
 		Task t = ndex.getTask(taskId);
 		assertEquals(t.getExternalId(), taskId);
 		List<Task> tlist = ndex.getUserTasks(null, 0, 0);
@@ -227,6 +227,7 @@ public class NdexRestClientTest {
 		NiceCXNetwork cx;
 
 		// create a network in NDEx
+		System.out.println("Create network in NDEx");
 		try (InputStream is = this.getClass().getResourceAsStream("/test_network.cx")) {
 
 			networkId = ndex.createCXNetwork(is);
@@ -259,7 +260,7 @@ public class NdexRestClientTest {
 		NetworkSummary s = ndex.getNetworkSummaryById(networkId);
 		int count = 0;
 		while (!s.isCompleted()) {
-			if (count > 10)
+			if (count > 20)
 				fail("Network takes too long to process.");
 			Thread.sleep(5000);
 			System.out.println("Getting networkSummary from Ndex server.");
@@ -271,6 +272,8 @@ public class NdexRestClientTest {
 		assertEquals(s.getEdgeCount(), cx.getEdges().size());
 		assertTrue(!s.getHasSample());
 		assertTrue(s.getHasLayout());
+
+		System.out.println("Network summary object is verified.");
 
 		MetaDataCollection md = ndex.getNetworkMetadata(networkId);
 		assertEquals(md.size(), cx.getMetadata().size());
@@ -314,6 +317,8 @@ public class NdexRestClientTest {
 				
 		//update network
 		
+		System.out.println ( "Updating network...");
+		
 		NiceCXNetwork cx_bel;
 
 		try (InputStream is =
@@ -329,10 +334,10 @@ public class NdexRestClientTest {
 		s = ndex.getNetworkSummaryById(networkId);
 		count = 0;
 		while (!s.isCompleted()) {
-			if (count > 10)
+			if (count > 20)
 				fail("Network takes too long to process.");
-			Thread.sleep(2000);
-			System.out.println("Getting networkSummary from Ndex server.");
+			Thread.sleep(3000);
+			System.out.println("Getting networkSummary from Ndex server after network update.");
 			s = ndex.getNetworkSummaryById(networkId);
 		}
 		
@@ -382,7 +387,7 @@ public class NdexRestClientTest {
 			if (count > 20)
 				fail("Network takes too long to process.");
 			Thread.sleep(2000);
-			System.out.println("Getting networkSummary from Ndex server.");
+			System.out.println("Getting networkSummary from server after update network property.");
 			s2 = ndex.getNetworkSummaryById(networkId);
 		}
 		

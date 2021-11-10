@@ -105,15 +105,23 @@ public class NdexRestClientTest {
 	
 	@Test
 	public void testCreatingClientOnHTTPSProtocol() throws IOException, NdexException {
-		NdexRestClient c = new NdexRestClient("https://public.ndexbio.org/v2");
+		NdexRestClient c = new NdexRestClient("https://dev.ndexbio.org/v2");
 		NdexRestClientModelAccessLayer ndex0 = new NdexRestClientModelAccessLayer(c);
 		NdexStatus s = ndex0.getServerStatus(true);
 		assertNotNull(s.getProperties().get("Build"));
+		
+		NdexRestClient c2 = new NdexRestClient("https://dev.ndexbio.org/");
+		assertEquals(c2.getBaseroute(), "https://dev.ndexbio.org/");
+		
 	}
+
 	
 	@Test
 	public void testAnynomousClient() throws JsonProcessingException, IOException, NdexException {
 		NdexRestClient c1 = new NdexRestClient(_route);
+		
+		assertEquals(c1.getBaseroute(), "https://dev.ndexbio.org/");
+		
 		NdexRestClientModelAccessLayer ndex2 = new NdexRestClientModelAccessLayer(c1);
 		SimpleQuery query = new SimpleQuery();
 		query.setSearchString("userName:\"cj1\"");

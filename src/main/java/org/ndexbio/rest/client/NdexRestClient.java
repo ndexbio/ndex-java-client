@@ -144,10 +144,14 @@ public class NdexRestClient {
 	public NdexRestClient(String hostName)  {
 		
 		if ( hostName.toLowerCase().startsWith("http://") || 
-				hostName.toLowerCase().startsWith("https://"))
-			_baseroute = hostName;
-		else
-			_baseroute = "http://"+ hostName + "/";
+				hostName.toLowerCase().startsWith("https://")) {
+			if ( hostName.toLowerCase().endsWith("/v2")) {
+				_baseroute= hostName.substring(0, hostName.length()-2);
+			} else
+				_baseroute = hostName;
+			
+		} else
+			_baseroute = "https://"+ hostName + "/";
 		authnType = AuthenticationType.BASIC;
 		this.authenticationURL = null;
 		

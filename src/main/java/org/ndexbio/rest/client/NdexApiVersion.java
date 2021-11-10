@@ -1,7 +1,7 @@
 package org.ndexbio.rest.client;
 
 enum NdexApiVersion {
-		v1("v1"),
+		//v1("rest"),
 		v2("v2"),
 		v3("v3");
 		

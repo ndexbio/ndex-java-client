@@ -561,19 +561,31 @@ public NetworkSearchResult findNetworks(
 	}
 	
 	public InputStream getNetworkAsCXStream(UUID id) throws JsonProcessingException, IOException, NdexException {
-		final String route = NdexApiVersion.v3 + "/network/" + id ;
+		final String route = NdexApiVersion.v2 + "/network/" + id ;
 		return  ndexRestClient.getStream(route, "");
 	}
 
+	public InputStream getNetworkAsCX2Stream(UUID id) throws JsonProcessingException, IOException, NdexException {
+		final String route = NdexApiVersion.v3 + "/networks/" + id ;
+		return  ndexRestClient.getStream(route, "");
+	}
+	
 	public InputStream getNetworkAsCXStream(UUID id, String accessKey) throws JsonProcessingException, IOException, NdexException {
-		String route = NdexApiVersion.v3 + "/network/" + id ;
+		String route = NdexApiVersion.v2 + "/network/" + id ;
 		if ( accessKey != null) {
 			route += "?accesskey="+accessKey;
 		}
 		return  ndexRestClient.getStream(route, "");
 	}
-	
-	
+
+	public InputStream getNetworkAsCX2Stream(UUID id, String accessKey) throws JsonProcessingException, IOException, NdexException {
+		String route = NdexApiVersion.v3 + "/networks/" + id ;
+		if ( accessKey != null) {
+			route += "?accesskey="+accessKey;
+		}
+		return  ndexRestClient.getStream(route, "");
+	}
+
 	public NiceCXNetwork getNetwork(UUID id) throws JsonProcessingException, IOException, NdexException {
 		
 		try (InputStream is = getNetworkAsCXStream(id)) {
@@ -693,8 +705,18 @@ public NetworkSearchResult findNetworks(
 
 
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
+    	return createNetwork(input, false);
+    }
+    
+    public UUID createCX2Network (InputStream input) throws IllegalStateException, Exception {
+  	  return createNetwork(input, true);
+    }
+    
+    
+    private UUID createNetwork (InputStream input, boolean isCX2) throws IllegalStateException, Exception {
     	  CloseableHttpClient client = HttpClients.createDefault();
-    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + NdexApiVersion.v3 + "/network");
+    	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + 
+    			  (isCX2? (NdexApiVersion.v3 + "/networks"):(NdexApiVersion.v2 + "/network")) );
 
     	  try
           {
@@ -704,7 +726,7 @@ public NetworkSearchResult findNetworks(
    
               //Set to request body
               httpPost.setEntity (multiPartEntity) ;
- 
+
            	  UsernamePasswordCredentials creds = 
             	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
               httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
@@ -741,6 +763,8 @@ public NetworkSearchResult findNetworks(
           }
 
     }
+
+
 	
 	private static  Exception createNdexSpecificException(
 			CloseableHttpResponse response) throws JsonParseException, JsonMappingException, IllegalStateException, IOException {
@@ -772,11 +796,19 @@ public NetworkSearchResult findNetworks(
 		}
 
 
-
-	
 	   public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+		   updateNetwork (networkUUID, input, false);
+	   }	   
+	   
+	   public void updateCX2Network (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+		   updateNetwork (networkUUID, input, true);
+	   }	   
+	   
+	
+	   private void updateNetwork (UUID networkUUID, InputStream input, boolean isCX2) throws IllegalStateException, Exception {
 	    	  CloseableHttpClient client = HttpClients.createDefault();
-	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + NdexApiVersion.v3 + "/network/" + networkUUID.toString());
+	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + (isCX2 ? (NdexApiVersion.v3 + "/networks/"): (NdexApiVersion.v2 + "/network/"))	  
+	    			  + networkUUID.toString());
 
 	    	  try
 	          {

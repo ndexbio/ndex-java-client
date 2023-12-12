@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -76,18 +77,31 @@ public class NdexRestClientTest {
 
 	private static NdexRestClient client;
 	private static NdexRestClientModelAccessLayer ndex;
-	private static String _username = "cj1";
-	private static String _password = "aaaaaaaaa";
-	private static String _route = "dev.ndexbio.org";
+	private static String _username ;
+	private static String _password ;
+	private static String _route ;
+
+    private static Properties properties = new Properties();
 
 	@Rule
 	public ExpectedException thrown1 = ExpectedException.none();
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		 _username = "cj1";
-		 _password = "aaaaaaaaa";
-		 _route = "dev.ndexbio.org";
+		String propFile = "ndex-server.properties";
+		try (InputStream input = NdexRestClientTest.class.getClassLoader().getResourceAsStream(propFile)) {
+            if (input == null) {
+                throw new IllegalStateException( propFile +" not found in classpath.");
+            }
+            properties.load(input);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+		
+		
+		_username = properties.getProperty("ndex_user");
+		 _password = properties.getProperty("ndex_password");
+		 _route = properties.getProperty("server");
 		client = new NdexRestClient(_username, _password, _route);
 		ndex = new NdexRestClientModelAccessLayer(client);
 	}

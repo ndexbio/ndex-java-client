@@ -252,6 +252,22 @@ public class NdexRestClient {
 		
 	}
 	
+	public User authenticateUser(String username, String password) throws JsonProcessingException, IOException, NdexException  {
+		this._username = username.trim();
+		this._password = password.trim();
+		
+		if ( username.length()>0) {
+			User currentUser;
+			this.authnType = AuthenticationType.BASIC;		
+			currentUser = getNdexObject(NdexApiVersion.v2 + "/user?valid=true", "", User.class);
+			this._userUid = currentUser.getExternalId();
+			return currentUser;
+		}
+		
+		return null;
+	}
+	
+	
 	/**
 	 * Use a IDToken to sign in to NDEx server from this client. User need to make sure the IDToken is not expired. When this IDToken 
 	 * is close to its expiration time. User can use a new IDToken to sign in again.
@@ -277,6 +293,18 @@ public class NdexRestClient {
 		this.authnType = AuthenticationType.BASIC;
 	}
 
+	
+	public User getUserByUserName(String username) throws JsonProcessingException, IOException, NdexException {
+		User u = getNdexObject(NdexApiVersion.v2 + "/user?username=" + username, "", User.class);
+		return u;
+	}
+	
+	public User getUserByEmail(String email) throws JsonProcessingException, IOException, NdexException {
+		User u = getNdexObject(NdexApiVersion.v2 + "/user?email=" + email, "", User.class);
+		return u;
+	}
+	
+	
 	/*
 	 * GET
 	 */

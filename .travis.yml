@@ -10,10 +10,10 @@ branches:
     master
 
 before_script:
-  - cp test/resources/server.properties.sample test/resources/server.properties
-  - sed -i 's/PLACEHOLDER_HOST/'"$SERVER_HOST"'/g' test/resources/server.properties
-  - sed -i 's/PLACEHOLDER_USERNAME/'"$SERVER_USERNAME"'/g' test/resources/server.properties
-  - sed -i 's/PLACEHOLDER_PASSWORD/'"$SERVER_PASSWORD"'/g' test/resources/server.properties
+  - cp test/resources/ndex-server.properties.sample test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_HOST/'"$SERVER_HOST"'/g' test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_USERNAME/'"$SERVER_USERNAME"'/g' test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_PASSWORD/'"$SERVER_PASSWORD"'/g' test/resources/ndex-server.properties
   
 # deploy:
 #   provider: script

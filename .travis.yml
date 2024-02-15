@@ -8,7 +8,13 @@ jdk:
 branches:
   only:
     master
-    
+
+before_script:
+  - cp src/test/resources/ndex-server.properties.sample src/test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_HOST/'"$SERVER_HOST"'/g' src/test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_USERNAME/'"$SERVER_USERNAME"'/g' src/test/resources/ndex-server.properties
+  - sed -i 's/PLACEHOLDER_PASSWORD/'"$SERVER_PASSWORD"'/g' src/test/resources/ndex-server.properties
+  
 # deploy:
 #   provider: script
 #   script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy"

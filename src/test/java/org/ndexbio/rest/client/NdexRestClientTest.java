@@ -118,6 +118,27 @@ public class NdexRestClientTest {
 
 	
 	@Test
+	public void testNewAuth() throws IOException, NdexException {
+		NdexRestClient n = new NdexRestClient(_route);
+		User u = n.authenticateUser(_username, _password);
+		System.out.println(u);
+		assertEquals(u.getFirstName(),"cj1");
+		assertEquals(u.getUserName(),"cj1");
+		assertEquals(u.getLastName(),"unit-test account");
+		assertEquals(u.getEmailAddress(),"foo.bar@abc.edos.com");
+		assertEquals(u.getExternalId().toString(),"08c4b530-e89c-11e6-b7e1-06832d634f41");
+		assertEquals(u.getCreationTime().getTime(), 1485966754103L);
+		assertEquals(u.getImage(), "https://blog.udemy.com/wp-content/uploads/2014/05/bigstock-test-icon-63758263-300x300.jpg");
+		assertEquals(u.getModificationTime().getTime(), 1702668242395L);
+		assertEquals(u.getIsIndividual(), true);
+		assertEquals(u.getIsVerified(), true);
+		assertEquals(u.getIsDeleted(), false);
+		assertEquals(u.getDescription(), 
+				"<div>This is a test account used by java client unit test. Please don't remove this account.                  </div>");
+		assertEquals(u.getWebsite(), "https://dev.ndexbio.org/index.html#/user/08c4b530-e89c-11e6-b7e1-06832d634f41");
+		}
+	
+	@Test
 	public void testCreatingClientOnHTTPSProtocol() throws IOException, NdexException {
 		NdexRestClient c = new NdexRestClient("https://dev.ndexbio.org/v2");
 		NdexRestClientModelAccessLayer ndex0 = new NdexRestClientModelAccessLayer(c);
@@ -205,12 +226,20 @@ public class NdexRestClientTest {
 	}
 
 	@Test
-	public void testUserFunctions() throws JsonProcessingException, IOException, NdexException {
+	public void testGetMyNetworks() throws JsonProcessingException, IOException, NdexException {
 		List<NetworkSummary> myNetworks = ndex.getMyNetworks();
 		assertTrue(myNetworks.size() > 10);
 
 	}
 
+	@Test
+	public void testUserFunctions() throws JsonProcessingException, IOException, NdexException {
+		NdexRestClient c2 = new NdexRestClient (_route);
+		User u = c2.getUserByUserName("cj");
+		System.out.println(u);
+		
+		u = c2.getUserByEmail("jingjingbic@gmail.com");
+	}
 
 	@Test
 	public void testNetworkSummaris() throws JsonProcessingException, IOException, NdexException {

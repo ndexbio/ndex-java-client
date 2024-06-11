@@ -72,7 +72,9 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.junit.Ignore;
 
+//@Ignore
 public class NdexRestClientTest {
 
 	private static NdexRestClient client;
@@ -90,12 +92,14 @@ public class NdexRestClientTest {
 	public static void setUp() throws Exception {
 		String propFile = "ndex-server.properties";
 		try (InputStream input = NdexRestClientTest.class.getClassLoader().getResourceAsStream(propFile)) {
+			org.junit.Assume.assumeTrue("No ndex-server.properties found, skipping these tests", input != null);
             if (input == null) {
-                throw new IllegalStateException( propFile +" not found in classpath.");
+				return;
             }
             properties.load(input);
         } catch (Exception e) {
             e.printStackTrace();
+			org.junit.Assume.assumeTrue("No ndex-server.properties found, skipping these tests", 1 == 2);
         }
 		
 		

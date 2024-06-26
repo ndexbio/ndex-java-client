@@ -282,6 +282,15 @@ public class NdexRestClient {
 				"&fullrecord=true&key=" + pswd, "", User.class);
 		return u;
 	}
+	
+	public void updatePassword(String username, String password, String adminkey) throws IllegalStateException, IllegalArgumentException, Exception {
+		String encodedKey = Base64.encodeBase64String(adminkey.getBytes());
+        User u = new User();
+        u.setUserName(username);
+        u.setPassword(password);
+        putNdexObject(NdexApiVersion.v3 + "/admin/user?key=" + encodedKey, new ObjectMapper().valueToTree(u));
+	}
+	
 
 	public User getUserByEmail(String email) throws JsonProcessingException, IOException, NdexException {
 		User u = getNdexObject(NdexApiVersion.v2 + "/user?email=" + email, "", User.class);

@@ -65,7 +65,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.util.Properties;
-import java.util.jar.JarFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,11 +157,9 @@ public class NdexRestClient {
 		_password = null;
 		_userUid = null;
 		idToken = null;
-	//	 if (clientVersion == null) {
-	//		 clientVersion = getVersionString();
-	//	 }
-		 rawUserAgent = "Java/"+System.getProperty("java.version") + " " + clientVersion;
-		 userAgent = rawUserAgent;
+
+		rawUserAgent = "Java/"+System.getProperty("java.version") + " " + clientVersion;
+		userAgent = rawUserAgent;
 		
 	}
 	
@@ -225,7 +222,14 @@ public class NdexRestClient {
 		con.setRequestProperty("Authorization", authString);
 	}
 	
-	private String getAuthenticationString() {
+	/**
+	 * Gets authentication string that can be put in a header.
+	 * Currently supports BASIC Auth and OAUTH
+	 * 
+	 * @return Either {@code Basic XXXXX or Bearer XXXXX} unless authentication
+	 *         type is not supported in which case {@code null} is returned
+	 */
+	public String getAuthenticationString() {
 		String authString = null;
 		switch ( this.authnType ) {
 		case BASIC:
@@ -516,10 +520,28 @@ public class NdexRestClient {
 	 * @return
 	 * @throws IOException
 	 */
-	private HttpURLConnection createReturningConnection(final String route, InputStream in, String method) throws IOException {
+	protected HttpURLConnection createReturningConnection(final String route, InputStream in, String method) throws IOException {
+		return createReturningConnection(route, in, method, null);
+	}
+	
+	/**
+	 * Method need to be in uppercase.
+	 * @param route
+	 * @param in
+	 * @param method
+	 * @return
+	 * @throws IOException
+	 */
+	protected HttpURLConnection createReturningConnection(final String route, InputStream in, String method,
+			final Map<String, String> requestProperties) throws IOException {
 		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route);
 
 		setAuthorizationAndUserAgent(con);
+		if (requestProperties != null){
+			for (String key : requestProperties.keySet()){
+				con.setRequestProperty(key, requestProperties.get(key));
+			}
+		}
 		con.setRequestMethod(method);
 		con.setDoOutput(true);
 		con.connect();
@@ -923,7 +945,7 @@ public class NdexRestClient {
 	/*
 	 * Re-construct and re-throw exception received from the server.  
 	 */
-	private static void processNdexSpecificException(
+	public void processNdexSpecificException(
 		InputStream input, int httpServerResponseCode, ObjectMapper mapper) 
 		throws JsonProcessingException, IOException, NdexException {
 

@@ -41,26 +41,11 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.ndexbio.cxio.core.readers.NiceCXNetworkReader;
 import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.NiceCXNetwork;
-import org.ndexbio.model.errorcodes.NDExError;
 import org.ndexbio.model.exceptions.BadRequestException;
-import org.ndexbio.model.exceptions.DuplicateObjectException;
-import org.ndexbio.model.exceptions.ForbiddenOperationException;
 import org.ndexbio.model.exceptions.NdexException;
-import org.ndexbio.model.exceptions.ObjectNotFoundException;
-import org.ndexbio.model.exceptions.UnauthorizedOperationException;
 import org.ndexbio.model.object.CXSimplePathQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexPropertyValuePair;
@@ -75,13 +60,15 @@ import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
 import org.ndexbio.model.object.network.NetworkSummary;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.FileInputStream;
+import java.util.HashMap;
+import org.ndexbio.model.object.NdexObjectUpdateStatus;
 import org.ndexbio.model.object.NetworkSet;
 
 /**
@@ -96,6 +83,8 @@ public class NdexRestClientModelAccessLayer
 	NdexRestClient ndexRestClient = null;
 	ObjectMapper objectMapper = null;
 	User currentUser = null;
+	HashMap<String, String> jsonAcceptContentRequestProperties = new HashMap<>();
+	HashMap<String, String> txtAcceptJsonContentRequestProperties = new HashMap<>();
 
 	/**
 	 * 
@@ -105,6 +94,12 @@ public class NdexRestClientModelAccessLayer
 		super();
 		ndexRestClient = client;
 		objectMapper = new ObjectMapper();
+		jsonAcceptContentRequestProperties.put("Content-Type", "application/json");
+		jsonAcceptContentRequestProperties.put("Accept", "application/json");
+		
+		txtAcceptJsonContentRequestProperties.put("Content-Type", "application/json");
+		txtAcceptJsonContentRequestProperties.put("Accept", "text/plain");
+		
 	}
 	
 
@@ -705,15 +700,42 @@ public NetworkSearchResult findNetworks(
 
 
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
-    	return createNetwork(input, false);
+    	return createNetwork(input, NdexApiVersion.v2 + "/network", txtAcceptJsonContentRequestProperties).getUuid();
     }
     
     public UUID createCX2Network (InputStream input) throws IllegalStateException, Exception {
-  	  return createNetwork(input, true);
+  	  return createNetwork(input, NdexApiVersion.v3 + "/networks", jsonAcceptContentRequestProperties).getUuid();
     }
     
-    
-    private UUID createNetwork (InputStream input, boolean isCX2) throws IllegalStateException, Exception {
+	private NdexObjectUpdateStatus createNetwork(InputStream input, final String route,
+			final Map<String, String> requestProperties) throws IllegalStateException, Exception {
+
+		ObjectMapper mapper = new ObjectMapper();
+		HttpURLConnection con = ndexRestClient.createReturningConnection(route, input, "POST",
+				requestProperties);
+		if (con.getResponseCode() != HttpURLConnection.HTTP_CREATED){
+			ndexRestClient.processNdexSpecificException(con.getInputStream(), con.getResponseCode(), mapper);
+		}
+		try (InputStream in = con.getInputStream()) {
+			StringWriter writer = new StringWriter();
+			IOUtils.copy(in, writer, "UTF-8");
+			String theString = writer.toString();
+			
+			// if Accept is text/plain that we should expect a URL
+			// with network id
+			if (requestProperties.get("Accept").startsWith("text")){
+				int pos = theString.lastIndexOf("/");
+				String uuidStr = theString.substring(pos+1);
+				NdexObjectUpdateStatus status = new NdexObjectUpdateStatus();
+				status.setUuid(UUID.fromString(uuidStr));
+				return status;
+			}
+			return mapper.readValue(theString, NdexObjectUpdateStatus.class);
+		}
+	}
+	
+	/**
+    private UUID createNetworkOld (InputStream input, boolean isCX2) throws IllegalStateException, Exception {
     	  CloseableHttpClient client = HttpClients.createDefault();
     	  HttpPost httpPost = new HttpPost( ndexRestClient.getBaseroute() + 
     			  (isCX2? (NdexApiVersion.v3 + "/networks"):(NdexApiVersion.v2 + "/network")) );
@@ -726,10 +748,7 @@ public NetworkSearchResult findNetworks(
    
               //Set to request body
               httpPost.setEntity (multiPartEntity) ;
-
-           	  UsernamePasswordCredentials creds = 
-            	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
-              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+              httpPost.addHeader(HttpHeaders.AUTHORIZATION, ndexRestClient.getAuthenticationString());
               httpPost.addHeader( "User-Agent", ndexRestClient.getUserAgent());
                        
               //Send request
@@ -738,10 +757,8 @@ public NetworkSearchResult findNetworks(
               //Verify response if any
               if (response != null)
               {
-                  if ( response.getStatusLine().getStatusCode() != 201) {
-                	  
-                	  Exception e = createNdexSpecificException(response);
-                	  throw e;
+                  if ( response.getCode() != HttpStatus.SC_CREATED) {
+					  ndexRestClient.processNdexSpecificException(response.getEntity().getContent(), response.getCode(), new ObjectMapper());
                   }
                   try (InputStream in = response.getEntity().getContent()) {
                 	  StringWriter writer = new StringWriter();
@@ -763,51 +780,37 @@ public NetworkSearchResult findNetworks(
           }
 
     }
+	*/
+		public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+			updateNetwork (networkUUID, input, false);
+		}	   
 
-
-	
-	private static  Exception createNdexSpecificException(
-			CloseableHttpResponse response) throws JsonParseException, JsonMappingException, IllegalStateException, IOException {
-
-			ObjectMapper mapper = new ObjectMapper();
-			NDExError ndexError = mapper.readValue(response.getEntity().getContent(), NDExError.class);
-			
-			switch (response.getStatusLine().getStatusCode() ) {
-	            case (HttpURLConnection.HTTP_UNAUTHORIZED):
-	    	        // httpServerResponseCode is HTTP Status-Code 401: Unauthorized.
-	    	        return new UnauthorizedOperationException(ndexError);
-	        
-		        case (HttpURLConnection.HTTP_NOT_FOUND):
-		    	    // httpServerResponseCode is HTTP Status-Code 404: Not Found.
-		    	    return  new ObjectNotFoundException(ndexError);
-		    
-			    case (HttpURLConnection.HTTP_CONFLICT):
-			    	// httpServerResponseCode is HTTP Status-Code 409: Conflict.
-			    	return new DuplicateObjectException(ndexError);
-			    
-			    case (HttpURLConnection.HTTP_FORBIDDEN):
-			    	// httpServerResponseCode is HTTP Status-Code 403: Forbidden.
-			    	return  new ForbiddenOperationException(ndexError);
-			    
-			    default:
-			    	// default case is: HTTP Status-Code 500: Internal Server Error.
-			    	return new NdexException(ndexError);
+		public void updateCX2Network (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
+			updateNetwork (networkUUID, input, true);
+		}	   
+	   
+		private void updateNetwork(UUID networkUUID, InputStream input, boolean isCX2) throws IllegalStateException, Exception {
+			StringBuilder route = new StringBuilder();
+			if (isCX2 == true){
+				route.append(NdexApiVersion.v3);
+				route.append("/networks/");
+			} else {
+				route.append(NdexApiVersion.v2);
+				route.append("/network/");
 			}
-		}
+			HashMap<String, String> requestProperties = new HashMap<>();
 
-
-	   public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
-		   updateNetwork (networkUUID, input, false);
-	   }	   
-	   
-	   public void updateCX2Network (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
-		   updateNetwork (networkUUID, input, true);
-	   }	   
-	   
+			HttpURLConnection con = ndexRestClient.createReturningConnection(route.toString(), input, "PUT",
+					jsonAcceptContentRequestProperties);
+			if (con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT){
+				ndexRestClient.processNdexSpecificException(con.getInputStream(), con.getResponseCode(), new ObjectMapper());
+			}
+	   }
 	
-	   private void updateNetwork (UUID networkUUID, InputStream input, boolean isCX2) throws IllegalStateException, Exception {
+		/**
+	   private void updateNetworkOld (UUID networkUUID, InputStream input, boolean isCX2) throws IllegalStateException, Exception {
 	    	  CloseableHttpClient client = HttpClients.createDefault();
-	    	  HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + (isCX2 ? (NdexApiVersion.v3 + "/networks/"): (NdexApiVersion.v2 + "/network/"))	  
+		      HttpPut httpPost = new HttpPut(ndexRestClient.getBaseroute() + (isCX2 ? (NdexApiVersion.v3 + "/networks/"): (NdexApiVersion.v2 + "/network/"))	  
 	    			  + networkUUID.toString());
 
 	    	  try
@@ -818,10 +821,7 @@ public NetworkSearchResult findNetworks(
 	   
 	              //Set to request body
 	              httpPost.setEntity(multiPartEntity) ;
-	 
-	           	  UsernamePasswordCredentials creds = 
-	            	      new UsernamePasswordCredentials(ndexRestClient.getUsername(),ndexRestClient.getPassword());
-	              httpPost.addHeader(new BasicScheme().authenticate(creds, httpPost, null));
+	              httpPost.addHeader(HttpHeaders.AUTHORIZATION, ndexRestClient.getAuthenticationString());
 	              httpPost.addHeader( "User-Agent", ndexRestClient.getUserAgent());
          
 	              //Send request
@@ -830,8 +830,9 @@ public NetworkSearchResult findNetworks(
 	      	    	  //Verify response code
 	      	    	  if (response != null)
 	      	    	  {
-	      	    		  if ( response.getStatusLine().getStatusCode() != 204) {
-	      	    			  throw createNdexSpecificException(response);
+	      	    		  if ( response.getCode() != HttpStatus.SC_NO_CONTENT) {
+							  ndexRestClient.processNdexSpecificException(response.getEntity().getContent(), response.getCode(), new ObjectMapper());
+
 	      	    		  }
 	      	    		  return;
 	      	    	  }
@@ -842,8 +843,20 @@ public NetworkSearchResult findNetworks(
 	          }
 
 	    }
-	
-	
+        */
+	public static void main(String[] args) throws Exception {
+		NdexRestClient rawclient = new NdexRestClient("cbass", "12345", "http://dev.ndexbio.org/");
+		NdexRestClientModelAccessLayer client = new NdexRestClientModelAccessLayer(rawclient);
+		
+		System.out.println("Network count: " + client.getServerStatus().getNetworkCount());
+		try (InputStream targetStream = new FileInputStream(args[0])){
+			if (args[0].endsWith(".cx2")){
+				System.out.println("Id of new cx2 network: " + client.createCX2Network(targetStream));
+			} else {
+				System.out.println("Id of new cx network: " + client.createCXNetwork(targetStream));
+			}
+		}
+	}
 	/*-----------------------------------------
 	 * 
 	 *          Archive

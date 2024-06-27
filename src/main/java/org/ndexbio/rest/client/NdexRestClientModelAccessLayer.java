@@ -782,25 +782,16 @@ public NetworkSearchResult findNetworks(
     }
 	*/
 		public void updateCXNetwork (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
-			updateNetwork (networkUUID, input, false);
+			updateNetwork (networkUUID, input, NdexApiVersion.v2 + "/network");
 		}	   
 
 		public void updateCX2Network (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
-			updateNetwork (networkUUID, input, true);
+			updateNetwork (networkUUID, input,NdexApiVersion.v3 + "/networks");
 		}	   
 	   
-		private void updateNetwork(UUID networkUUID, InputStream input, boolean isCX2) throws IllegalStateException, Exception {
-			StringBuilder route = new StringBuilder();
-			if (isCX2 == true){
-				route.append(NdexApiVersion.v3);
-				route.append("/networks/");
-			} else {
-				route.append(NdexApiVersion.v2);
-				route.append("/network/");
-			}
-			HashMap<String, String> requestProperties = new HashMap<>();
-
-			HttpURLConnection con = ndexRestClient.createReturningConnection(route.toString(), input, "PUT",
+		private void updateNetwork(UUID networkUUID, InputStream input, final String route) throws IllegalStateException, Exception {
+			HttpURLConnection con = ndexRestClient.createReturningConnection(route + "/" + networkUUID.toString(),
+					input, "PUT",
 					jsonAcceptContentRequestProperties);
 			if (con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT){
 				ndexRestClient.processNdexSpecificException(con.getInputStream(), con.getResponseCode(), new ObjectMapper());
@@ -845,15 +836,17 @@ public NetworkSearchResult findNetworks(
 	    }
         */
 	public static void main(String[] args) throws Exception {
-		NdexRestClient rawclient = new NdexRestClient("cbass", "12345", "http://dev.ndexbio.org/");
+		NdexRestClient rawclient = new NdexRestClient(args[0], args[1], args[2]);
 		NdexRestClientModelAccessLayer client = new NdexRestClientModelAccessLayer(rawclient);
 		
 		System.out.println("Network count: " + client.getServerStatus().getNetworkCount());
-		try (InputStream targetStream = new FileInputStream(args[0])){
+		try (InputStream targetStream = new FileInputStream(args[3])){
 			if (args[0].endsWith(".cx2")){
-				System.out.println("Id of new cx2 network: " + client.createCX2Network(targetStream));
+				UUID networkId = client.createCX2Network(targetStream);
+				System.out.println("Id of new cx2 network: " + networkId.toString());
 			} else {
-				System.out.println("Id of new cx network: " + client.createCXNetwork(targetStream));
+				UUID networkId = client.createCXNetwork(targetStream);
+				System.out.println("Id of new cx network: " + networkId.toString());
 			}
 		}
 	}

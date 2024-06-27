@@ -133,6 +133,20 @@ public class NdexRestClientTest {
     }
 	
 	@Test
+	public void testAuthenticateUser() throws Exception {
+		replay(mockConnection, mockConnectionFactory);
+        NdexRestClient client = new NdexRestClient(null, null, _hostName);
+		User res = client.authenticateUser(_username, _password);
+		assertEquals(this._password, client.getPassword());
+        assertEquals(this._username, client.getUsername());
+        assertEquals(this._userUUID, client.getUserUid());
+		assertEquals(_userUUID, client.getUserUid());
+		assertEquals(res.getExternalId(), _userUUID);
+		assertEquals("http://localhost/", client.getBaseroute());
+        verify(mockConnection, mockConnectionFactory);
+	}
+	
+	@Test
     public void testSignInWithValidOAuth() throws Exception {
 		// have to do it all again for mocks due to change with oauth here
 		mockConnectionFactory = createMock(HttpURLConnectionFactory.class);

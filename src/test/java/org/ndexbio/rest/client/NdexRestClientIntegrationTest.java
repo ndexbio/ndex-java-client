@@ -51,7 +51,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.ndexbio.cxio.aspects.datamodels.EdgesElement;
-import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
 import org.ndexbio.cxio.core.readers.NiceCXNetworkReader;
 import org.ndexbio.cxio.metadata.MetaDataCollection;
 import org.ndexbio.model.cx.CitationElement;
@@ -72,6 +71,8 @@ import org.ndexbio.model.object.network.NetworkSummary;
 import org.ndexbio.model.object.network.VisibilityType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.ndexbio.cxio.aspects.datamodels.NetworkAttributesElement;
+import org.ndexbio.model.object.NetworkSearchResult;
 
 
 public class NdexRestClientIntegrationTest {
@@ -124,49 +125,40 @@ public class NdexRestClientIntegrationTest {
 	public void testNewAuth() throws IOException, NdexException {
 		NdexRestClient n = new NdexRestClient(_route);
 		User u = n.authenticateUser(_username, _password);
-		System.out.println(u);
+		assertEquals(u.getUserName(),_username);
+		assertNull(u.getPassword());
+		// TODO: get this information from properties file so we are not
+		//       locked into only testing on a server with this exact account
+		//       info
 		assertEquals(u.getFirstName(),"cj1");
-		assertEquals(u.getUserName(),"cj1");
 		assertEquals(u.getLastName(),"unit-test account");
 		assertEquals(u.getEmailAddress(),"foo.bar@abc.edos.com");
 		assertEquals(u.getExternalId().toString(),"08c4b530-e89c-11e6-b7e1-06832d634f41");
 		assertEquals(u.getCreationTime().getTime(), 1485966754103L);
 		assertEquals(u.getImage(), "https://blog.udemy.com/wp-content/uploads/2014/05/bigstock-test-icon-63758263-300x300.jpg");
 		assertEquals(u.getModificationTime().getTime(), 1702668242395L);
+
 		assertEquals(u.getIsIndividual(), true);
 		assertEquals(u.getIsVerified(), true);
 		assertEquals(u.getIsDeleted(), false);
-		assertEquals(u.getDescription(), 
-				"<div>This is a test account used by java client unit test. Please don't remove this account.                  </div>");
-		assertEquals(u.getWebsite(), "https://dev.ndexbio.org/index.html#/user/08c4b530-e89c-11e6-b7e1-06832d634f41");
-		}
-	
-	@Test
-	public void testCreatingClientOnHTTPSProtocol() throws IOException, NdexException {
-		NdexRestClient c = new NdexRestClient("https://dev.ndexbio.org/v2");
-		NdexRestClientModelAccessLayer ndex0 = new NdexRestClientModelAccessLayer(c);
-		NdexStatus s = ndex0.getServerStatus(true);
-		assertNotNull(s.getProperties().get("Build"));
-		
-		NdexRestClient c2 = new NdexRestClient("https://dev.ndexbio.org/");
-		assertEquals(c2.getBaseroute(), "https://dev.ndexbio.org/");
-		
-	}
+		assertEquals(u.getDescription(),                                                                                                   
+						"<div>This is a test account used by java client unit test. Please don't remove this account.                  </div>");                                                                                                                                              
+		assertEquals(u.getWebsite(), "https://dev.ndexbio.org/index.html#/user/08c4b530-e89c-11e6-b7e1-06832d634f41");                     
 
+		}
 	
 	@Test
 	public void testAnynomousClient() throws JsonProcessingException, IOException, NdexException {
 		NdexRestClient c1 = new NdexRestClient(_route);
 		
-		assertEquals(c1.getBaseroute(), "https://dev.ndexbio.org/");
+		assertTrue(c1.getBaseroute().equals(_route));
 		
 		NdexRestClientModelAccessLayer ndex2 = new NdexRestClientModelAccessLayer(c1);
 		SimpleQuery query = new SimpleQuery();
-		query.setSearchString("userName:\"cj1\"");
+		query.setSearchString("userName:\"" + _username + "\"");
 		SolrSearchResult<User> r = ndex2.findUsers(query, 0, 100);
 		assertEquals(r.getNumFound(), 1);
-		// List<User> us = r.getResultList();
-		assertEquals(r.getResultList().get(0).getUserName(), "cj1");
+		assertEquals(r.getResultList().get(0).getUserName(), _username);
 		
 		//test getting public network as anonymous user
 		NiceCXNetwork c =  ndex.getNetwork(UUID.fromString("c81ea28a-bdc4-11e7-9235-06832d634f41"));

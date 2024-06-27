@@ -880,6 +880,7 @@ public class NdexRestClient {
 		con.setDoInput(true);
         con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 		con.setRequestProperty("Accept-Encoding", "gzip");
+		con.setRequestProperty("Accept", "application/json, text/plain");
 		con.setInstanceFollowRedirects(false);
 		con.setRequestMethod("POST");
         

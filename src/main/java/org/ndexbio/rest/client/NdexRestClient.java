@@ -176,38 +176,6 @@ public class NdexRestClient {
 		return _connectionFactory;
 	}
 
-/*	
-	private void getSAMLResponse() throws Exception {
-		String requestStr = NdexRestClientUtilities.encodeMessage(createSAMLRequest());
-		String encodedUserName = NdexRestClientUtilities.encodeMessage(this._username);
-		String encodedPassword = NdexRestClientUtilities.encodeMessage(this._password);
-		
-		HttpURLConnection con = postReturningConnectionString(this.authenticationURL,
-				"SAMLRequest=" + requestStr + "&username=" + encodedUserName + "&password="
-				+ encodedPassword);
-		
-		InputStream input = con.getInputStream();
-		
-		java.util.Scanner s = new java.util.Scanner(input).useDelimiter("\\A");
-		this.SAMLResponse = s.hasNext() ? s.next() : "";
-		
-		s.close();
-		input.close();
-		// check errors in response here
-		
-		if ( SAMLResponse == null || SAMLResponse.length() <2 ) {
-			throw new Exception("Failed to authenticate. No response received from IDP.");
-		}
-		
-	}
-	
-	private static String createSAMLRequest() {
-   	    String authnRequest = new String(NdexRestClientUtilities.SAMLRequestTemplate);
-   	    authnRequest = authnRequest.replace("<AUTHN_ID>", NdexRestClientUtilities.createID());
-   	    authnRequest = authnRequest.replace("<ISSUE_INSTANT>", NdexRestClientUtilities.getDateAndTime());
-	    return authnRequest;
-	}
-*/	
 	private void setAuthorizationAndUserAgent(HttpURLConnection con) {
 		con.setRequestProperty("User-Agent", userAgent);
 		if ( this.authnType == AuthenticationType.BASIC && (_username == null || _username.isEmpty())) {
@@ -322,11 +290,36 @@ public class NdexRestClient {
 	}
 
 	
+	public UUID createUser(User u) throws JsonProcessingException, IOException, NdexException {
+				
+		String route = NdexApiVersion.v2 + "/user";
+		JsonNode postData = new ObjectMapper().valueToTree(u);
+		return createNdexObjectByPost(route, postData);
+	}
+	
+	
 	public User getUserByUserName(String username) throws JsonProcessingException, IOException, NdexException {
 		User u = getNdexObject(NdexApiVersion.v2 + "/user?username=" + username, "", User.class);
 		return u;
 	}
+
+	public User getUserFullRecordByUserName(String username, String adminkey) throws JsonProcessingException, IOException, NdexException {
+		//get base64 decoded password from the key
+		String pswd = Base64.encodeBase64String(adminkey.getBytes());
+		User u = getNdexObject(NdexApiVersion.v3 + "/users?username=" + username + 
+				"&fullrecord=true&key=" + pswd, "", User.class);
+		return u;
+	}
 	
+	public void updatePassword(String username, String password, String adminkey) throws IllegalStateException, IllegalArgumentException, Exception {
+		String encodedKey = Base64.encodeBase64String(adminkey.getBytes());
+        User u = new User();
+        u.setUserName(username);
+        u.setPassword(password);
+        putNdexObject(NdexApiVersion.v3 + "/admin/user?key=" + encodedKey, new ObjectMapper().valueToTree(u));
+	}
+	
+
 	public User getUserByEmail(String email) throws JsonProcessingException, IOException, NdexException {
 		User u = getNdexObject(NdexApiVersion.v2 + "/user?email=" + email, "", User.class);
 		return u;

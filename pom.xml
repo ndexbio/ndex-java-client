@@ -155,15 +155,10 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<includes>
-					<include>project.properties</include>
+					<include>ndexjavaclient.properties</include>
 				</includes>
 				<filtering>true</filtering>
 			</resource>
-			<resource>
-				<directory>src/test/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-
 		</resources>
 	</build>
 
@@ -177,6 +172,11 @@
 			<groupId>org.ndexbio</groupId>
 			<artifactId>ndex-object-model</artifactId>
 			<version>2.5.7-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.5.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -220,11 +220,7 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpmime</artifactId>
-			<version>4.5.14</version>
-		</dependency>
+
 	</dependencies>
 	<reporting>
 		<plugins>

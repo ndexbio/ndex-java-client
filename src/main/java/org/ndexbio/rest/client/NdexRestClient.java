@@ -39,7 +39,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +64,10 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Simple REST Client for NDEX web service.
@@ -73,8 +76,10 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  */
 public class NdexRestClient {
 
-	private static String clientVersion = "NDEx-Java/2.2.3";
-	
+	Logger logger = LoggerFactory.getLogger(NdexRestClient.class.getName());
+    
+
+	private static String clientVersion = "NDEx-Java/" + NdexRestClient.getVersion();
 	
 	// for authorization
 	String _username = null;
@@ -96,15 +101,10 @@ public class NdexRestClient {
 	
 	private String rawUserAgent;
 	
-/*	private String getVersionString () {
-		final Properties properties = new Properties();
-		try {
-			properties.load(this.getClass().getResourceAsStream("/project.properties"));
-		} catch (IOException e) {
-			return "NDEx-Java-x.x.x";
-		}
-		return (properties.getProperty("version"));
-	} */
+	/**
+	 * Factory that creates {@java java.net.URL} objects
+	 */
+	private static HttpURLConnectionFactory _connectionFactory = new HttpURLConnectionFactory();
 	
 	/**
 	 * 
@@ -119,9 +119,6 @@ public class NdexRestClient {
 	 */
 	public NdexRestClient(String username, String password, String hostName) throws JsonProcessingException, IOException, NdexException {
 		this(username, password,hostName,null);
-
-		if ( username!=null && password!=null)
-			signIn(username,password);
 	}
 
 	
@@ -145,7 +142,8 @@ public class NdexRestClient {
 		
 		if ( hostName.toLowerCase().startsWith("http://") || 
 				hostName.toLowerCase().startsWith("https://")) {
-			if ( hostName.toLowerCase().endsWith("/v2")) {
+			if ( hostName.toLowerCase().endsWith("/v2") ||
+					hostName.toLowerCase().endsWith("/v3")) {
 				_baseroute= hostName.substring(0, hostName.length()-2);
 			} else
 				_baseroute = hostName;
@@ -159,15 +157,27 @@ public class NdexRestClient {
 		_password = null;
 		_userUid = null;
 		idToken = null;
-	//	 if (clientVersion == null) {
-	//		 clientVersion = getVersionString();
-	//	 }
-		 rawUserAgent = "Java/"+System.getProperty("java.version") + " " + clientVersion;
-		 userAgent = rawUserAgent;
+
+		rawUserAgent = "Java/"+System.getProperty("java.version") + " " + clientVersion;
+		userAgent = rawUserAgent;
 		
+	}
+	
+	/**
+	 * Sets alternate {@link org.ndexbio.rest.client.HttpURLConnectionFactory}
+	 * to make testing easier
+	 * @param connectionFactory
+	 */
+	protected static void setConnectionFactory(HttpURLConnectionFactory connectionFactory){
+		_connectionFactory = connectionFactory;
+	}
+	
+	protected static HttpURLConnectionFactory getConnectionFactory(){
+		return _connectionFactory;
 	}
 
 	private void setAuthorizationAndUserAgent(HttpURLConnection con) {
+		con.setRequestProperty("User-Agent", userAgent);
 		if ( this.authnType == AuthenticationType.BASIC && (_username == null || _username.isEmpty())) {
 	
 			// if User Name is null or empty, then treat this as anonymous
@@ -178,10 +188,16 @@ public class NdexRestClient {
 		String authString = getAuthenticationString();
 
 		con.setRequestProperty("Authorization", authString);
-		con.setRequestProperty("User-Agent", userAgent);
 	}
 	
-	private String getAuthenticationString() {
+	/**
+	 * Gets authentication string that can be put in a header.
+	 * Currently supports BASIC Auth and OAUTH
+	 * 
+	 * @return Either {@code Basic XXXXX or Bearer XXXXX} unless authentication
+	 *         type is not supported in which case {@code null} is returned
+	 */
+	public String getAuthenticationString() {
 		String authString = null;
 		switch ( this.authnType ) {
 		case BASIC:
@@ -220,6 +236,18 @@ public class NdexRestClient {
 		
 	}
 	
+	/**
+	 * This seems to have been superseded by {@link #signIn(java.lang.String, java.lang.String) }
+	 * @deprecated Use {@link #signIn(java.lang.String, java.lang.String) }
+	 * @param username
+	 * @param password
+	 * @return
+	 * @throws JsonProcessingException
+	 * @throws IOException
+	 * @throws NdexException
+	 * @deprecated
+	 */
+	@Deprecated
 	public User authenticateUser(String username, String password) throws JsonProcessingException, IOException, NdexException  {
 		this._username = username.trim();
 		this._password = password.trim();
@@ -282,6 +310,15 @@ public class NdexRestClient {
 				"&fullrecord=true&key=" + pswd, "", User.class);
 		return u;
 	}
+	
+	public void updatePassword(String username, String password, String adminkey) throws IllegalStateException, IllegalArgumentException, Exception {
+		String encodedKey = Base64.encodeBase64String(adminkey.getBytes());
+        User u = new User();
+        u.setUserName(username);
+        u.setPassword(password);
+        putNdexObject(NdexApiVersion.v3 + "/admin/user?key=" + encodedKey, new ObjectMapper().valueToTree(u));
+	}
+	
 
 	public User getUserByEmail(String email) throws JsonProcessingException, IOException, NdexException {
 		User u = getNdexObject(NdexApiVersion.v2 + "/user?email=" + email, "", User.class);
@@ -460,9 +497,8 @@ public class NdexRestClient {
 
 	private HttpURLConnection getReturningConnection(final String route,
 			final String query) throws IOException {
-		URL request = new URL(_baseroute + route + query);
-
-		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route + query);
+		
 		setAuthorizationAndUserAgent(con);
 		con.setRequestProperty("Accept-Encoding", "gzip");
 
@@ -477,11 +513,28 @@ public class NdexRestClient {
 	 * @return
 	 * @throws IOException
 	 */
-	private HttpURLConnection createReturningConnection(final String route, InputStream in, String method) throws IOException {
-		URL request = new URL(_baseroute + route);
+	protected HttpURLConnection createReturningConnection(final String route, InputStream in, String method) throws IOException {
+		return createReturningConnection(route, in, method, null);
+	}
+	
+	/**
+	 * Method need to be in uppercase.
+	 * @param route
+	 * @param in
+	 * @param method
+	 * @return
+	 * @throws IOException
+	 */
+	protected HttpURLConnection createReturningConnection(final String route, InputStream in, String method,
+			final Map<String, String> requestProperties) throws IOException {
+		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route);
 
-		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		setAuthorizationAndUserAgent(con);
+		if (requestProperties != null){
+			for (String key : requestProperties.keySet()){
+				con.setRequestProperty(key, requestProperties.get(key));
+			}
+		}
 		con.setRequestMethod(method);
 		con.setDoOutput(true);
 		con.connect();
@@ -518,9 +571,8 @@ public class NdexRestClient {
 	private HttpURLConnection putReturningConnection(final String route,
 			final Object putData) throws JsonProcessingException, IOException {
 
-		URL request = new URL(_baseroute + route);
+		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route);
 		ObjectMapper objectMapper = new ObjectMapper();
-		HttpURLConnection con = (HttpURLConnection) request.openConnection();
 		setAuthorizationAndUserAgent(con);
 
 		con.setDoOutput(true);
@@ -813,9 +865,7 @@ public class NdexRestClient {
 	private HttpURLConnection postReturningConnection(String route,
 			JsonNode postData) throws JsonProcessingException, IOException {
 
-		URL request = new URL(_baseroute + route);
-
-		HttpURLConnection con = (HttpURLConnection) request.openConnection();
+		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route);
 
 		String postDataString = postData == null? "": postData.toString();
 		
@@ -823,6 +873,7 @@ public class NdexRestClient {
 		con.setDoInput(true);
         con.setRequestProperty("Content-Type", "application/json; charset=utf-8");
 		con.setRequestProperty("Accept-Encoding", "gzip");
+		con.setRequestProperty("Accept", "application/json, text/plain");
 		con.setInstanceFollowRedirects(false);
 		con.setRequestMethod("POST");
         
@@ -844,11 +895,9 @@ public class NdexRestClient {
 	 */
 	
 	protected void delete(final String route) throws IOException, NdexException {
-		HttpURLConnection con = null;
 
-		URL request = new URL(_baseroute + route);
+		HttpURLConnection con = _connectionFactory.getConnection(_baseroute + route);
 
-		con = (HttpURLConnection) request.openConnection();
 		setAuthorizationAndUserAgent(con);
 		con.setDoOutput(true);
 		con.setRequestProperty("Content-Type", "application/json");
@@ -890,7 +939,7 @@ public class NdexRestClient {
 	/*
 	 * Re-construct and re-throw exception received from the server.  
 	 */
-	private static void processNdexSpecificException(
+	public void processNdexSpecificException(
 		InputStream input, int httpServerResponseCode, ObjectMapper mapper) 
 		throws JsonProcessingException, IOException, NdexException {
 
@@ -947,4 +996,23 @@ public class NdexRestClient {
 		
 	}
 	
+	/**
+     * Reads /ndexjavaclient.properties for version information from 
+	 * ndex.version property. 
+	 * 
+     * @return version if found otherwise {@code NA}
+     */
+    public static String getVersion(){
+
+		try (InputStream is = NdexRestClient.class.getResourceAsStream("/ndexjavaclient.properties")){
+			Properties props = new Properties();
+			if (is != null){
+				props.load(is);
+			}
+			return props.getProperty("ndex.version", "NA");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "NA";
+	}
 }

@@ -836,10 +836,11 @@ public NetworkSearchResult findNetworks(
 	    }
         */
 	public static void main(String[] args) throws Exception {
-		NdexRestClient rawclient = new NdexRestClient(args[0], args[1], args[2]);
+		NdexRestClient rawclient = new NdexRestClient(args[0]);
 		NdexRestClientModelAccessLayer client = new NdexRestClientModelAccessLayer(rawclient);
 		
-		System.out.println("Network count: " + client.getServerStatus().getNetworkCount());
+		System.out.println("Success\nNetwork count: " + client.getServerStatus().getNetworkCount());
+		/**
 		try (InputStream targetStream = new FileInputStream(args[3])){
 			if (args[0].endsWith(".cx2")){
 				UUID networkId = client.createCX2Network(targetStream);
@@ -849,6 +850,7 @@ public NetworkSearchResult findNetworks(
 				System.out.println("Id of new cx network: " + networkId.toString());
 			}
 		}
+		*/
 	}
 	/*-----------------------------------------
 	 * 
@@ -901,7 +903,7 @@ public NetworkSearchResult findNetworks(
 
    // this line is only needed if you run this as a java console app.
    //  in tomcat and jboss initialization should work without this
-   ResteasyProviderFactory.pushContext(javax.ws.rs.ext.Providers.class, factory);
+   ResteasyProviderFactory.pushContext(jakarta.ws.rs.ext.Providers.class, factory);
 
    ResteasyClient client =null;
    Response r = null;

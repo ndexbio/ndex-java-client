@@ -781,7 +781,12 @@ public class NdexRestClient {
 
 		String newURL = sb.toString().trim();
 		String uuidStr = newURL.substring(newURL.lastIndexOf("/") + 1);
-		return UUID.fromString(uuidStr);
+		try {
+			return UUID.fromString(uuidStr);
+		}
+		catch(IllegalArgumentException iae){
+			throw new NdexException("Response code: " + con.getResponseCode() + " Unable to get UUID from string: " + uuidStr + " : " + iae.getMessage());
+		}
 	}
 	
 

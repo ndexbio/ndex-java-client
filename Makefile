@@ -43,5 +43,10 @@ coverage: ## check code coverage with jacoco
 install: clean ## install the package to local repo
 	mvn install
 
+deploy: ## deploy to nrnb nexus, requires VERSION=x.y.z[-SNAPSHOT]
+	@test -n "$(VERSION)" || (echo "VERSION is required, e.g. make deploy VERSION=3.0.1-SNAPSHOT" && exit 1)
+	mvn versions:set -DnewVersion=$(VERSION) -DgenerateBackupPoms=false
+	mvn deploy
+
 updateversion: ## updates version in pom.xml via maven command
 	mvn versions:set

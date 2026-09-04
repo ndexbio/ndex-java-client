@@ -595,6 +595,27 @@ public class NdexRestClient {
 	 */
 
 
+	/**
+	 * POSTs a JSON body to a route that returns no content of interest, validating the
+	 * response status the same way {@link #putNdexObject(String, JsonNode)} does.
+	 */
+	protected void postNdexObjectNoContent(
+			final String route,
+			final JsonNode postData)
+			throws IllegalStateException, Exception {
+		HttpURLConnection con = null;
+		try {
+			con = postReturningConnection(route, postData);
+			if ( con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT &&
+					 con.getResponseCode() != HttpURLConnection.HTTP_OK &&
+					 con.getResponseCode() != HttpURLConnection.HTTP_CREATED) {
+				processNdexSpecificException(con.getErrorStream(), con.getResponseCode(), new ObjectMapper());
+			}
+		} finally {
+			if ( con != null) con.disconnect();
+		}
+	}
+
 	protected <T> T postNdexObject(
 			final String route, 
 			final JsonNode postData,

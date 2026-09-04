@@ -47,6 +47,11 @@ import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.BadRequestException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.CXSimplePathQuery;
+import org.ndexbio.model.object.FileSearchResult;
+import org.ndexbio.model.object.FileVisibilityType;
+import org.ndexbio.model.object.MoveNetworksRequest;
+import org.ndexbio.model.object.NdexFolder;
+import org.ndexbio.model.object.SimpleFileQuery;
 import org.ndexbio.model.object.Group;
 import org.ndexbio.model.object.NdexPropertyValuePair;
 import org.ndexbio.model.object.NdexStatus;
@@ -58,6 +63,7 @@ import org.ndexbio.model.object.SolrSearchResult;
 import org.ndexbio.model.object.Status;
 import org.ndexbio.model.object.Task;
 import org.ndexbio.model.object.User;
+import org.ndexbio.model.object.network.VisibilityType;
 import org.ndexbio.model.object.network.NetworkSummary;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -699,12 +705,85 @@ public NetworkSearchResult findNetworks(
 	}
 
 
+    /**
+     * Lists the folders owned by the signed-in user.
+     *
+     * @param limit maximum number of folders to return
+     * @return the user's folders, newest-first as ordered by the server
+     */
+    public List<NdexFolder> getMyFolders(int limit)
+    		throws JsonProcessingException, IOException, NdexException {
+    	final String route = NdexApiVersion.v3 + "/files/folders?limit=" + limit;
+    	return ndexRestClient.getNdexObjectList(route, "", NdexFolder.class);
+    }
+
+    /**
+     * Searches files (networks, folders and shortcuts) visible to the caller.
+     *
+     * @param query the search criteria; a null query searches with no criteria
+     * @param visibility restricts results to this visibility, or null for no restriction
+     * @param start index of the first result to return
+     * @param size maximum number of results to return
+     * @return the matching files together with the total number found
+     */
+    public FileSearchResult searchFiles(SimpleFileQuery query, FileVisibilityType visibility, int start, int size)
+    		throws JsonProcessingException, IOException, NdexException {
+    	final String route = NdexApiVersion.v3 + "/search/files?start=" + start + "&size=" + size
+    			+ (visibility == null ? "" : "&visibility=" + visibility);
+    	JsonNode postData = objectMapper.valueToTree(query == null ? new SimpleFileQuery() : query);
+    	return ndexRestClient.postNdexObject(route, postData, FileSearchResult.class);
+    }
+
+    /**
+     * Moves networks into a target folder.
+     *
+     * @param request the networks to move and the folder to move them into
+     */
+    public void moveNetworks(MoveNetworksRequest request)
+    		throws IllegalStateException, Exception {
+    	final String route = NdexApiVersion.v3 + "/batch/networks/move";
+    	ndexRestClient.postNdexObjectNoContent(route, objectMapper.valueToTree(request));
+    }
+
     public UUID createCXNetwork (InputStream input) throws IllegalStateException, Exception {
     	return createNetwork(input, NdexApiVersion.v2 + "/network", txtAcceptJsonContentRequestProperties).getUuid();
     }
     
     public UUID createCX2Network (InputStream input) throws IllegalStateException, Exception {
-  	  return createNetwork(input, NdexApiVersion.v3 + "/networks", jsonAcceptContentRequestProperties).getUuid();
+  	  return createCX2Network(input, null, null);
+    }
+
+    /**
+     * Creates a CX2 network on the server, optionally setting its visibility and placing it in a folder.
+     *
+     * @param input the CX2 network stream
+     * @param visibility visibility to apply on creation, or null to leave the server default
+     * @param folderId UUID of the folder to create the network in, or null for the user's root
+     * @return the UUID of the newly created network
+     */
+    public UUID createCX2Network (InputStream input, VisibilityType visibility, UUID folderId)
+    		throws IllegalStateException, Exception {
+    	final String route = NdexApiVersion.v3 + "/networks"
+    			+ buildQuery("visibility", visibility, "folderId", folderId);
+    	return createNetwork(input, route, jsonAcceptContentRequestProperties).getUuid();
+    }
+
+    /**
+     * Builds a query string from alternating name/value pairs, skipping any pair whose value is null.
+     * Returns the empty string when no value survives.
+     */
+    static String buildQuery(Object... nameValuePairs) {
+    	if (nameValuePairs.length % 2 != 0)
+    		throw new IllegalArgumentException("expected alternating name/value pairs");
+    	StringBuilder query = new StringBuilder();
+    	for (int i = 0; i < nameValuePairs.length; i += 2) {
+    		Object value = nameValuePairs[i + 1];
+    		if (value == null)
+    			continue;
+    		query.append(query.length() == 0 ? "?" : "&")
+    		     .append(nameValuePairs[i]).append("=").append(value);
+    	}
+    	return query.toString();
     }
     
 	private NdexObjectUpdateStatus createNetwork(InputStream input, final String route,
@@ -786,11 +865,28 @@ public NetworkSearchResult findNetworks(
 		}	   
 
 		public void updateCX2Network (UUID networkUUID, InputStream input) throws IllegalStateException, Exception {
-			updateNetwork (networkUUID, input,NdexApiVersion.v3 + "/networks");
-		}	   
+			updateCX2Network (networkUUID, input, null);
+		}
+
+		/**
+		 * Replaces a CX2 network on the server, optionally changing its visibility.
+		 *
+		 * @param networkUUID the network to replace
+		 * @param input the CX2 network stream
+		 * @param visibility visibility to apply, or null to leave it unchanged
+		 */
+		public void updateCX2Network (UUID networkUUID, InputStream input, VisibilityType visibility)
+				throws IllegalStateException, Exception {
+			updateNetwork (networkUUID, input, NdexApiVersion.v3 + "/networks",
+					buildQuery("visibility", visibility));
+		}
 	   
 		private void updateNetwork(UUID networkUUID, InputStream input, final String route) throws IllegalStateException, Exception {
-			HttpURLConnection con = ndexRestClient.createReturningConnection(route + "/" + networkUUID.toString(),
+			updateNetwork(networkUUID, input, route, "");
+		}
+
+		private void updateNetwork(UUID networkUUID, InputStream input, final String route, final String query) throws IllegalStateException, Exception {
+			HttpURLConnection con = ndexRestClient.createReturningConnection(route + "/" + networkUUID.toString() + query,
 					input, "PUT",
 					jsonAcceptContentRequestProperties);
 			if (con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT){

@@ -889,8 +889,16 @@ public NetworkSearchResult findNetworks(
 			HttpURLConnection con = ndexRestClient.createReturningConnection(route + "/" + networkUUID.toString() + query,
 					input, "PUT",
 					jsonAcceptContentRequestProperties);
-			if (con.getResponseCode() != HttpURLConnection.HTTP_NO_CONTENT){
-				ndexRestClient.processNdexSpecificException(con.getInputStream(), con.getResponseCode(), new ObjectMapper());
+			final int status = con.getResponseCode();
+			// Any 2xx is a success. The v2 endpoint answers 204 No Content, but v3 answers 200 with an
+			// NdexObjectUpdateStatus body -- so checking only for 204 sent a successful v3 update down the
+			// error path, where the success body failed to parse as an NDExError and surfaced as
+			// 'Unrecognized field "uuid"' on an update that had in fact already been applied.
+			if (status < HttpURLConnection.HTTP_OK || status >= HttpURLConnection.HTTP_MULT_CHOICE) {
+				// Error bodies arrive on the error stream; getInputStream() throws for 4xx and 5xx.
+				try (InputStream errorBody = con.getErrorStream()) {
+					ndexRestClient.processNdexSpecificException(errorBody, status, new ObjectMapper());
+				}
 			}
 	   }
 	

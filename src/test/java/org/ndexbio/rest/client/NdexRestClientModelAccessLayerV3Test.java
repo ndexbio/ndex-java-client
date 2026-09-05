@@ -8,6 +8,7 @@ import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -254,6 +255,53 @@ public class NdexRestClientModelAccessLayerV3Test {
 		return route.getValue();
 	}
 
+	@Test
+	public void updateSucceedsWhenV3AnswersTwoHundredWithABody() throws Exception {
+		// The bug this guards: only 204 was treated as success, so a successful v3 update took the error
+		// path and failed parsing its own success body as an NDExError.
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.createReturningConnection(anyObject(String.class), anyObject(InputStream.class), eq("PUT"),
+				anyObject())).andReturn(okWithBodyConnection());
+		replay(client);
+
+		new NdexRestClientModelAccessLayer(client).updateCX2Network(NETWORK_ID, cx2Stream(),
+				VisibilityType.PUBLIC);
+
+		verify(client);
+	}
+
+	@Test
+	public void updateStillSucceedsWhenV2AnswersNoContent() throws Exception {
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.createReturningConnection(anyObject(String.class), anyObject(InputStream.class), eq("PUT"),
+				anyObject())).andReturn(noContentConnection());
+		replay(client);
+
+		new NdexRestClientModelAccessLayer(client).updateCXNetwork(NETWORK_ID, cx2Stream());
+
+		verify(client);
+	}
+
+	@Test
+	public void updateReportsAServerErrorFromTheErrorStream() throws Exception {
+		// getInputStream() throws for a 4xx, so the error body has to come off getErrorStream()
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.createReturningConnection(anyObject(String.class), anyObject(InputStream.class), eq("PUT"),
+				anyObject())).andReturn(notFoundConnection());
+		client.processNdexSpecificException(anyObject(InputStream.class), eq(HttpURLConnection.HTTP_NOT_FOUND),
+				anyObject(com.fasterxml.jackson.databind.ObjectMapper.class));
+		expectLastCall().andThrow(new org.ndexbio.model.exceptions.ObjectNotFoundException("network", NETWORK_ID.toString()));
+		replay(client);
+
+		try {
+			new NdexRestClientModelAccessLayer(client).updateCX2Network(NETWORK_ID, cx2Stream(), null);
+			fail("expected the server error to surface");
+		} catch (org.ndexbio.model.exceptions.NdexException expected) {
+			// the point is that it is an NdexException, not a Jackson parse failure
+		}
+		verify(client);
+	}
+
 	// ---------- helpers ----------
 
 	private static InputStream cx2Stream() {
@@ -265,6 +313,29 @@ public class NdexRestClientModelAccessLayerV3Test {
 		expect(con.getResponseCode()).andReturn(HttpURLConnection.HTTP_CREATED).anyTimes();
 		expect(con.getInputStream()).andReturn(new ByteArrayInputStream(
 				("{\"uuid\":\"" + newId + "\"}").getBytes(StandardCharsets.UTF_8))).anyTimes();
+		replay(con);
+		return con;
+	}
+
+	/** What v3 actually answers to PUT /v3/networks/{id}: 200 with an NdexObjectUpdateStatus body. */
+	private static HttpURLConnection okWithBodyConnection() throws Exception {
+		HttpURLConnection con = mock(HttpURLConnection.class);
+		expect(con.getResponseCode()).andReturn(HttpURLConnection.HTTP_OK).anyTimes();
+		expect(con.getInputStream()).andReturn(new ByteArrayInputStream(
+				("{\"uuid\":\"" + NETWORK_ID + "\",\"modificationTime\":\"2026-09-04T00:00:00Z\"}")
+						.getBytes(StandardCharsets.UTF_8))).anyTimes();
+		expect(con.getErrorStream()).andReturn(null).anyTimes();
+		replay(con);
+		return con;
+	}
+
+	/** A failing update: an NDExError body on the error stream. */
+	private static HttpURLConnection notFoundConnection() throws Exception {
+		HttpURLConnection con = mock(HttpURLConnection.class);
+		expect(con.getResponseCode()).andReturn(HttpURLConnection.HTTP_NOT_FOUND).anyTimes();
+		expect(con.getErrorStream()).andReturn(new ByteArrayInputStream(
+				"{\"errorCode\":\"NDEx_Object_Not_Found\",\"message\":\"no such network\"}"
+						.getBytes(StandardCharsets.UTF_8))).anyTimes();
 		replay(con);
 		return con;
 	}

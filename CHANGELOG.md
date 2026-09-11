@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.3] - unreleased
+
+### Changed
+
+- `getMyFolders(int limit)` now reads your folders from `GET /v3/files/folders/home/list`, because the
+endpoint it used before was retired by NDEx ([ndexbio/ndex-rest#163](https://github.com/ndexbio/ndex-rest/issues/163));
+the method signature and return type are unchanged, so existing code still compiles.
+- It now returns the folders at the top level of your home, most recently modified first, rather than
+every folder at any depth ordered by name.
+- Against NDEx servers older than 3.0.7 it still works and still returns at most `limit` folders, but
+leaves each folder's `creationTime` unset.
+
 ## [3.0.2] - 2026-09-04
 
 ### Fixed

@@ -17,15 +17,20 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.UUID;
 
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Test;
+import org.ndexbio.model.object.FileItemSummary;
 import org.ndexbio.model.object.FileSearchResult;
+import org.ndexbio.model.object.FileType;
 import org.ndexbio.model.object.FileVisibilityType;
 import org.ndexbio.model.object.MoveNetworksRequest;
 import org.ndexbio.model.object.NdexFolder;
@@ -63,19 +68,134 @@ public class NdexRestClientModelAccessLayerV3Test {
 
 	// ---------- getMyFolders ----------
 
+	/** One listing entry as the server returns it, with attributes populated the compact view's way. */
+	private static FileItemSummary folderItem(UUID uuid, String name, Map<String, Object> attributes) {
+		FileItemSummary item = new FileItemSummary();
+		item.setUuid(uuid);
+		item.setType(FileType.FOLDER);
+		item.setName(name);
+		item.setAttributes(attributes);
+		return item;
+	}
+
 	@Test
-	public void getMyFoldersUsesV3RouteWithLimit() throws Exception {
+	public void getMyFoldersReadsTheHomeFolderListing() throws Exception {
 		NdexRestClient client = mock(NdexRestClient.class);
-		NdexFolder folder = new NdexFolder();
-		folder.setName("My Project");
-		List<NdexFolder> folders = Collections.singletonList(folder);
-		expect(client.getNdexObjectList("v3/files/folders?limit=50", "", NdexFolder.class)).andReturn(folders);
+		Capture<String> route = Capture.newInstance();
+		expect(client.getNdexObjectList(EasyMock.capture(route), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Collections.singletonList(folderItem(FOLDER_ID, "My Project", null)));
 		replay(client);
 
 		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(50);
 
-		assertSame(folders, result);
+		assertEquals("v3/files/folders/home/list?type=folder&format=compact&size=50", route.getValue());
+		assertEquals(1, result.size());
 		assertEquals("My Project", result.get(0).getName());
+		assertEquals(FOLDER_ID, result.get(0).getExternalId());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersDropsFolderTargetedShortcuts() throws Exception {
+		// ?type=folder also returns shortcuts POINTING AT folders; they are not folders and must go.
+		FileItemSummary shortcut = new FileItemSummary();
+		shortcut.setUuid(UUID.randomUUID());
+		shortcut.setType(FileType.SHORTCUT);
+		shortcut.setName("link to a folder");
+
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.getNdexObjectList(anyObject(String.class), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Arrays.asList(shortcut, folderItem(FOLDER_ID, "My Project", null)));
+		replay(client);
+
+		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(50);
+
+		assertEquals(1, result.size());
+		assertEquals("My Project", result.get(0).getName());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersReadsDescriptionAndCreationTimeFromAttributes() throws Exception {
+		long epoch = 1767312245000L;
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put("description", "a folder");
+		attributes.put("creationTime", epoch);
+
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.getNdexObjectList(anyObject(String.class), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Collections.singletonList(folderItem(FOLDER_ID, "My Project", attributes)));
+		replay(client);
+
+		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(50);
+
+		assertEquals("a folder", result.get(0).getDescription());
+		assertEquals(new Timestamp(epoch), result.get(0).getCreationTime());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersLeavesCreationTimeUnsetWhenServerOmitsIt() throws Exception {
+		// Servers older than 3.0.7 send no creationTime, and absent fields are omitted rather than
+		// sent as null -- so the lookup must degrade, not throw.
+		Map<String, Object> attributes = new HashMap<>();
+		attributes.put("description", "a folder");
+
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.getNdexObjectList(anyObject(String.class), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Collections.singletonList(folderItem(FOLDER_ID, "My Project", attributes)));
+		replay(client);
+
+		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(50);
+
+		assertNull(result.get(0).getCreationTime());
+		assertEquals("a folder", result.get(0).getDescription());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersToleratesAbsentAttributesMap() throws Exception {
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.getNdexObjectList(anyObject(String.class), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Collections.singletonList(folderItem(FOLDER_ID, "My Project", null)));
+		replay(client);
+
+		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(50);
+
+		assertNull(result.get(0).getCreationTime());
+		assertNull(result.get(0).getDescription());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersTrimsAnOverLongResponseToLimit() throws Exception {
+		// A server that ignores size (before 3.0.7) returns everything; the client still honours limit.
+		NdexRestClient client = mock(NdexRestClient.class);
+		expect(client.getNdexObjectList(anyObject(String.class), eq(""), eq(FileItemSummary.class)))
+				.andReturn(Arrays.asList(
+						folderItem(UUID.randomUUID(), "one", null),
+						folderItem(UUID.randomUUID(), "two", null),
+						folderItem(UUID.randomUUID(), "three", null)));
+		replay(client);
+
+		List<NdexFolder> result = new NdexRestClientModelAccessLayer(client).getMyFolders(2);
+
+		assertEquals(2, result.size());
+		assertEquals("one", result.get(0).getName());
+		assertEquals("two", result.get(1).getName());
+		verify(client);
+	}
+
+	@Test
+	public void getMyFoldersReturnsEmptyWithoutCallingTheServerWhenLimitNotPositive() throws Exception {
+		// The old route was a SQL LIMIT, so 0 meant "nothing". The listing treats a non-positive size as
+		// unbounded, so without the guard this would flip from returning nothing to returning everything.
+		NdexRestClient client = mock(NdexRestClient.class);
+		replay(client); // no calls expected
+
+		NdexRestClientModelAccessLayer layer = new NdexRestClientModelAccessLayer(client);
+		assertTrue(layer.getMyFolders(0).isEmpty());
+		assertTrue(layer.getMyFolders(-1).isEmpty());
 		verify(client);
 	}
 

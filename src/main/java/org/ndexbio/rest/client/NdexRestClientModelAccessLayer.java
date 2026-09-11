@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.HttpURLConnection;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +49,9 @@ import org.ndexbio.model.cx.NiceCXNetwork;
 import org.ndexbio.model.exceptions.BadRequestException;
 import org.ndexbio.model.exceptions.NdexException;
 import org.ndexbio.model.object.CXSimplePathQuery;
+import org.ndexbio.model.object.FileItemSummary;
 import org.ndexbio.model.object.FileSearchResult;
+import org.ndexbio.model.object.FileType;
 import org.ndexbio.model.object.FileVisibilityType;
 import org.ndexbio.model.object.MoveNetworksRequest;
 import org.ndexbio.model.object.NdexFolder;
@@ -706,15 +710,72 @@ public NetworkSearchResult findNetworks(
 
 
     /**
-     * Lists the folders owned by the signed-in user.
+     * Lists the folders at the top level of the signed-in user's home, most recently modified first.
+     *
+     * <p>Returns at most {@code limit} folders; a non-positive {@code limit} returns an empty list.
+     * A full result is not proof that there are no further folders.</p>
+     *
+     * <p>Folders nested inside another folder are not included, and {@code owner} and
+     * {@code owner_id} are now filled in where they previously came back null.</p>
+     *
+     * <p>Against NDEx servers older than 3.0.7 each folder's {@code creationTime} is left unset;
+     * everything else is populated the same way on every supported server.</p>
      *
      * @param limit maximum number of folders to return
-     * @return the user's folders, newest-first as ordered by the server
+     * @return the user's top-level folders, most recently modified first
      */
     public List<NdexFolder> getMyFolders(int limit)
     		throws JsonProcessingException, IOException, NdexException {
-    	final String route = NdexApiVersion.v3 + "/files/folders?limit=" + limit;
-    	return ndexRestClient.getNdexObjectList(route, "", NdexFolder.class);
+    	if (limit <= 0)
+    		return new ArrayList<>();
+
+    	// size is spent on folders AND folder-targeted shortcuts, which are dropped below, so the
+    	// server can return fewer than `limit` folders in a full page. Servers before 3.0.7 ignore
+    	// size altogether. Both are why the result is trimmed here rather than trusted as-is.
+    	final String route = NdexApiVersion.v3 + "/files/folders/home/list"
+    			+ buildQuery("type", "folder", "format", "compact", "size", limit);
+    	List<FileItemSummary> items =
+    			ndexRestClient.getNdexObjectList(route, "", FileItemSummary.class);
+
+    	List<NdexFolder> folders = new ArrayList<>();
+    	for (FileItemSummary item : items) {
+    		if (item == null || item.getType() != FileType.FOLDER)
+    			continue;
+    		folders.add(toFolder(item));
+    		if (folders.size() == limit)
+    			break;
+    	}
+    	return folders;
+    }
+
+    /** Maps one listing entry onto the folder representation this client has always returned. */
+    private static NdexFolder toFolder(FileItemSummary item) {
+    	NdexFolder folder = new NdexFolder();
+    	folder.setExternalId(item.getUuid());
+    	folder.setName(item.getName());
+    	folder.setModificationTime(item.getModificationTime());
+    	folder.setOwner(item.getOwner());
+    	folder.setOwner_id(item.getOwnerId() == null ? null : item.getOwnerId().toString());
+    	folder.setParent(null);          // these are the caller's top-level folders
+    	folder.setIsDeleted(false);      // a listing never includes deleted folders
+
+    	// NdexExternalObject's constructor stamps creationTime with "now". Clear it, or a server that
+    	// sends no creationTime (before 3.0.7) would hand back a fabricated timestamp instead of none.
+    	folder.setCreationTime(null);
+
+    	// Fields with no value are omitted from the response entirely, so every lookup below must
+    	// tolerate an absent key, not merely a null value.
+    	Map<String, Object> attributes = item.getAttributes();
+    	if (attributes != null) {
+    		Object description = attributes.get("description");
+    		if (description != null)
+    			folder.setDescription(description.toString());
+
+    		Object created = attributes.get("creationTime");
+    		if (created instanceof Number)
+    			folder.setCreationTime(new Timestamp(((Number) created).longValue()));
+    	}
+    	return folder;
     }
 
     /**
